@@ -14,7 +14,6 @@ from social_django.utils import load_strategy
 from social_core.backends.google import GoogleOAuth2
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.decorators import login_required
-
 from .models import (
     Profile,
     Keyword,
