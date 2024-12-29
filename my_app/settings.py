@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.auth0",
+    "allauth.socialaccount.providers.facebook",
 ]
 
 MIDDLEWARE = [
@@ -103,6 +104,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "social_django.context_processors.backends",
+                "social_django.context_processors.login_redirect",
             ],
         },
     },
@@ -161,16 +164,6 @@ AUTH0_CLIENT_SECRET = os.getenv("AUTH0_CLIENT_SECRET", "default-value-or-None")
 
 # Add your Google OAuth credentials
 SOCIALACCOUNT_PROVIDERS = {
-    "google": {
-        "SCOPE": [
-            "profile",
-            "email",
-        ],
-        "AUTH_PARAMS": {
-            "access_type": "online",
-        },
-        "OAUTH_PKCE_ENABLED": True,  # Enables PKCE for Google OAuth
-    },
     "auth0": {
         "DOMAIN": os.getenv("AUTH0_DOMAIN"),  # Environment variable for Auth0 domain
         "CLIENT_ID": os.getenv(
@@ -180,6 +173,16 @@ SOCIALACCOUNT_PROVIDERS = {
             "AUTH0_CLIENT_SECRET"
         ),  # Environment variable for Auth0 client secret
         "SCOPE": ["openid", "profile", "email"],  # Scopes for Auth0
+    },
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "OAUTH_PKCE_ENABLED": True,  # Enables PKCE for Google OAuth
     },
 }
 
@@ -234,8 +237,8 @@ DATABASES = {
     }
 }
 
-print(f"DATABASE: {os.getenv('DB_NAME')} USER: {os.getenv('DB_USER')}")
-print(f"GOOGLE KEY: {os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')}")
+# print(f"DATABASE: {os.getenv('DB_NAME')} USER: {os.getenv('DB_USER')}")
+# print(f"GOOGLE KEY: {os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')}")
 
 
 # Password validation
