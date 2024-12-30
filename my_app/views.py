@@ -304,7 +304,12 @@ except Exception as e:
     print(f"Error: {e}")
 
 from django.urls import path
-from .views import UserProfileView
+
+
+class UserProfileView(View):
+    def get(self, request):
+        return HttpResponse("User Profile")
+
 
 urlpatterns = [
     path("user-profile/", UserProfileView.as_view(), name="user-profile"),
@@ -312,8 +317,3 @@ urlpatterns = [
 
 from django.views import View
 from django.http import HttpResponse
-
-
-class UserProfileView(View):
-    def get(self, request):
-        return HttpResponse("User Profile")
