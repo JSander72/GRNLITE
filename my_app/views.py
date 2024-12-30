@@ -304,6 +304,8 @@ except Exception as e:
     print(f"Error: {e}")
 
 from django.urls import path
+from django.views import View  # Add this import
+from django.http import HttpResponse  # Add this import
 
 
 class UserProfileView(View):
