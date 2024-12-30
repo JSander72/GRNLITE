@@ -302,3 +302,18 @@ try:
     print("Template exists and is accessible.")
 except Exception as e:
     print(f"Error: {e}")
+
+from django.urls import path
+from .views import UserProfileView
+
+urlpatterns = [
+    path("user-profile/", UserProfileView.as_view(), name="user-profile"),
+]
+
+from django.views import View
+from django.http import HttpResponse
+
+
+class UserProfileView(View):
+    def get(self, request):
+        return HttpResponse("User Profile")
