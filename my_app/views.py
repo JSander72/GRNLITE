@@ -105,8 +105,13 @@ def reader_resource_library(request):
     return render(request, "Reader_Dashboard/reader-resource-library.html")
 
 
+def beta_reader_list(request):
+    return render(request, "Reader_Dashboard/beta-reader-list.html")
+
+
 def beta_reader_training(request):
     return render(request, "Reader_Dashboard/beta-reader-training.html")
+    return JsonResponse({"message": "This is the beta reader list."})
 
 
 def beta_reader_performance_metrics(request):
@@ -296,6 +301,11 @@ class FeedbackResponseDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 from django.template.loader import get_template
+
+urlpatterns = [
+    path("beta-readers/", beta_reader_list, name="beta_reader_list"),
+    # ...other url patterns...
+]
 
 try:
     get_template("Author_Dashboard/beta-reader-list.html")
