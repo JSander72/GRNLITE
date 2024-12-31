@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Grn Lite - Author Dashboard</title>
+		{% load static %}
+
+		<link rel="stylesheet" href="{% static 'Front_End/CSS/styles.css' %}" />
+		<script>
+			// JavaScript to dynamically add notifications
+			document.addEventListener("DOMContentLoaded", () => {
+				const notifications = [
+					"You have new feedback on your manuscript 'The Lost World'.",
+					"Your manuscript 'Unraveled Mysteries' has been reviewed by 2 beta readers.",
+					"A new beta reader has bid for your manuscript 'The Last Stand'.",
+					"Your NDA has been signed by the last beta reader.",
+				];
+
+				const notificationsList = document.getElementById("notifications-list");
+
+				notifications.forEach((notification) => {
+					const listItem = document.createElement("li");
+					listItem.textContent = notification;
+					notificationsList.appendChild(listItem);
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div class="dashboard-container">
+			<!-- Sidebar -->
+			{% include 'author-sidebar.html' %}
+
+			<!-- Main Content -->
+			<main class="main-content">
+				<div class="content-header">
+					<h1>Welcome Back, Author!</h1>
+					<button class="btn btn-primary">
+						<a
+							href="{% url 'my_app:manuscript-submission-html' %}"
+							style="color: white; text-decoration: none"
+							>Add New Title</a
+						>
+					</button>
+				</div>
+
+				<!-- Notifications -->
+				<div class="card notifications-card">
+					<h3>Notifications</h3>
+					<ul id="notifications-list">
+						<!-- Notifications will be dynamically populated -->
+					</ul>
+				</div>
+				<!-- Dashboard Cards -->
+				<div class="dashboard-grid">
+					<!-- Existing Cards -->
+					<div class="card">
+						<h3>Active Titles</h3>
+						<p>3 manuscripts in review</p>
+					</div>
+					<div class="card">
+						<h3>Completed Reviews</h3>
+						<p>12 reviews received</p>
+					</div>
+					<div class="card">
+						<h3>Find Beta Readers</h3>
+						<p>View and hire beta readers for your projects.</p>
+						<button class="btn btn-secondary">
+							<a
+								href="{% url 'my_app:find-beta-readers-html' %}" 
+								style="color: white; text-decoration: none"
+								>Find Beta Readers</a
+							>
+						</button>
+					</div>
+					<!-- New Cards -->
+					<div class="card">
+						<h3>Manuscript Submission</h3>
+						<p>Submit and manage your manuscripts here.</p>
+						<button class="btn btn-secondary">
+							<a
+								href="{% url 'my_app:manuscript-submission-html' %}"
+								style="color: white; text-decoration: none"
+								>Submit Manuscript</a
+							>
+						</button>
+					</div>
+					<div class="card">
+						<h3>Feedback Summary</h3>
+						<p>View and analyze feedback for your projects.</p>
+						<button class="btn btn-secondary">
+							<a
+								href="{% url 'my_app:feedback-summary-html' %}"
+								style="color: white; text-decoration: none"
+								>View Feedback</a
+							>
+						</button>
+					</div>
+					<div class="card">
+						<h3>Resource Library</h3>
+						<p>Access and share writing resources here.</p>
+						<button class="btn btn-secondary">
+							<a
+								href="{% url 'my_app:author-resource-library-html' %}"
+								style="color: white; text-decoration: none"
+								>Explore Resources</a
+							>
+						</button>
+					</div>
+					<div class="card">
+						<h3>Community Groups</h3>
+						<p>
+							Connect with other authors in genre-based groups, writing goals,
+							and self-publishing discussions.
+						</p>
+						<button class="btn btn-secondary">
+							<a
+								href="{% url 'my_app:author-community-groups-html' %}"
+								style="color: white; text-decoration: none"
+								>Join Community</a
+							>
+						</button>
+					</div>
+				</div>
+
+				<!-- Author Dashboard Payment Card -->
+				<div class="card">
+					<h3>Manage Payments</h3>
+					<p>
+						View and process payments to Beta Readers for completed projects.
+					</p>
+					<button class="btn btn-secondary">
+						<a
+							href="{% url 'my_app:author-payment-page-html' %}"
+							style="color: white; text-decoration: none"
+							>Manage Payments</a
+						>
+					</button>
+				</div>
+
+				<!-- Recent Activity Section -->
+				<div class="card">
+					<h3>Recent Activity</h3>
+					<p>Track your latest projects, submissions, and feedback here.</p>
+				</div>
+			</main>
+		</div>
+		<!-- <script src="{% static 'redirectToAuthPage.js' %}"></script> -->
+	</body>
+</html>
