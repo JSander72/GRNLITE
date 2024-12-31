@@ -91,10 +91,6 @@ def logout(request):
 
 # Reader Dashboard Views
 def reader_dashboard(request):
-    return render(request, "reader-dashboard.html")
-
-
-def reader_dashboard(request):
     return render(request, "Reader_Dashboard/reader-dashboard.html")
 
 
@@ -135,10 +131,6 @@ def reader_settings(request):
 
 
 # Author Dashboard Views
-def author_dashboard(request):
-    return render(request, "author-dashboard.html")
-
-
 def author_dashboard(request):
     return render(request, "Author_Dashboard/author-dashboard.html")
 

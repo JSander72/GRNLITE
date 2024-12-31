@@ -155,9 +155,6 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv(
 
 AUTH_USER_MODEL = "my_app.CustomUser"
 
-# LOGIN_REDIRECT_URL = "/"
-# LOGOUT_REDIRECT_URL = "/"
-
 AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN", "default-value-or-None")
 AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID", "default-value-or-None")
 AUTH0_CLIENT_SECRET = os.getenv("AUTH0_CLIENT_SECRET", "default-value-or-None")
@@ -222,25 +219,10 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.user.user_details",
 )
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": os.getenv("DB_NAME"),
-#         "USER": os.getenv("DB_USER"),
-#         "PASSWORD": os.getenv("DB_PASSWORD"),
-#         "HOST": os.getenv("DB_HOST"),
-#         "PORT": os.getenv("DB_PORT"),
-#     }
-# }
 DATABASES = {"default": dj_database_url.config(default=os.environ.get("DATABASE_URL"))}
-
-# print(f"DATABASE: {os.getenv('DB_NAME')} USER: {os.getenv('DB_USER')}")
-# print(f"GOOGLE KEY: {os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')}")
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

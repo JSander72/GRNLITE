@@ -1,4 +1,4 @@
-from django.urls import path, include, re_path
+from django.urls import path, include
 from . import views
 from .views import (
     GoogleLoginView,
@@ -238,7 +238,6 @@ urlpatterns = [
         name="author-settings",
     ),
 ]
-
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
