@@ -6,6 +6,7 @@ from .views import (
     BetaReaderListCreateView,
     find_beta_readers,
     beta_reader_list,
+    ProfileListCreateView,  # Ensure this is imported
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -31,9 +32,7 @@ urlpatterns = [
     path("auth/google/", GoogleLoginView.as_view(), name="google-login"),
     path("auth/profile/", UserProfileView.as_view(), name="user-profile"),
     # Profile URLs
-    path(
-        "profiles/", views.ProfileListCreateView.as_view(), name="profile-list-create"
-    ),
+    path("profiles/", ProfileListCreateView.as_view(), name="profile-list-create"),
     path(
         "profiles/<int:pk>/", views.ProfileDetailView.as_view(), name="profile-detail"
     ),

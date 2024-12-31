@@ -344,3 +344,10 @@ urlpatterns = [
         "beta-reader-list/", BetaReaderListCreateView.as_view(), name="beta-reader-list"
     ),
 ]
+
+
+class ProfileListCreateView(ListView, CreateView):
+    model = Profile
+    template_name = "profile_list_create.html"
+    context_object_name = "profiles"
+    fields = ["name", "email", "bio"]
