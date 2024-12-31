@@ -6,16 +6,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .forms import ManuscriptSubmissionForm
-from django.views.generic import ListView, CreateView
-from django.http import JsonResponse
-from .models import Manuscript, Feedback
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from social_django.utils import load_strategy
-from social_core.backends.google import GoogleOAuth2
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth.decorators import login_required
+from django.views.generic import ListView, CreateView, DetailView
+from django.http import JsonResponse, HttpResponse
 from .models import (
+    Manuscript,
+    Feedback,
     Profile,
     Keyword,
     FeedbackQuestion,
@@ -42,6 +37,14 @@ from .serializers import (
     BetaReaderApplicationSerializer,
     ManuscriptFeedbackPreferenceSerializer,
 )
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from social_django.utils import load_strategy
+from social_core.backends.google import GoogleOAuth2
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.decorators import login_required
+from django.template.loader import get_template
+from django.views import View
 
 
 # Home View
@@ -112,7 +115,6 @@ def beta_reader_list(request):
 
 def beta_reader_training(request):
     return render(request, "Reader_Dashboard/beta-reader-training.html")
-    return JsonResponse({"message": "This is the beta reader list."})
 
 
 def beta_reader_performance_metrics(request):
@@ -301,49 +303,15 @@ class FeedbackResponseDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = FeedbackResponseSerializer
 
 
-from django.template.loader import get_template
-
-urlpatterns = [
-    path("beta-readers/", beta_reader_list, name="beta_reader_list"),
-    # ...other url patterns...
-]
-
-try:
-    get_template("Author_Dashboard/beta-reader-list.html")
-    print("Template exists and is accessible.")
-except Exception as e:
-    print(f"Error: {e}")
-
-from django.urls import path
-from django.views import View  # Add this import
-from django.http import HttpResponse  # Add this import
-
-
 class UserProfileView(View):
     def get(self, request):
         return HttpResponse("User Profile")
 
 
-urlpatterns = [
-    path("user-profile/", UserProfileView.as_view(), name="user-profile"),
-]
-
-from django.views import View
-from django.http import HttpResponse
-
-
-class BetaReaderListCreateView(CreateView):  # Define the view
+class BetaReaderListCreateView(CreateView):
     model = BetaReader
     template_name = "Author_Dashboard/beta-reader-list.html"
-    fields = ["name", "email"]  # Adjust fields based on your model
-
-
-urlpatterns = [
-    path("user-profile/", UserProfileView.as_view(), name="user-profile"),
-    path(
-        "beta-reader-list/", BetaReaderListCreateView.as_view(), name="beta-reader-list"
-    ),
-]
+    fields = ["name", "email"]
 
 
 class ProfileListCreateView(ListView, CreateView):
@@ -353,11 +321,21 @@ class ProfileListCreateView(ListView, CreateView):
     fields = ["name", "email", "bio"]
 
 
-from django.views.generic import DetailView
-from .models import Profile
-
-
 class ProfileDetailView(DetailView):
     model = Profile
     template_name = "profile_detail.html"
     context_object_name = "profile"
+
+
+class KeywordListCreateView(generics.ListCreateAPIView):
+    queryset = Keyword.objects.all()
+    serializer_class = KeywordSerializer
+
+
+urlpatterns = [
+    path("beta-readers/", beta_reader_list, name="beta_reader_list"),
+    path("user-profile/", UserProfileView.as_view(), name="user-profile"),
+    path(
+        "beta-reader-list/", BetaReaderListCreateView.as_view(), name="beta-reader-list"
+    ),
+]
