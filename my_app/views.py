@@ -36,6 +36,7 @@ from .serializers import (
     NotificationSerializer,
     BetaReaderApplicationSerializer,
     ManuscriptFeedbackPreferenceSerializer,
+    FeedbackSerializer,
 )
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -277,6 +278,61 @@ class UserListCreateView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
 
 
+class AuthorSettingsListCreateView(generics.ListCreateAPIView):
+    queryset = AuthorSettings.objects.all()
+    serializer_class = AuthorSettingsSerializer
+
+
+class NotificationListCreateView(generics.ListCreateAPIView):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+
+
+class ResourceInteractionListCreateView(generics.ListCreateAPIView):
+    queryset = ResourceInteraction.objects.all()
+    serializer_class = ResourceInteractionSerializer
+
+
+class FeedbackListCreateView(generics.ListCreateAPIView):
+    queryset = Feedback.objects.all()
+    serializer_class = FeedbackSerializer
+
+
+class FeedbackDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Feedback.objects.all()
+    serializer_class = FeedbackSerializer
+
+
+class BetaReaderApplicationListCreateView(generics.ListCreateAPIView):
+    queryset = BetaReaderApplication.objects.all()
+    serializer_class = BetaReaderApplicationSerializer
+
+
+class BetaReaderApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = BetaReaderApplication.objects.all()
+    serializer_class = BetaReaderApplicationSerializer
+
+
+class ManuscriptFeedbackPreferenceListCreateView(generics.ListCreateAPIView):
+    queryset = ManuscriptFeedbackPreference.objects.all()
+    serializer_class = ManuscriptFeedbackPreferenceSerializer
+
+
+class ManuscriptFeedbackPreferenceDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ManuscriptFeedbackPreference.objects.all()
+    serializer_class = ManuscriptFeedbackPreferenceSerializer
+
+
+class ResourceListCreateView(generics.ListCreateAPIView):
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+
+
+class ResourceDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+
+
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -344,10 +400,15 @@ class FeedbackQuestionListCreateView(ListView, CreateView):
     # Add any additional configurations here
 
 
-urlpatterns = [
-    path("beta-readers/", beta_reader_list, name="beta_reader_list"),
-    path("user-profile/", UserProfileView.as_view(), name="user-profile"),
-    path(
-        "beta-reader-list/", BetaReaderListCreateView.as_view(), name="beta-reader-list"
-    ),
-]
+class FeedbackQuestionDetailView(DetailView):
+    model = FeedbackQuestion
+    template_name = "feedback_question_detail.html"
+    # Add any additional configurations here
+
+
+def error_404_view(request, exception):
+    print(f"404 error: {exception}")
+    return render(request, "404.html", status=404)
+
+
+handler404 = error_404_view

@@ -92,6 +92,11 @@ urlpatterns = [
         FeedbackQuestionListCreateView.as_view(),
         name="feedback-list-create",
     ),
+    path(
+        "feedback/<int:pk>/",
+        FeedbackQuestionDetailView.as_view(),
+        name="feedback-detail",
+    ),
     # Manuscript Feedback Preference URLs
     path(
         "manuscript-feedback-preferences/",
@@ -210,7 +215,30 @@ urlpatterns = [
     ),
     path("author-payment-page/", views.author_payment_page, name="author-payment-page"),
     path("author-settings/", views.author_settings, name="author-settings"),
+    path("beta-readers/", beta_reader_list, name="beta_reader_list"),
+    path("user-profile/", UserProfileView.as_view(), name="user-profile"),
+    path(
+        "beta-reader-list/", BetaReaderListCreateView.as_view(), name="beta-reader-list"
+    ),
+    path("notifications/", NotificationListCreateView.as_view(), name="notifications"),
+    path(
+        "resource-interactions/",
+        ResourceInteractionListCreateView.as_view(),
+        name="resource-interactions",
+    ),
+    path("auth/google/", GoogleLoginView.as_view(), name="google-login"),
+    path(
+        "feedback-questions/",
+        FeedbackQuestionListCreateView.as_view(),
+        name="feedback-questions",
+    ),
+    path(
+        "author-settings/",
+        AuthorSettingsListCreateView.as_view(),
+        name="author-settings",
+    ),
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
