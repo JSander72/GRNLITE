@@ -87,6 +87,11 @@ urlpatterns = [
         FeedbackQuestionDetailView.as_view(),
         name="feedback-question-detail",
     ),
+    path(
+        "feedback/",
+        FeedbackQuestionListCreateView.as_view(),
+        name="feedback-list-create",
+    ),
     # Manuscript Feedback Preference URLs
     path(
         "manuscript-feedback-preferences/",

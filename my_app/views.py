@@ -338,6 +338,12 @@ class KeywordDetailView(DetailView):
     context_object_name = "keyword"
 
 
+class FeedbackQuestionListCreateView(ListView, CreateView):
+    model = FeedbackQuestion
+    template_name = "feedback_question_list_create.html"
+    # Add any additional configurations here
+
+
 urlpatterns = [
     path("beta-readers/", beta_reader_list, name="beta_reader_list"),
     path("user-profile/", UserProfileView.as_view(), name="user-profile"),
