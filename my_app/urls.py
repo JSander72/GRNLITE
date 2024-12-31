@@ -75,6 +75,7 @@ urlpatterns = [
     # Keyword URLs
     path("keywords/", KeywordListCreateView.as_view(), name="keyword-list-create"),
     path("keywords/<int:pk>/", KeywordDetailView.as_view(), name="keyword-detail"),
+    path("keyword/<int:pk>/", KeywordDetailView.as_view(), name="keyword-detail"),
     # Feedback Question URLs
     path(
         "feedback-questions/",

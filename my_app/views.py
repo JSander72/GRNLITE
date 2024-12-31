@@ -332,6 +332,12 @@ class KeywordListCreateView(generics.ListCreateAPIView):
     serializer_class = KeywordSerializer
 
 
+class KeywordDetailView(DetailView):
+    model = Keyword
+    template_name = "keyword_detail.html"
+    context_object_name = "keyword"
+
+
 urlpatterns = [
     path("beta-readers/", beta_reader_list, name="beta_reader_list"),
     path("user-profile/", UserProfileView.as_view(), name="user-profile"),
