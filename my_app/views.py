@@ -319,3 +319,17 @@ urlpatterns = [
 
 from django.views import View
 from django.http import HttpResponse
+
+
+class BetaReaderListCreateView(CreateView):  # Define the view
+    model = BetaReader
+    template_name = "Author_Dashboard/beta-reader-list.html"
+    fields = ["name", "email"]  # Adjust fields based on your model
+
+
+urlpatterns = [
+    path("user-profile/", UserProfileView.as_view(), name="user-profile"),
+    path(
+        "beta-reader-list/", BetaReaderListCreateView.as_view(), name="beta-reader-list"
+    ),
+]
