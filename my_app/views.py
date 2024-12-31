@@ -94,6 +94,10 @@ def reader_dashboard(request):
     return render(request, "reader-dashboard.html")
 
 
+def reader_dashboard(request):
+    return render(request, "Reader_Dashboard/reader-dashboard.html")
+
+
 def available_manuscripts(request):
     return render(request, "Reader_Dashboard/available-manuscripts.html")
 
@@ -133,6 +137,10 @@ def reader_settings(request):
 # Author Dashboard Views
 def author_dashboard(request):
     return render(request, "author-dashboard.html")
+
+
+def author_dashboard(request):
+    return render(request, "Author_Dashboard/author-dashboard.html")
 
 
 def my_manuscripts(request):
