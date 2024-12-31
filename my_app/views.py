@@ -283,12 +283,27 @@ class AuthorSettingsListCreateView(generics.ListCreateAPIView):
     serializer_class = AuthorSettingsSerializer
 
 
+class AuthorSettingsDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = AuthorSettings.objects.all()
+    serializer_class = AuthorSettingsSerializer
+
+
 class NotificationListCreateView(generics.ListCreateAPIView):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
 
 
+class NotificationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+
+
 class ResourceInteractionListCreateView(generics.ListCreateAPIView):
+    queryset = ResourceInteraction.objects.all()
+    serializer_class = ResourceInteractionSerializer
+
+
+class ResourceInteractionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ResourceInteraction.objects.all()
     serializer_class = ResourceInteractionSerializer
 
