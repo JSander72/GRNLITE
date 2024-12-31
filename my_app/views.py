@@ -351,3 +351,13 @@ class ProfileListCreateView(ListView, CreateView):
     template_name = "profile_list_create.html"
     context_object_name = "profiles"
     fields = ["name", "email", "bio"]
+
+
+from django.views.generic import DetailView
+from .models import Profile
+
+
+class ProfileDetailView(DetailView):
+    model = Profile
+    template_name = "profile_detail.html"
+    context_object_name = "profile"

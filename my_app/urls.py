@@ -7,6 +7,7 @@ from .views import (
     find_beta_readers,
     beta_reader_list,
     ProfileListCreateView,  # Ensure this is imported
+    ProfileDetailView,  # Ensure this is imported
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -33,9 +34,7 @@ urlpatterns = [
     path("auth/profile/", UserProfileView.as_view(), name="user-profile"),
     # Profile URLs
     path("profiles/", ProfileListCreateView.as_view(), name="profile-list-create"),
-    path(
-        "profiles/<int:pk>/", views.ProfileDetailView.as_view(), name="profile-detail"
-    ),
+    path("profiles/<int:pk>/", ProfileDetailView.as_view(), name="profile-detail"),
     # Manuscript URLs
     path(
         "manuscript-submission/",
