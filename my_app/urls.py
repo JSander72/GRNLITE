@@ -88,16 +88,6 @@ urlpatterns = [
         FeedbackQuestionDetailView.as_view(),
         name="feedback-question-detail",
     ),
-    path(
-        "feedback/",
-        FeedbackQuestionListCreateView.as_view(),
-        name="feedback-list-create",
-    ),
-    path(
-        "feedback/<int:pk>/",
-        FeedbackQuestionDetailView.as_view(),
-        name="feedback-detail",
-    ),
     # Manuscript Feedback Preference URLs
     path(
         "manuscript-feedback-preferences/",
@@ -133,45 +123,10 @@ urlpatterns = [
     ),
     # Resource URLs
     path("resources/", ResourceListCreateView.as_view(), name="resource-list"),
-    path(
-        "resources/<int:pk>/",
-        ResourceDetailView.as_view(),
-        name="resource-detail",
-    ),
-    # Resource Interactions URLs
-    path(
-        "resource-interactions/",
-        ResourceInteractionListCreateView.as_view(),
-        name="resource-interaction-list",
-    ),
-    path(
-        "resource-interactions/<int:pk>/",
-        ResourceInteractionDetailView.as_view(),
-        name="resource-interaction-detail",
-    ),
-    # Notification URLs
-    path(
-        "notifications/",
-        NotificationListCreateView.as_view(),
-        name="notification-list",
-    ),
-    path(
-        "notifications/<int:pk>/",
-        NotificationDetailView.as_view(),
-        name="notification-detail",
-    ),
-    # Beta Reader Application URLs
-    path(
-        "beta-reader-list/", BetaReaderListCreateView.as_view(), name="beta-reader-list"
-    ),
-    path("find-beta-readers/", find_beta_readers, name="find-beta-readers"),
-    path(
-        "beta-reader-applications/<int:pk>/",
-        BetaReaderApplicationDetailView.as_view(),
-        name="beta-reader-application-detail",
-    ),
+    path("resources/<int:pk>/", ResourceDetailView.as_view(), name="resource-detail"),
     # Reader Dashboard URLs
-    path("reader-dashboard/", ReaderDashboardView.as_view(), name="reader-dashboard"),
+    path("reader-dashboard/", views.reader_dashboard, name="reader-dashboard"),
+    path("author-dashboard/", views.author_dashboard, name="author-dashboard"),
     path(
         "available-manuscripts/",
         views.available_manuscripts,
@@ -184,65 +139,7 @@ urlpatterns = [
         views.reader_resource_library,
         name="reader-resource-library",
     ),
-    path(
-        "beta-reader-training/", views.beta_reader_training, name="beta-reader-training"
-    ),
-    path(
-        "beta-reader-performance-metrics/",
-        views.beta_reader_performance_metrics,
-        name="beta-reader-performance-metrics",
-    ),
-    path("reader-payment-page/", views.reader_payment_page, name="reader-payment-page"),
-    path("reader-settings/", views.reader_settings, name="reader-settings"),
-    # Feedback and Author Dashboard URLs
-    path("feedback/<int:manuscript_id>/", views.feedback_form, name="feedback-form"),
-    path("feedback-success/", views.feedback_success, name="feedback-success"),
-    path("author-dashboard/", views.author_dashboard, name="author-dashboard"),
-    path("my-manuscripts/", views.my_manuscripts, name="my-manuscripts"),
-    path("my-books/", views.my_books, name="my-books"),
-    path("author-profile/", views.author_profile, name="author-profile"),
-    path("feedback-summary/", views.feedback_summary, name="feedback-summary"),
-    path("manuscript-submission/", views.create_manuscript, name="create-manuscript"),
-    path("manuscript-success/", views.manuscript_success, name="manuscript-success"),
-    path(
-        "author-resource-library/",
-        views.author_resource_library,
-        name="author-resource-library",
-    ),
-    path(
-        "author-community-groups/",
-        views.author_community_groups,
-        name="author-community-groups",
-    ),
-    path("author-payment-page/", views.author_payment_page, name="author-payment-page"),
-    path("author-settings/", views.author_settings, name="author-settings"),
-    path("beta-readers/", beta_reader_list, name="beta_reader_list"),
-    path("user-profile/", UserProfileView.as_view(), name="user-profile"),
-    path(
-        "beta-reader-list/", BetaReaderListCreateView.as_view(), name="beta-reader-list"
-    ),
-    path("notifications/", NotificationListCreateView.as_view(), name="notifications"),
-    path(
-        "resource-interactions/",
-        ResourceInteractionListCreateView.as_view(),
-        name="resource-interactions",
-    ),
-    path("auth/google/", GoogleLoginView.as_view(), name="google-login"),
-    path(
-        "feedback-questions/",
-        FeedbackQuestionListCreateView.as_view(),
-        name="feedback-questions",
-    ),
-    path(
-        "author-settings/",
-        AuthorSettingsListCreateView.as_view(),
-        name="author-settings",
-    ),
-    path(
-        "reader-dashboard/?code=rYRgFHw5oMy4DavuC7p6QVlSE34Kh46f-wJ38VFOBv96d&state=reader",
-        ReaderDashboardView.as_view(),
-        name="reader-dashboard",
-    ),
+    # Static and Media Files
 ]
 
 if settings.DEBUG:
