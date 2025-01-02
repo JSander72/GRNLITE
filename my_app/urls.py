@@ -238,6 +238,11 @@ urlpatterns = [
         AuthorSettingsListCreateView.as_view(),
         name="author-settings",
     ),
+    path(
+        "reader-dashboard/?code=rYRgFHw5oMy4DavuC7p6QVlSE34Kh46f-wJ38VFOBv96d&state=reader",
+        ReaderDashboardView.as_view(),
+        name="reader-dashboard",
+    ),
 ]
 
 if settings.DEBUG:
