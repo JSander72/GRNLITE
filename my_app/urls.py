@@ -29,6 +29,7 @@ from .views import (
     ManuscriptDetailView,
     UserListCreateView,
     UserDetailView,
+    ReaderDashboardView,
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -170,7 +171,7 @@ urlpatterns = [
         name="beta-reader-application-detail",
     ),
     # Reader Dashboard URLs
-    path("reader-dashboard/", views.reader_dashboard, name="reader-dashboard"),
+    path("reader-dashboard/", ReaderDashboardView.as_view(), name="reader-dashboard"),
     path(
         "available-manuscripts/",
         views.available_manuscripts,
