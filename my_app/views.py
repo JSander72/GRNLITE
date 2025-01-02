@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .forms import ManuscriptSubmissionForm
-from django.views.generic import ListView, CreateView, DetailView
+from django.views.generic import ListView, CreateView, DetailView, TemplateView
 from django.http import JsonResponse, HttpResponse
 from .models import (
     Manuscript,
@@ -128,6 +128,10 @@ def reader_payment_page(request):
 
 def reader_settings(request):
     return render(request, "Reader_Dashboard/reader-settings.html")
+
+
+class ReaderDashboardView(TemplateView):
+    template_name = "reader-dashboard.html"
 
 
 # Author Dashboard Views
