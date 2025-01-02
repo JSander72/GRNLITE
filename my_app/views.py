@@ -7,6 +7,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from .forms import ManuscriptSubmissionForm
 from django.views.generic import ListView, CreateView, DetailView, TemplateView
 from django.http import JsonResponse, HttpResponse
+from social_django.utils import load_strategy
+from social_core.backends.google import GoogleOAuth2, BaseOAuth2
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import (
     Manuscript,
     Feedback,
@@ -40,6 +43,27 @@ from .serializers import (
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+
+
+class GoogleLoginView(APIView):
+    def post(self, request):
+        token = request.data.get("token")
+        if not token:
+            return Response({"error": "Token not provided"}, status=400)
+
+        try:
+            strategy = load_strategy(request)
+            backend = GoogleOAuth2(strategy=strategy)
+            user_data = backend.user_data(token)
+            user, created = User.objects.get_or_create(
+                email=user_data["email"], defaults={"username": user_data["email"]}
+            )
+            refresh = RefreshToken.for_user(user)
+            return Response(
+                {"access": str(refresh.access_token), "refresh": str(refresh)}
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
 
 
 # Home View
