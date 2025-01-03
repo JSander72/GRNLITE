@@ -124,6 +124,46 @@ class ReaderDashboardView(APIView):
         return Response(data)
 
 
+class AuthorDashboardView(APIView):
+    """
+    Provides an aggregated view of data relevant to the author.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Fetch manuscripts available to the author
+        manuscripts = Manuscript.objects.filter(author=request.user)
+        manuscripts_data = ManuscriptSerializer(manuscripts, many=True).data
+
+        # Fetch notifications for the author
+        notifications = Notification.objects.filter(user=request.user, is_read=False)
+        notifications_data = NotificationSerializer(notifications, many=True).data
+
+        # Aggregate data into a dashboard response
+        data = {
+            "manuscripts": manuscripts_data,
+            "notifications": notifications_data,
+        }
+        return Response(data)
+
+
+class ReaderDashboardTemplateView(TemplateView):
+    """
+    Serves the reader dashboard as an HTML template.
+    """
+
+    template_name = "reader-dashboard.html"
+
+
+class AuthorDashboardTemplateView(TemplateView):
+    """
+    Serves the author dashboard as an HTML template.
+    """
+
+    template_name = "author-dashboard.html"
+
+
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 

@@ -32,6 +32,8 @@ from .views import (
     UserListCreateView,
     UserDetailView,
     ReaderDashboardView,
+    ReaderDashboardTemplateView,
+    AuthorDashboardTemplateView,
     OAuth2LoginView,
     find_beta_readers,
     beta_reader_list,
@@ -161,7 +163,17 @@ urlpatterns = [
     ),
     # Reader Dashboard URLs
     path("reader-dashboard/", ReaderDashboardView.as_view(), name="reader-dashboard"),
+    path(
+        "reader-dashboard/template/",
+        ReaderDashboardTemplateView.as_view(),
+        name="reader-dashboard-template",
+    ),
     path("author-dashboard/", views.author_dashboard, name="author-dashboard"),
+    path(
+        "author-dashboard/template/",
+        AuthorDashboardTemplateView.as_view(),
+        name="author-dashboard-template",
+    ),
     path(
         "available-manuscripts/",
         views.available_manuscripts,
