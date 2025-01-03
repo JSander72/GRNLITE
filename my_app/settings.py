@@ -22,15 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "fallback-secret-key")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "your-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.getenv(
-    "DJANGO_ALLOWED_HOSTS",
-    "127.0.0.1,localhost,grnlite.onrender.com,.render.com,0.0.0.0,",
-).split(",")
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
 
 USE_TZ = True  # Ensure this is set
 
@@ -64,7 +61,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -78,6 +74,7 @@ ROOT_URLCONF = "my_app.urls"
 
 AUTHENTICATION_BACKENDS = (
     "social_core.backends.google.GoogleOAuth2",
+    "social_core.backends.auth0.Auth0OAuth2",
     "social_core.backends.facebook.FacebookOAuth2",
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
@@ -145,12 +142,11 @@ SIMPLE_JWT = {
 }
 
 # OAuth settings
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "fallback-secret-key")
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv(
-    "SOCIAL_AUTH_GOOGLE_OAUTH2_KEY", "default-value-or-None"
+    "SOCIAL_AUTH_GOOGLE_OAUTH2_KEY", "your-client-id"
 )
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv(
-    "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET", "default-value-or-None"
+    "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET", "your-client-secret"
 )
 
 AUTH_USER_MODEL = "my_app.CustomUser"

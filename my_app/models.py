@@ -7,10 +7,14 @@ from django.utils.timezone import now
 
 
 class CustomUser(AbstractUser):
+    profile_picture = models.ImageField(upload_to="profiles/", blank=True, null=True)
     groups = models.ManyToManyField(Group, related_name="customuser_set", blank=True)
     user_permissions = models.ManyToManyField(
         Permission, related_name="customuser_set", blank=True
     )
+
+    def __str__(self):
+        return self.username
 
 
 class CustomUserGroup(models.Model):

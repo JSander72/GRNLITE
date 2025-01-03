@@ -1,5 +1,7 @@
 from django.contrib import admin
 from allauth.socialaccount.models import SocialAccount
+
+# from my_app.models import CustomUser
 from .models import (
     Manuscript,
     Profile,
@@ -12,6 +14,7 @@ from .models import (
     BetaReaderApplication,
     ResourceInteraction,
     MyModel,
+    CustomUser,
 )
 
 
@@ -42,6 +45,11 @@ class KeywordAdmin(admin.ModelAdmin):
 class FeedbackQuestionAdmin(admin.ModelAdmin):
     list_display = ("question_text", "is_active")
     list_filter = ("is_active",)
+
+
+@admin.register(CustomUser)
+class CustomUserAdmin(admin.ModelAdmin):
+    list_display = ["id", "username", "email"]
 
 
 @admin.register(FeedbackResponse)

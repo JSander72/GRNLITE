@@ -1,5 +1,7 @@
 from django.urls import path, include
 from . import views
+
+# from allauth.socialaccount.views import OAuth2LoginView
 from .views import (
     GoogleLoginView,
     UserProfileView,
@@ -30,6 +32,9 @@ from .views import (
     UserListCreateView,
     UserDetailView,
     ReaderDashboardView,
+    OAuth2LoginView,
+    find_beta_readers,
+    beta_reader_list,
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -51,12 +56,15 @@ urlpatterns = [
     path("auth/social/", include("social_django.urls", namespace="social")),
     # Google OAuth2 URLs
     path("admin/", admin.site.urls),
+    path("oauth/login/", OAuth2LoginView.as_view(), name="oauth-login"),
+    path("", include("django.contrib.auth.urls")),
     path("accounts/", include("allauth.urls")),
     path("auth/google/", GoogleLoginView.as_view(), name="google-login"),
     path("auth/profile/", UserProfileView.as_view(), name="user-profile"),
     # Profile URLs
     path("profiles/", ProfileListCreateView.as_view(), name="profile-list-create"),
     path("profiles/<int:pk>/", ProfileDetailView.as_view(), name="profile-detail"),
+    path("profile/", UserProfileView.as_view(), name="user-profile"),
     # Manuscript URLs
     path(
         "manuscript-submission/",
@@ -92,6 +100,11 @@ urlpatterns = [
     path(
         "manuscript-feedback-preferences/",
         ManuscriptFeedbackPreferenceListCreateView.as_view(),
+        name="manuscript-feedback-preference-list-create",
+    ),
+    path(
+        "manuscript-feedback-preferences/",
+        ManuscriptFeedbackPreferenceListCreateView.as_view(),
         name="manuscript-feedback-preference-list",
     ),
     path(
@@ -110,6 +123,11 @@ urlpatterns = [
         FeedbackResponseDetailView.as_view(),
         name="feedback-response-detail",
     ),
+    path(
+        "feedback-questions/",
+        FeedbackQuestionListCreateView.as_view(),
+        name="feedback-question-list-create",
+    ),
     # Author Settings URLs
     path(
         "author-settings/",
@@ -121,9 +139,15 @@ urlpatterns = [
         AuthorSettingsDetailView.as_view(),
         name="author-settings-detail",
     ),
+    path(
+        "author-settings/",
+        AuthorSettingsListCreateView.as_view(),
+        name="author-settings-list-create",
+    ),
     # Resource URLs
     path("resources/", ResourceListCreateView.as_view(), name="resource-list"),
     path("resources/<int:pk>/", ResourceDetailView.as_view(), name="resource-detail"),
+    path("resources/", ResourceListCreateView.as_view(), name="resource-list-create"),
     # Reader Dashboard URLs
     path("reader-dashboard/", views.reader_dashboard, name="reader-dashboard"),
     path("author-dashboard/", views.author_dashboard, name="author-dashboard"),
@@ -134,6 +158,13 @@ urlpatterns = [
     ),
     path("reader-feedback/", views.reader_feedback, name="reader-feedback"),
     path("reader-profile/", views.reader_profile, name="reader-profile"),
+    path(
+        "beta-readers/",
+        BetaReaderListCreateView.as_view(),
+        name="beta-reader-list-create",
+    ),
+    path("beta-readers/", beta_reader_list, name="beta-reader-list"),
+    path("find-beta-readers/", find_beta_readers, name="find-beta-readers"),
     path(
         "reader-resource-library/",
         views.reader_resource_library,

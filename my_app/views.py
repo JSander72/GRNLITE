@@ -1,6 +1,6 @@
 from django.shortcuts import redirect, render, get_object_or_404
-from rest_framework import generics
-from django.contrib.auth.models import User
+from rest_framework import generics, permissions
+from django.contrib.auth import get_user_model
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -24,6 +24,7 @@ from .models import (
     Notification,
     BetaReaderApplication,
     BetaReader,
+    Profile,
 )
 from .serializers import (
     UserSerializer,
@@ -39,8 +40,11 @@ from .serializers import (
     BetaReaderApplicationSerializer,
     ManuscriptFeedbackPreferenceSerializer,
     FeedbackSerializer,
+    BetaReaderSerializer,
+    ProfileSerializer,
 )
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 
@@ -64,6 +68,253 @@ class GoogleLoginView(APIView):
             )
         except Exception as e:
             return Response({"error": str(e)}, status=400)
+
+
+User = get_user_model()
+
+
+class OAuth2LoginView(APIView):
+    def post(self, request):
+        token = request.data.get("token")
+        if not token:
+            return Response({"error": "Token not provided"}, status=400)
+
+        try:
+            strategy = load_strategy(request)
+            backend = BaseOAuth2(strategy=strategy)
+            user_data = backend.user_data(token)
+
+            user, created = User.objects.get_or_create(
+                email=user_data.get("email"),
+                defaults={"username": user_data.get("email")},
+            )
+
+            return Response(
+                {
+                    "username": user.username,
+                    "email": user.email,
+                    "created": created,
+                }
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
+
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+    def put(self, request):
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+
+class ProfileDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Handles retrieving, updating, and deleting a specific profile.
+    """
+
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Ensures that a user can only access their own profile or profiles they are allowed to view.
+        """
+        return Profile.objects.filter(user=self.request.user)
+
+
+class ProfileListCreateView(generics.ListCreateAPIView):
+    """
+    Handles listing and creating profiles.
+    """
+
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """
+        Associates the created profile with the currently logged-in user.
+        """
+        serializer.save(user=self.request.user)
+
+
+class AuthorSettingsListCreateView(generics.ListCreateAPIView):
+    """
+    Handles listing and creating author settings.
+    """
+
+    queryset = AuthorSettings.objects.all()
+    serializer_class = AuthorSettingsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """
+        Associates the created settings with the logged-in user.
+        """
+        serializer.save(author=self.request.user)
+
+
+class AuthorSettingsDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Handles retrieving, updating, and deleting a specific author settings object.
+    """
+
+    queryset = AuthorSettings.objects.all()
+    serializer_class = AuthorSettingsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Ensures a user can only access their own author settings.
+        """
+        return AuthorSettings.objects.filter(author=self.request.user)
+
+
+class BetaReaderListCreateView(generics.ListCreateAPIView):
+    queryset = BetaReader.objects.all()
+    serializer_class = BetaReaderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Optionally add the currently logged-in user to the BetaReader object
+        serializer.save(user=self.request.user)
+
+
+class ResourceListCreateView(generics.ListCreateAPIView):
+    """
+    Handles listing and creating resources.
+    """
+
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """
+        Associates the created resource with the logged-in user.
+        """
+        serializer.save(creator=self.request.user)
+
+
+class KeywordListCreateView(generics.ListCreateAPIView):
+    """
+    Handles listing and creating keywords.
+    """
+
+    queryset = Keyword.objects.all()
+    serializer_class = KeywordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """
+        Save the keyword instance.
+        """
+        serializer.save()
+
+
+class KeywordDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Handles retrieving, updating, and deleting a specific keyword.
+    """
+
+    queryset = Keyword.objects.all()
+    serializer_class = KeywordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class FeedbackQuestionListCreateView(generics.ListCreateAPIView):
+    """
+    Handles listing and creating feedback questions.
+    """
+
+    queryset = FeedbackQuestion.objects.all()
+    serializer_class = FeedbackQuestionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """
+        Save the feedback question instance.
+        """
+        serializer.save()
+
+
+class FeedbackResponseDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Handles retrieving, updating, and deleting a specific feedback response.
+    """
+
+    queryset = FeedbackResponse.objects.all()
+    serializer_class = FeedbackResponseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Ensures users can only access their own feedback responses.
+        """
+        return FeedbackResponse.objects.filter(reader=self.request.user)
+
+
+class FeedbackQuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Handles retrieving, updating, and deleting a specific feedback question.
+    """
+
+    queryset = FeedbackQuestion.objects.all()
+    serializer_class = FeedbackQuestionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class ManuscriptFeedbackPreferenceListCreateView(generics.ListCreateAPIView):
+    """
+    Handles listing and creating manuscript feedback preferences.
+    """
+
+    queryset = ManuscriptFeedbackPreference.objects.all()
+    serializer_class = ManuscriptFeedbackPreferenceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """
+        Save the manuscript feedback preference instance.
+        """
+        serializer.save()
+
+
+class ManuscriptFeedbackPreferenceDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Handles retrieving, updating, and deleting a specific manuscript feedback preference.
+    """
+
+    queryset = ManuscriptFeedbackPreference.objects.all()
+    serializer_class = ManuscriptFeedbackPreferenceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class FeedbackResponseListCreateView(generics.ListCreateAPIView):
+    """
+    Handles listing and creating feedback responses.
+    """
+
+    queryset = FeedbackResponse.objects.all()
+    serializer_class = FeedbackResponseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """
+        Associates the feedback response with the currently logged-in user.
+        """
+        serializer.save(reader=self.request.user)
 
 
 # Home View
@@ -159,6 +410,44 @@ def feedback_form(request, manuscript_id):
         )
         return redirect("feedback-success")
     return render(request, "reader-feedback.html", {"manuscript": manuscript})
+
+
+from rest_framework.decorators import permission_classes
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def find_beta_readers(request):
+    """
+    Filters beta readers based on query parameters.
+    Query parameters:
+        - experience (string): Text to match in experience field.
+        - genres (list of IDs): Genre IDs to filter by.
+    """
+    experience_query = request.GET.get("experience", "")
+    genres_query = request.GET.getlist("genres")
+
+    # Filter beta readers by experience and genres
+    beta_readers = BetaReader.objects.all()
+
+    if experience_query:
+        beta_readers = beta_readers.filter(experience__icontains=experience_query)
+    if genres_query:
+        beta_readers = beta_readers.filter(genres__id__in=genres_query).distinct()
+
+    serializer = BetaReaderSerializer(beta_readers, many=True)
+    return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def beta_reader_list(request):
+    """
+    Returns a list of all beta readers.
+    """
+    beta_readers = BetaReader.objects.all()
+    serializer = BetaReaderSerializer(beta_readers, many=True)
+    return Response(serializer.data)
 
 
 # Error 404 View
