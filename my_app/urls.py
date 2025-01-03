@@ -162,7 +162,9 @@ urlpatterns = [
         name="resource-interaction-list-create",
     ),
     # Reader Dashboard URLs
-    path("reader-dashboard/", ReaderDashboardView.as_view(), name="reader-dashboard"),
+    path(
+        "reader-dashboard/", ReaderDashboardView.as_view(), name="reader-dashboard.html"
+    ),
     path(
         "reader-dashboard/template/",
         ReaderDashboardTemplateView.as_view(),
