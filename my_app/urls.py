@@ -51,6 +51,7 @@ urlpatterns = [
     path("logout/", views.logout, name="logout"),
     path("users/", UserListCreateView.as_view(), name="user-list-create"),
     path("users/<int:pk>/", UserDetailView.as_view(), name="user-detail"),
+    # Auth URLs
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
     path("auth/social/", include("social_django.urls", namespace="social")),
@@ -148,8 +149,18 @@ urlpatterns = [
     path("resources/", ResourceListCreateView.as_view(), name="resource-list"),
     path("resources/<int:pk>/", ResourceDetailView.as_view(), name="resource-detail"),
     path("resources/", ResourceListCreateView.as_view(), name="resource-list-create"),
+    path(
+        "resource-interactions/<int:pk>/",
+        ResourceInteractionDetailView.as_view(),
+        name="resource-interaction-detail",
+    ),
+    path(
+        "resource-interactions/",
+        ResourceInteractionListCreateView.as_view(),
+        name="resource-interaction-list-create",
+    ),
     # Reader Dashboard URLs
-    path("reader-dashboard/", views.reader_dashboard, name="reader-dashboard"),
+    path("reader-dashboard/", ReaderDashboardView.as_view(), name="reader-dashboard"),
     path("author-dashboard/", views.author_dashboard, name="author-dashboard"),
     path(
         "available-manuscripts/",
@@ -169,6 +180,21 @@ urlpatterns = [
         "reader-resource-library/",
         views.reader_resource_library,
         name="reader-resource-library",
+    ),
+    path(
+        "notifications/",
+        NotificationListCreateView.as_view(),
+        name="notification-list-create",
+    ),
+    path(
+        "notifications/<int:pk>/",
+        NotificationDetailView.as_view(),
+        name="notification-detail",
+    ),
+    path(
+        "beta-reader-applications/<int:pk>/",
+        BetaReaderApplicationDetailView.as_view(),
+        name="beta-reader-application-detail",
     ),
     # Static and Media Files
 ]

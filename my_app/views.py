@@ -100,6 +100,30 @@ class OAuth2LoginView(APIView):
             return Response({"error": str(e)}, status=400)
 
 
+class ReaderDashboardView(APIView):
+    """
+    Provides an aggregated view of data relevant to the reader.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Fetch manuscripts available to the reader
+        manuscripts = Manuscript.objects.all()
+        manuscripts_data = ManuscriptSerializer(manuscripts, many=True).data
+
+        # Fetch notifications for the reader
+        notifications = Notification.objects.filter(user=request.user, is_read=False)
+        notifications_data = NotificationSerializer(notifications, many=True).data
+
+        # Aggregate data into a dashboard response
+        data = {
+            "manuscripts": manuscripts_data,
+            "notifications": notifications_data,
+        }
+        return Response(data)
+
+
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -115,6 +139,64 @@ class UserProfileView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
+
+
+class UserListCreateView(generics.ListCreateAPIView):
+    """
+    Handles listing and creating users.
+    """
+
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Handles retrieving, updating, and deleting a specific user.
+    """
+
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Ensures users can only access their own user details.
+        """
+        return User.objects.filter(id=self.request.user.id)
+
+
+class ManuscriptListCreateView(generics.ListCreateAPIView):
+    """
+    Handles listing and creating manuscripts.
+    """
+
+    queryset = Manuscript.objects.all()
+    serializer_class = ManuscriptSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """
+        Associates the created manuscript with the logged-in user.
+        """
+        serializer.save(author=self.request.user)
+
+
+class ManuscriptDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Handles retrieving, updating, and deleting a specific manuscript.
+    """
+
+    queryset = Manuscript.objects.all()
+    serializer_class = ManuscriptSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Ensures users can only access their own manuscripts.
+        """
+        return Manuscript.objects.filter(author=self.request.user)
 
 
 class ProfileDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -191,6 +273,22 @@ class BetaReaderListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 
+class ResourceInteractionListCreateView(generics.ListCreateAPIView):
+    """
+    Handles listing and creating resource interactions.
+    """
+
+    queryset = ResourceInteraction.objects.all()
+    serializer_class = ResourceInteractionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """
+        Associates the created interaction with the logged-in user.
+        """
+        serializer.save(user=self.request.user)
+
+
 class ResourceListCreateView(generics.ListCreateAPIView):
     """
     Handles listing and creating resources.
@@ -205,6 +303,70 @@ class ResourceListCreateView(generics.ListCreateAPIView):
         Associates the created resource with the logged-in user.
         """
         serializer.save(creator=self.request.user)
+
+
+class ResourceInteractionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Handles retrieving, updating, and deleting a specific resource interaction.
+    """
+
+    queryset = ResourceInteraction.objects.all()
+    serializer_class = ResourceInteractionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Ensures users can only access their own resource interactions.
+        """
+        return ResourceInteraction.objects.filter(user=self.request.user)
+
+
+class ResourceDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Handles retrieving, updating, and deleting a specific resource.
+    """
+
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Ensures a user can only access resources they have created.
+        """
+        return Resource.objects.filter(creator=self.request.user)
+
+
+class NotificationListCreateView(generics.ListCreateAPIView):
+    """
+    Handles listing and creating notifications.
+    """
+
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """
+        Associates the created notification with the logged-in user.
+        """
+        serializer.save(user=self.request.user)
+
+
+class NotificationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Handles retrieving, updating, and deleting a specific notification.
+    """
+
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Ensures users can only access their own notifications.
+        """
+        return Notification.objects.filter(user=self.request.user)
 
 
 class KeywordListCreateView(generics.ListCreateAPIView):
@@ -231,6 +393,22 @@ class KeywordDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Keyword.objects.all()
     serializer_class = KeywordSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+class BetaReaderApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Handles retrieving, updating, and deleting a specific beta reader application.
+    """
+
+    queryset = BetaReaderApplication.objects.all()
+    serializer_class = BetaReaderApplicationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Ensures users can only access their own beta reader applications.
+        """
+        return BetaReaderApplication.objects.filter(user=self.request.user)
 
 
 class FeedbackQuestionListCreateView(generics.ListCreateAPIView):

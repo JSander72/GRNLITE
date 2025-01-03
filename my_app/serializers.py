@@ -42,7 +42,15 @@ class ProfileSerializer(serializers.ModelSerializer):
 class ManuscriptSerializer(serializers.ModelSerializer):
     class Meta:
         model = Manuscript
-        fields = "__all__"
+        fields = [
+            "id",
+            "author",
+            "title",
+            "summary",
+            "content",
+            "created_at",
+            "updated_at",
+        ]
 
 
 class KeywordSerializer(serializers.ModelSerializer):
@@ -102,13 +110,13 @@ class ResourceSerializer(serializers.ModelSerializer):
 class ResourceInteractionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResourceInteraction
-        fields = "__all__"
+        fields = ["id", "user", "resource", "interaction_type", "timestamp"]
 
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = "__all__"
+        fields = ["id", "user", "message", "is_read", "created_at"]
 
 
 class BetaReaderSerializer(serializers.ModelSerializer):
@@ -120,7 +128,7 @@ class BetaReaderSerializer(serializers.ModelSerializer):
 class BetaReaderApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = BetaReaderApplication
-        fields = "__all__"
+        fields = ["id", "user", "application_status", "applied_at", "updated_at"]
 
 
 class ManuscriptFeedbackPreferenceSerializer(serializers.ModelSerializer):
