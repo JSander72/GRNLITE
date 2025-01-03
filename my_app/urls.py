@@ -163,7 +163,7 @@ urlpatterns = [
     ),
     # Reader Dashboard URLs
     path(
-        "reader-dashboard/", ReaderDashboardView.as_view(), name="reader-dashboard.html"
+        "reader-dashboard.html", ReaderDashboardView.as_view(), name="reader-dashboard"
     ),
     path(
         "reader-dashboard/template/",
