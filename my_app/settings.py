@@ -121,16 +121,16 @@ DJOSER = {
 }
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-        "rest_framework.authentication.TokenAuthentication",
-    ),
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",  # For web authentication
+        "rest_framework_simplejwt.authentication.JWTAuthentication",  # For API authentication
+    ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
+        "rest_framework.permissions.IsAuthenticated",  # Require authentication for API
     ],
 }
+
+# CSRF_TRUSTED_ORIGINS = ["https://grnlite.onrender.com"]  # Add your domain if needed
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
