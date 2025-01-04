@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "my_app",
     "my_custom_app",
     "corsheaders",
+    "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
     "rest_framework_simplejwt",
     "rest_framework.authtoken",
@@ -124,6 +125,11 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ),
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
+    ],
 }
 
 CORS_ALLOWED_ORIGINS = [
