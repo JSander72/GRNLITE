@@ -7,40 +7,6 @@
     {% load static %}
 
     <link rel="stylesheet" href="{% static 'Front_End/CSS/styles.css' %}">
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const notifications = [
-                "You’ve been invited to review: 'The Next Bestseller'.",
-                "Feedback reminder: 'A Tale of Two Worlds'.",
-                "New resource added: 'Writing Tips Guide'."
-            ];
-
-            const notificationsList = document.getElementById("notifications-list");
-
-            notifications.forEach((notification) => {
-                const listItem = document.createElement("li");
-                listItem.textContent = notification;
-                notificationsList.appendChild(listItem);
-            });
-
-            fetch('/api/manuscripts/')
-                .then(response => response.json())
-                .then(manuscripts => {
-                    const manuscriptList = document.getElementById("manuscript-list");
-                    manuscripts.forEach(manuscript => {
-                        const listItem = document.createElement("div");
-                        listItem.classList.add("manuscript-item");
-                        listItem.innerHTML = `
-                            <img src="${manuscript.cover}" alt="${manuscript.title} Cover">
-                            <h3>${manuscript.title}</h3>
-                            <p>${manuscript.description}</p>
-                            <button onclick="location.href='/feedback/${manuscript.id}/'">Provide Feedback</button>
-                        `;
-                        manuscriptList.appendChild(listItem);
-                    });
-                });
-        });
-    </script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -140,6 +106,34 @@
             </div>
         </main>
     </div>
-    <!-- <script src="{% static 'redirectToAuthPage.js' %}"></script> -->
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const accessToken = localStorage.getItem('accessToken');
+
+            if (!accessToken) {
+                // Redirect to login page if token is not available
+                window.location.href = 'https://grnlite.onrender.com/signin.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('https://grnlite.onrender.com/reader-dashboard.html?code=0TzyqcjghchcFrQ6mU2_hg98oQ8m3eCwVhNE2y7jt5ytZ&state=reader', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                    // Update the UI with the dashboard data
+                } else {
+                    console.error('Failed to fetch dashboard data:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    </script>
 </body>
 </html>
