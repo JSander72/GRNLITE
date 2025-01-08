@@ -10,6 +10,8 @@ from django.http import JsonResponse, HttpResponse
 from social_django.utils import load_strategy
 from social_core.backends.google import GoogleOAuth2, BaseOAuth2
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import (
     Manuscript,
     Feedback,
@@ -98,6 +100,22 @@ class OAuth2LoginView(APIView):
             )
         except Exception as e:
             return Response({"error": str(e)}, status=400)
+
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token["name"] = user.username
+        # ...
+
+        return token
+
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 
 
 class ReaderDashboardView(APIView):
