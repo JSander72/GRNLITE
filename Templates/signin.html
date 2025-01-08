@@ -236,18 +236,19 @@
           <label for="password">Password:</label>
           <input type="password" id="password" name="password" required>
         </div>
-        <button type="submit">Login</button>
+        <button type="submit" id="loginButton">Login</button>
       </form>
-
-      <div class="oauth-buttons">
-        <button class="google-btn" onclick="window.location.href='/auth/google'">Sign in with Google</button>
-        <button class="facebook-btn" onclick="window.location.href='/auth/facebook'">Sign in with Facebook</button>
-      </div>
-
-      <div class="auth-footer">
-        <p>Don't have an account? <a href="{% url 'my_app:signup' %}">Sign Up</a></p>
-      </div>
     </div>
+  </div>
+
+  <div class="oauth-buttons">
+    <button class="google-btn" onclick="window.location.href='/auth/google'">Sign in with Google</button>
+    <button class="facebook-btn" onclick="window.location.href='/auth/facebook'">Sign in with Facebook</button>
+  </div>
+
+  <div class="auth-footer">
+    <p>Don't have an account? <a href="{% url 'my_app:signup' %}">Sign Up</a></p>
+  </div>
   </div>
 
   <script>
@@ -315,6 +316,18 @@
         navbar.classList.add("scrolled");
       } else {
         navbar.classList.remove("scrolled");
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var loginButton = document.getElementById('loginButton');
+      if (loginButton) {
+        loginButton.addEventListener('click', function(event) {
+          // Your event handler code here
+          console.log('Login button clicked');
+        });
+      } else {
+        console.error('Login button not found');
       }
     });
   </script>
