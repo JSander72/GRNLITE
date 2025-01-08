@@ -229,15 +229,15 @@
                 <h1>Sign In</h1>
                 <p>Welcome back to Grn Lite</p>
             </div>
-            <form method="post" action="{% url 'my_app:signin' %}">
+            <form id="loginForm" method="post" action="{% url 'my_app:signin' %}">
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" required>
+                    <input type="text" id="username" name="username" autocomplete="username" required>
                 </div>
                 <div class="form-group">
                     <label for="password">Password:</label>
-                    <input type="password" id="password" name="password" required>
+                    <input type="password" id="password" name="password" autocomplete="current-password" required>
                 </div>
                 <button type="submit" class="auth-button" id="loginButton">Login</button>
             </form>
@@ -252,7 +252,6 @@
     <div class="auth-footer">
         <p>Don't have an account? <a href="{% url 'my_app:signup' %}">Sign Up</a></p>
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let selectedUserType = "";
@@ -264,72 +263,51 @@
                 document.getElementById(`${userType}Choice`).classList.add("selected");
             }
 
-            document.getElementById('loginForm').addEventListener('submit', async (event) => {
-                event.preventDefault();
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
 
-                try {
-                    const response = await fetch('/api/token/', { // Use relative path
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            username,
-                            password,
-                            user_type: selectedUserType // Include selected role
-                        })
-                    });
+                    try {
+                        const response = await fetch('/api/token/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                username,
+                                password,
+                                user_type: selectedUserType,
+                            }),
+                        });
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        const accessToken = data.access;
+                        if (response.ok) {
+                            const data = await response.json();
+                            const accessToken = data.access;
+                            localStorage.setItem('accessToken', accessToken);
 
-                        // Store the token in localStorage
-                        localStorage.setItem('accessToken', accessToken);
-
-                        // Redirect based on user role (you'll need to adjust the logic here)
-                        if (selectedUserType === 'reader') {
-                            window.location.href = '/reader-dashboard.html';
-                        } else if (selectedUserType === 'author') {
-                            window.location.href = '/author-dashboard.html';
+                            if (selectedUserType === 'reader') {
+                                window.location.href = '/reader-dashboard.html';
+                            } else if (selectedUserType === 'author') {
+                                window.location.href = '/author-dashboard.html';
+                            } else {
+                                console.error('User type not selected.');
+                            }
                         } else {
-                            // Handle case where user type is not selected
-                            console.error('User type not selected.');
+                            const errorData = await response.json();
+                            const errorMessage = errorData.detail || 'Failed to log in.';
+                            console.error(errorMessage);
+                            alert(errorMessage);
                         }
-                    } else {
-                        // Handle errors with more informative messages
-                        const errorData = await response.json();
-                        const errorMessage = errorData.detail || 'Failed to log in.';
-                        console.error(errorMessage);
-                        alert(errorMessage); // Display error message to the user
+                    } catch (error) {
+                        console.error('An error occurred:', error);
+                        alert('An error occurred. Please try again later.');
                     }
-                } catch (error) {
-                    console.error('An error occurred:', error);
-                    alert('An error occurred. Please try again later.');
-                }
-            });
-        });
-
-        window.addEventListener("scroll", function () {
-            const navbar = document.querySelector(".navbar");
-            if (window.scrollY > 0) {
-                navbar.classList.add("scrolled");
-            } else {
-                navbar.classList.remove("scrolled");
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', function () {
-            var loginButton = document.getElementById('loginButton');
-            if (loginButton) {
-                loginButton.addEventListener('click', function (event) {
-                    // Your event handler code here
-                    console.log('Login button clicked');
                 });
             } else {
-                console.error('Login button not found');
+                console.error('Login form not found');
             }
         });
     </script>
