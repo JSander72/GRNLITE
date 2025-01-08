@@ -575,7 +575,7 @@ def signin(request):
 
 
 def login(request):
-    return render(request, "login.html")
+    return render(request, "signin.html")
 
 
 def logout(request):
