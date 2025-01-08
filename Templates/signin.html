@@ -226,7 +226,7 @@
         <h1>Sign In</h1>
         <p>Welcome back to Grn Lite</p>
       </div>
-      <form method="post" action="{% url 'signin' %}">
+      <form method="post" action="{% url 'my_app:signin' %}">
         {% csrf_token %}
         <div>
           <label for="username">Username:</label>
