@@ -61,9 +61,17 @@ class GoogleLoginView(APIView):
             strategy = load_strategy(request)
             backend = GoogleOAuth2(strategy=strategy)
             user_data = backend.user_data(token)
-            user, created = User.objects.get_or_create(
-                email=user_data["email"], defaults={"username": user_data["email"]}
+
+            # Create or update the user without requiring a password
+            user, created = User.objects.update_or_create(
+                email=user_data["email"],
+                defaults={
+                    "username": user_data["email"],
+                    "first_name": user_data.get("first_name", ""),
+                    "last_name": user_data.get("last_name", ""),
+                },
             )
+
             refresh = RefreshToken.for_user(user)
             return Response(
                 {"access": str(refresh.access_token), "refresh": str(refresh)}
@@ -109,7 +117,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # Add custom claims
         token["name"] = user.username
-        # ...
+        token["role"] = user.profile.role  # Assuming the role is stored in the profile
 
         return token
 

@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.timezone import now
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils.timezone import now
 
@@ -16,6 +17,9 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+    def set_unusable_password(self):
+        self.password = None
+
 
 class CustomUserGroup(models.Model):
     custom_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -28,39 +32,9 @@ class CustomUserPermission(models.Model):
 
 
 class Profile(models.Model):
-    ROLE_CHOICES = [
-        ("author", "Author"),
-        ("beta_reader", "Beta Reader"),
-        ("editor", "Editor"),
-    ]
-
-    role = models.CharField(
-        max_length=20,
-        choices=ROLE_CHOICES,
-        default="author",
-        help_text="Role of the user",
-    )
-    user = models.OneToOneField(
-        get_user_model(),  # Dynamically references the default User model
-        on_delete=models.CASCADE,
-        help_text="User who owns the profile",
-    )
-    profile_img = models.ImageField(
-        upload_to="profile_images/",
-        null=True,
-        blank=True,
-        help_text="User's profile picture",
-    )
-
-    bio = models.TextField(
-        null=True, blank=True, help_text="Short biography for the user"
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True, help_text="When the user account was created"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True, help_text="When the user account was last updated"
-    )
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    role = models.CharField(max_length=50, blank=True, null=True)
+    # Add any additional fields here
 
 
 class MyModel(models.Model):
