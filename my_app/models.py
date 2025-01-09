@@ -393,6 +393,7 @@ class Notification(models.Model):
     updated_at = models.DateTimeField(
         auto_now=True, help_text="Timestamp when the notification was read"
     )
+    is_read = models.BooleanField(default=False)
 
 
 class BetaReaderApplication(models.Model):

@@ -267,7 +267,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-
             const loginForm = document.getElementById('loginForm');
             if (loginForm) {
                 loginForm.addEventListener('submit', async (event) => {
@@ -291,15 +290,43 @@
                         if (response.ok) {
                             const data = await response.json();
                             const accessToken = data.access;
-                            localStorage.setItem('accessToken', accessToken);
+                            await localStorage.setItem('accessToken', accessToken);
 
                             if (selectedUserType === 'reader') {
-                                window.location.href = '/reader-dashboard.html';
+                                const accessToken = localStorage.getItem('accessToken');
+                                console.log(accessToken); // Log the access token to the console
+                                console.log('Access Token from Database:', accessToken); // Log the access token from the database to the console
+                                const readerResponse = await fetch('/reader-dashboard.html', {
+                                    headers: {
+                                        'Authorization': 'Bearer ' + accessToken
+                                    }
+                                });
+
+                                if (readerResponse.ok) {
+                                    window.location.href = '/reader-dashboard.html';
+                                } else {
+                                    console.error('Failed to fetch reader dashboard:', readerResponse.status);
+                                }
                             } else if (selectedUserType === 'author') {
-                                window.location.href = '/author-dashboard.html';
+                                fetch('/author-dashboard.html', {
+                                    headers: {
+                                        'Authorization': 'Bearer ' + accessToken
+                                    }
+                                })
+                                .then(response => {
+                                    if (response.ok) {
+                                        window.location.href = '/author-dashboard.html';
+                                    } else {
+                                        console.error('Failed to fetch author dashboard:', response.status);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Fetch error:', error);
+                                });
                             } else {
                                 console.error('User type not selected.');
                             }
+
                         } else {
                             const errorData = await response.json();
                             const errorMessage = errorData.detail || 'Failed to log in.';

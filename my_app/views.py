@@ -49,6 +49,8 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 
 
 class GoogleLoginView(APIView):
@@ -660,7 +662,18 @@ def feedback_form(request, manuscript_id):
     return render(request, "reader-feedback.html", {"manuscript": manuscript})
 
 
-from rest_framework.decorators import permission_classes
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def reader_dashboard(request):
+    # Your view logic here
+    pass
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def author_dashboard(request):
+    # Your view logic here
+    pass
 
 
 @api_view(["GET"])

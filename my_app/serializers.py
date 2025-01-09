@@ -46,8 +46,10 @@ class ManuscriptSerializer(serializers.ModelSerializer):
             "id",
             "author",
             "title",
-            "summary",
-            "content",
+            "description",
+            "plot_summary",  # Corrected field name
+            "cover",
+            "status",
             "created_at",
             "updated_at",
         ]

@@ -265,6 +265,13 @@
             document.getElementById(`${userType}Choice`).classList.add("selected");
         }
 
+        function isTokenExpired(token) {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const expiry = payload.exp;
+            const now = Math.floor(Date.now() / 1000);
+            return now >= expiry;
+        }
+
         document.getElementById('signupForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             
@@ -273,13 +280,19 @@
                 return;
             }
 
-            // Simulate backend integration with a delay
-            try {
-                await simulateBackendCall();
-                alert(`Thank you for signing up as a ${selectedUserType}!`);
-            } catch (error) {
-                console.error('Error during signup:', error);
-                alert('An error occurred during signup. Please try again.');
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken || isTokenExpired(accessToken)) {
+                alert("Your session has expired. Please sign in again.");
+                window.location.href = '{% url "my_app:signin" %}';
+                return;
+            }
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            if (selectedUserType === 'reader') {
+                window.location.href = '/reader-dashboard.html';
+            } else if (selectedUserType === 'author') {
+                window.location.href = '/author-dashboard.html';
             }
         });
 
