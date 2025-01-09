@@ -68,7 +68,7 @@ class GoogleLoginView(APIView):
             user, created = User.objects.update_or_create(
                 email=user_data["email"],
                 defaults={
-                    "username": user_data["email"],
+                    "name": user_data["email"],
                     "first_name": user_data.get("first_name", ""),
                     "last_name": user_data.get("last_name", ""),
                 },
