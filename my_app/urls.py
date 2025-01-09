@@ -44,6 +44,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.shortcuts import render
 
 
 # Serializers define the API representation.
@@ -64,6 +65,7 @@ router = DefaultRouter()
 router.register(r"users", UserViewSet, basename="user")
 
 app_name = "my_app"
+
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -87,6 +89,7 @@ urlpatterns = [
     path("auth/", include("djoser.urls.jwt")),
     path("auth/", include("allauth.urls")),
     path("auth/social/", include("social_django.urls", namespace="social")),
+    path("auth/provider/login/", views.login_view, name="login"),
     # Google OAuth2 URLs
     path("admin/", admin.site.urls),
     path("oauth/login/", OAuth2LoginView.as_view(), name="oauth-login"),
