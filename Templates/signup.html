@@ -315,6 +315,9 @@
             });
 
             if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('accessToken', data.accessToken);
+
                 if (userType === "reader") {
                     window.location.href = "/reader-dashboard.html";
                 } else if (userType === "author") {
@@ -335,12 +338,35 @@
         document.getElementById(`${userType}Choice`).classList.add("selected");
       }
 
+      async function refreshToken() {
+        const response = await fetch('/api/refresh-token', {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('accessToken', data.accessToken);
+        } else {
+            alert('Failed to refresh token');
+        }
+    }
+
       function isTokenExpired(token) {
         const payload = JSON.parse(atob(token.split(".")[1]));
         const expiry = payload.exp;
         const now = Math.floor(Date.now() / 1000);
         return now >= expiry;
       }
+
+      async function checkAndRefreshToken() {
+        const token = localStorage.getItem('accessToken');
+        if (token && isTokenExpired(token)) {
+            await refreshToken();
+        }
+    }
+
+      document.addEventListener("DOMContentLoaded", checkAndRefreshToken);
 
       document
         .getElementById("signupForm")
