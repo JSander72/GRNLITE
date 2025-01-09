@@ -85,12 +85,13 @@ urlpatterns = [
     # Auth URLs
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
+    path("auth/", include("allauth.urls")),
     path("auth/social/", include("social_django.urls", namespace="social")),
     # Google OAuth2 URLs
     path("admin/", admin.site.urls),
     path("oauth/login/", OAuth2LoginView.as_view(), name="oauth-login"),
     path("", include("django.contrib.auth.urls")),
-    path("accounts/", include("allauth.urls")),
+    path("accounts/", include("allauth.urls")),  # Include allauth URLs
     path("auth/google/", GoogleLoginView.as_view(), name="google-login"),
     path("auth/profile/", UserProfileView.as_view(), name="user-profile"),
     # Profile URLs

@@ -277,58 +277,39 @@
                         const response = await fetch('/api/token/', {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/json',
+                                'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify({
-                                username,
-                                password,
-                            }),
+                            body: JSON.stringify({ username, password })
                         });
 
                         if (response.ok) {
                             const data = await response.json();
-                            console.log('Server response:', data); // Log the server response
-                            const token = data.access; // Use the access token
+                            localStorage.setItem('accessToken', data.accessToken);
 
-                            if (!token) {
-                                throw new Error('Token is undefined');
-                            }
-
-                            // Store the token securely
-                            localStorage.setItem('authToken', token);
-
-                            // Decode the token to get the expiration time
-                            const payload = JSON.parse(atob(token.split('.')[1]));
-                            const expiry = payload.exp;
-
-                            // Store the expiration time
-                            localStorage.setItem('tokenExpiry', expiry);
-
-                            // Include the token in the Authorization header for subsequent requests
-                            const userResponse = await fetch('/api/user/', { // Ensure the correct endpoint
+                            // Fetch user type from the server using the token
+                            const userResponse = await fetch('/api/user/', {
                                 method: 'GET',
                                 headers: {
-                                    'Authorization': `Bearer ${token}`,
-                                    'Content-Type': 'application/json',
-                                },
+                                    'Authorization': `Bearer ${data.accessToken}`
+                                }
                             });
 
                             if (userResponse.ok) {
                                 const userData = await userResponse.json();
-                                console.log(userData);
-                                // Redirect or update UI on successful login
-                                window.location.href = '/dashboard';
+                                if (userData.userType === 'reader') {
+                                    window.location.href = '/reader-dashboard.html';
+                                } else if (userData.userType === 'author') {
+                                    window.location.href = '/author-dashboard.html';
+                                }
                             } else {
-                                console.error('Failed to fetch user data');
                                 alert('Failed to fetch user data');
                             }
                         } else {
-                            console.error('Failed to fetch token');
-                            alert('Invalid username or password');
+                            alert('Invalid credentials');
                         }
                     } catch (error) {
                         console.error('Error:', error);
-                        alert('An error occurred. Please try again later.');
+                        alert('An error occurred');
                     }
                 });
             }
