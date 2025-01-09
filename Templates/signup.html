@@ -1,311 +1,384 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     {% load static %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="{% static 'Front_End/JS/redirectToAuthPage.js' %}"></script>
     <title>Grn Lite - Sign Up</title>
-    <link rel="stylesheet" href="{% static 'Front_End/CSS/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'Front_End/CSS/styles.css' %}" />
     <style>
-        /* Centralized Styles */
-     :root {
-            --primary-color: #2A9D8F;
-            --secondary-color: #264653;
-            --accent-color: #E9C46A;
-            --text-color: #333;
-            --background-color: #F8F9FA;
-        }
+      /* Centralized Styles */
+      :root {
+        --primary-color: #2a9d8f;
+        --secondary-color: #264653;
+        --accent-color: #e9c46a;
+        --text-color: #333;
+        --background-color: #f8f9fa;
+      }
 
-        body {
-            margin: 0;
-            font-family: 'Playwrite DE Grund Thin', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-        }
+      body {
+        margin: 0;
+        font-family: "Playwrite DE Grund Thin", sans-serif;
+        background-color: var(--background-color);
+        color: var(--text-color);
+      }
 
-        .navbar {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background-color: rgba(255, 255, 255, 0.95);
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
+      .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.95);
+        padding: 1rem 2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        transition: all 0.3s ease;
+      }
 
-        .navbar.scrolled {
-            padding: 0.5rem 2rem;
-        }
+      .navbar.scrolled {
+        padding: 0.5rem 2rem;
+      }
 
-        .nav-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+      .nav-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
 
-        .logo {
-            font-size: 1.8rem;
-            color: var(--primary-color);
-            text-decoration: none;
-        }
+      .logo {
+        font-size: 1.8rem;
+        color: var(--primary-color);
+        text-decoration: none;
+      }
 
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+      }
 
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text-color);
-            font-size: 1.1rem;
-            transition: color 0.3s ease;
-        }
+      .nav-links a {
+        text-decoration: none;
+        color: var(--text-color);
+        font-size: 1.1rem;
+        transition: color 0.3s ease;
+      }
 
-        .nav-links a:hover {
-            color: var(--primary-color);
-        }
+      .nav-links a:hover {
+        color: var(--primary-color);
+      }
 
-        .auth-container {
-            min-height: 120vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        }
+      .auth-container {
+        min-height: 120vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+      }
 
-        .auth-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
+      .auth-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+      }
 
-        .auth-header {
-            margin-bottom: 2rem;
-        }
+      .auth-header {
+        margin-bottom: 2rem;
+      }
 
-        .auth-header h1 {
-            color: var(--primary-color);
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
+      .auth-header h1 {
+        color: var(--primary-color);
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+      }
 
-        .auth-header p {
-            color: var(--secondary-color);
-            font-size: 1rem;
-        }
+      .auth-header p {
+        color: var(--secondary-color);
+        font-size: 1rem;
+      }
 
-        .form-group {
-            margin-bottom: 1.5rem;
-            text-align: left;
-        }
+      .form-group {
+        margin-bottom: 1.5rem;
+        text-align: left;
+      }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-color);
-        }
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+      }
 
-        .form-group input {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
+      .form-group input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
 
-        .bubble-choice-container {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 1.5rem;
-        }
+      .bubble-choice-container {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 1.5rem;
+      }
 
-        .bubble-choice {
-            padding: 0.8rem 1.5rem;
-            border-radius: 25px;
-            border: 1px solid #ddd;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
+      .bubble-choice {
+        padding: 0.8rem 1.5rem;
+        border-radius: 25px;
+        border: 1px solid #ddd;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+      }
 
-        .bubble-choice:hover,
-        .bubble-choice.selected {
-            background-color: var(--primary-color);
-            color: white;
-        }
+      .bubble-choice:hover,
+      .bubble-choice.selected {
+        background-color: var(--primary-color);
+        color: white;
+      }
 
-        .auth-button {
-            width: 100%;
-            padding: 1rem;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: background-color 0.3s ease;
-        }
+      .auth-button {
+        width: 100%;
+        padding: 1rem;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        transition: background-color 0.3s ease;
+      }
 
-        .auth-button:hover {
-            background-color: var(--secondary-color);
-        }
+      .auth-button:hover {
+        background-color: var(--secondary-color);
+      }
 
-        .auth-footer {
-            text-align: center;
-            margin-top: 1.2rem;
-        }
+      .auth-footer {
+        text-align: center;
+        margin-top: 1.2rem;
+      }
 
-        .auth-footer a {
-            color: var(--primary-color);
-            text-decoration: none;
-        }
+      .auth-footer a {
+        color: var(--primary-color);
+        text-decoration: none;
+      }
 
-        .auth-footer a:hover {
-            text-decoration: underline;
-        }
+      .auth-footer a:hover {
+        text-decoration: underline;
+      }
 
-        /* Navigation bar logo styling */
-        .navbar .logo img {
-            height: 80px; /* Adjusted logo size for a bigger logo */
-            width: auto;
-        }
-        /* OAuth Button Styles */
-        .oauth-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: white;
-            color: var(--primary-color);
-            border: 1px solid var(--primary-color);
-            padding: 0.8rem;
-            border-radius: 5px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-        }
+      /* Navigation bar logo styling */
+      .navbar .logo img {
+        height: 80px; /* Adjusted logo size for a bigger logo */
+        width: auto;
+      }
+      /* OAuth Button Styles */
+      .oauth-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+        padding: 0.8rem;
+        border-radius: 5px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+      }
 
-        .oauth-button:hover {
-            background-color: var(--primary-color);
-            color: white;
-        }
+      .oauth-button:hover {
+        background-color: var(--primary-color);
+        color: white;
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <nav class="navbar">
-        <div class="nav-content">
-            <a href="{% url 'my_app:home' %}" class="logo">
-                <img src="{% static 'Front_End/Images/Grn_Lite_Logo.png' %}" alt="Grn Lite Logo">
-            </a>
-            <div class="nav-links">
-                <a href="{% url 'my_app:home' %}">Home</a>
-                <a href="{% url 'my_app:signin' %}">Sign In</a>
-            </div>
+      <div class="nav-content">
+        <a href="{% url 'my_app:home' %}" class="logo">
+          <img
+            src="{% static 'Front_End/Images/Grn_Lite_Logo.png' %}"
+            alt="Grn Lite Logo"
+          />
+        </a>
+        <div class="nav-links">
+          <a href="{% url 'my_app:home' %}">Home</a>
+          <a href="{% url 'my_app:signin' %}">Sign In</a>
         </div>
+      </div>
     </nav>
 
     <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1>Sign Up</h1>
-                <p>Join the Grn Lite community</p>
-            </div>
-            <form id="signupForm">
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" id="name" required autocomplete="name">
-                </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" required autocomplete="email">
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" required autocomplete="current-password">
-                </div>
-
-                <div class="bubble-choice-container">
-                    <div class="bubble-choice" id="readerChoice" onclick="setUserType('reader')">Reader</div>
-                    <div class="bubble-choice" id="authorChoice" onclick="setUserType('author')">Author</div>
-                </div>
-
-                <button type="submit" class="auth-button">Sign Up</button>
-            </form>
-
-            <!-- OAuth Buttons -->
-            <div class="oauth-buttons">
-                <button class="oauth-button" onclick="initiateOAuth('google')">Sign Up with Google</button>
-                <button class="oauth-button" onclick="initiateOAuth('facebook')">Sign Up with Facebook</button>
-            </div>
-
-            <div class="auth-footer">
-                <p>Already have an account? <a href="{% url 'my_app:signin' %}">Sign In</a></p>
-            </div>
+      <div class="auth-card">
+        <div class="auth-header">
+          <h1>Sign Up</h1>
+          <p>Join the Grn Lite community</p>
         </div>
+        <form id="signupForm">
+          <div class="form-group">
+            <label for="name">User Name</label>
+            <input type="text" id="name" required autocomplete="name" />
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" required autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              required
+              autocomplete="current-password"
+            />
+          </div>
+
+          <div class="bubble-choice-container">
+            <div
+              class="bubble-choice"
+              id="readerChoice"
+              onclick="setUserType('reader')"
+            >
+              Reader
+            </div>
+            <div
+              class="bubble-choice"
+              id="authorChoice"
+              onclick="setUserType('author')"
+            >
+              Author
+            </div>
+          </div>
+
+          <button type="submit" class="auth-button">Sign Up</button>
+        </form>
+
+        <!-- OAuth Buttons -->
+        <div class="oauth-buttons">
+          <button class="oauth-button" onclick="initiateOAuth('google')">
+            Sign Up with Google
+          </button>
+          <button class="oauth-button" onclick="initiateOAuth('facebook')">
+            Sign Up with Facebook
+          </button>
+          <button class="oauth-button" onclick="initiateOAuth('provider')">
+            Sign Up with OAuth
+          </button>
+        </div>
+
+        <div class="auth-footer">
+          <p>
+            Already have an account?
+            <a href="{% url 'my_app:signin' %}">Sign In</a>
+          </p>
+        </div>
+      </div>
     </div>
 
     <script>
-        let selectedUserType = "";
+      let selectedUserType = "";
 
-        function setUserType(userType) {
-            selectedUserType = userType;
-            document.getElementById("readerChoice").classList.remove("selected");
-            document.getElementById("authorChoice").classList.remove("selected");
-            document.getElementById(`${userType}Choice`).classList.add("selected");
+      function initiateOAuth(provider) {
+        const oauthUrl = `/auth/${provider}`;
+        window.location.href = oauthUrl;
+      }
+
+      async function handleOAuthCallback() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get("token");
+        const userType = urlParams.get("userType");
+
+        if (token) {
+            localStorage.setItem("accessToken", token);
+
+            // Send token to server to create account in the database
+            const response = await fetch('/api/create-account', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ userType })
+            });
+
+            if (response.ok) {
+                if (userType === "reader") {
+                    window.location.href = "/reader-dashboard.html";
+                } else if (userType === "author") {
+                    window.location.href = "/author-dashboard.html";
+                }
+            } else {
+                alert('Failed to create account');
+            }
         }
+    }
 
-        function isTokenExpired(token) {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            const expiry = payload.exp;
-            const now = Math.floor(Date.now() / 1000);
-            return now >= expiry;
-        }
+      document.addEventListener("DOMContentLoaded", handleOAuthCallback);
 
-        document.getElementById('signupForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            
-            if (!selectedUserType) {
-                alert("Please select your role as Reader or Author.");
-                return;
-            }
+      function setUserType(userType) {
+        selectedUserType = userType;
+        document.getElementById("readerChoice").classList.remove("selected");
+        document.getElementById("authorChoice").classList.remove("selected");
+        document.getElementById(`${userType}Choice`).classList.add("selected");
+      }
 
-            const accessToken = localStorage.getItem('accessToken');
-            if (!accessToken || isTokenExpired(accessToken)) {
-                alert("Your session has expired. Please sign in again.");
-                window.location.href = '{% url "my_app:signin" %}';
-                return;
-            }
+      function isTokenExpired(token) {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const expiry = payload.exp;
+        const now = Math.floor(Date.now() / 1000);
+        return now >= expiry;
+      }
 
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      document
+        .getElementById("signupForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
 
-            if (selectedUserType === 'reader') {
-                window.location.href = '/reader-dashboard.html';
-            } else if (selectedUserType === 'author') {
-                window.location.href = '/author-dashboard.html';
-            }
+          if (!selectedUserType) {
+            alert("Please select your role as Reader or Author.");
+            return;
+          }
+
+          const accessToken = localStorage.getItem("accessToken");
+          if (!accessToken || isTokenExpired(accessToken)) {
+            alert("Your session has expired. Please sign in again.");
+            window.location.href = '{% url "my_app:signin" %}';
+            return;
+          }
+
+          const csrfToken = document.querySelector(
+            "[name=csrfmiddlewaretoken]"
+          ).value;
+
+          if (selectedUserType === "reader") {
+            window.location.href = "/reader-dashboard.html";
+          } else if (selectedUserType === "author") {
+            window.location.href = "/author-dashboard.html";
+          }
         });
 
-        async function simulateBackendCall() {
-            return new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate a 1-second delay
-        }
+      async function simulateBackendCall() {
+        return new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate a 1-second delay
+      }
 
-        function initiateOAuth(provider) {
-            const oauthUrl = `/auth/${provider}`;
-            window.location.href = oauthUrl;
-        }
+      function initiateOAuth(provider) {
+        const oauthUrl = `/auth/${provider}`;
+        window.location.href = oauthUrl;
+      }
     </script>
     <!-- <script src="{% static 'redirectToAuthPage.js' %}"></script> -->
-</body>
-
+  </body>
 </html>
