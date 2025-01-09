@@ -561,6 +561,10 @@ class FeedbackResponseListCreateView(generics.ListCreateAPIView):
         serializer.save(reader=self.request.user)
 
 
+class InvalidKeyError(Exception):
+    pass
+
+
 # Home View
 def home(request):
     return render(request, "main.html")
