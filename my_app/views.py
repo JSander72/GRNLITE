@@ -74,6 +74,9 @@ class GoogleLoginView(APIView):
                 },
             )
 
+            # Ensure the user has a profile
+            Profile.objects.get_or_create(user=user)  # Create if doesn't exist
+
             refresh = RefreshToken.for_user(user)
             return Response(
                 {"access": str(refresh.access_token), "refresh": str(refresh)}
@@ -83,6 +86,34 @@ class GoogleLoginView(APIView):
 
 
 User = get_user_model()
+
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token["name"] = user.username
+        token["role"] = user.profile.role  # Assuming the role is stored in the profile
+
+        return token
+
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+
+        # Check if the user_type is provided in the request body
+        user_type = request.data.get("user_type")
+        if user_type:
+            response.data[
+                "user_type"
+            ] = user_type  # Add user_type to the token response
+
+        return response
 
 
 class OAuth2LoginView(APIView):

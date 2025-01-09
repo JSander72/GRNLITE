@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 
 # from my_app.models import CustomUser
 from .models import (
@@ -18,14 +19,36 @@ from .models import (
     BetaReader,
 )
 
+User = get_user_model()
+
 
 class UserSerializer(serializers.ModelSerializer):
+    profile = serializers.PrimaryKeyRelatedField(read_only=True)  # Add this line
+
     class Meta:
-        model = CustomUser
-        fields = ["id", "username", "email", "profile_picture"]
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "password",
+            "profile",  # Add this line
+        ]
+        extra_kwargs = {"password": {"write_only": True}}
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source="get_role_display", read_only=True)
+
     class Meta:
         model = Profile
         fields = [
@@ -118,7 +141,7 @@ class ResourceInteractionSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ["id", "user", "message", "is_read", "created_at"]
+        fields = "__all__"
 
 
 class BetaReaderSerializer(serializers.ModelSerializer):

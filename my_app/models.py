@@ -32,9 +32,17 @@ class CustomUserPermission(models.Model):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    role = models.CharField(max_length=50, blank=True, null=True)
-    # Add any additional fields here
+    READER = "reader"
+    AUTHOR = "author"
+    ROLE_CHOICES = [
+        (READER, "Reader"),
+        (AUTHOR, "Author"),
+    ]
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default=READER)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.role}"
 
 
 class MyModel(models.Model):
