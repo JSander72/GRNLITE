@@ -697,14 +697,14 @@ def feedback_form(request, manuscript_id):
 @permission_classes([IsAuthenticated])
 def reader_dashboard(request):
     # Your view logic here
-    pass
+    return HttpResponse("Reader Dashboard Content", content_type="text/html")
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def author_dashboard(request):
     # Your view logic here
-    pass
+    return HttpResponse("Author Dashboard Content", content_type="text/html")
 
 
 @api_view(["GET"])

@@ -245,12 +245,11 @@
                 </div>
                 <button type="submit" class="auth-button" id="loginButton">Login</button>
             </form>
+            <div class="oauth-buttons">
+                <button class="google-btn" onclick="window.location.href='/auth/google'">Sign in with Google</button>
+                <button class="facebook-btn" onclick="window.location.href='/auth/facebook'">Sign in with Facebook</button>
+            </div>
         </div>
-    </div>
-
-    <div class="oauth-buttons">
-        <button class="google-btn" onclick="window.location.href='/auth/google'">Sign in with Google</button>
-        <button class="facebook-btn" onclick="window.location.href='/auth/facebook'">Sign in with Facebook</button>
     </div>
 
     <div class="auth-footer">
@@ -283,63 +282,55 @@
                             body: JSON.stringify({
                                 username,
                                 password,
-                                user_type: selectedUserType,
                             }),
                         });
 
                         if (response.ok) {
                             const data = await response.json();
-                            const accessToken = data.access;
-                            await localStorage.setItem('accessToken', accessToken);
+                            console.log('Server response:', data); // Log the server response
+                            const token = data.access; // Use the access token
 
-                            if (selectedUserType === 'reader') {
-                                const accessToken = localStorage.getItem('accessToken');
-                                console.log(accessToken); // Log the access token to the console
-                                console.log('Access Token from Database:', accessToken); // Log the access token from the database to the console
-                                const readerResponse = await fetch('/reader-dashboard.html', {
-                                    headers: {
-                                        'Authorization': 'Bearer ' + accessToken
-                                    }
-                                });
-
-                                if (readerResponse.ok) {
-                                    window.location.href = '/reader-dashboard.html';
-                                } else {
-                                    console.error('Failed to fetch reader dashboard:', readerResponse.status);
-                                }
-                            } else if (selectedUserType === 'author') {
-                                fetch('/author-dashboard.html', {
-                                    headers: {
-                                        'Authorization': 'Bearer ' + accessToken
-                                    }
-                                })
-                                .then(response => {
-                                    if (response.ok) {
-                                        window.location.href = '/author-dashboard.html';
-                                    } else {
-                                        console.error('Failed to fetch author dashboard:', response.status);
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Fetch error:', error);
-                                });
-                            } else {
-                                console.error('User type not selected.');
+                            if (!token) {
+                                throw new Error('Token is undefined');
                             }
 
+                            // Store the token securely
+                            localStorage.setItem('authToken', token);
+
+                            // Decode the token to get the expiration time
+                            const payload = JSON.parse(atob(token.split('.')[1]));
+                            const expiry = payload.exp;
+
+                            // Store the expiration time
+                            localStorage.setItem('tokenExpiry', expiry);
+
+                            // Include the token in the Authorization header for subsequent requests
+                            const userResponse = await fetch('/api/user/', { // Ensure the correct endpoint
+                                method: 'GET',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json',
+                                },
+                            });
+
+                            if (userResponse.ok) {
+                                const userData = await userResponse.json();
+                                console.log(userData);
+                                // Redirect or update UI on successful login
+                                window.location.href = '/dashboard';
+                            } else {
+                                console.error('Failed to fetch user data');
+                                alert('Failed to fetch user data');
+                            }
                         } else {
-                            const errorData = await response.json();
-                            const errorMessage = errorData.detail || 'Failed to log in.';
-                            console.error(errorMessage);
-                            alert(errorMessage);
+                            console.error('Failed to fetch token');
+                            alert('Invalid username or password');
                         }
                     } catch (error) {
-                        console.error('An error occurred:', error);
+                        console.error('Error:', error);
                         alert('An error occurred. Please try again later.');
                     }
                 });
-            } else {
-                console.error('Login form not found');
             }
         });
     </script>

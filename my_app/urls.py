@@ -1,7 +1,5 @@
 from django.urls import path, include
 from . import views
-
-# from allauth.socialaccount.views import OAuth2LoginView
 from .views import (
     GoogleLoginView,
     UserProfileView,
@@ -43,8 +41,6 @@ from django.contrib.auth.models import User
 from rest_framework.routers import DefaultRouter
 from rest_framework import viewsets
 from rest_framework import serializers
-
-router = DefaultRouter()
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -65,10 +61,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = DefaultRouter()
-router.register(r"users", UserViewSet)
-
-# Wire up our API using automatic URL routing.
-# Additionally, we include login URLs for the browsable API.
+router.register(r"users", UserViewSet, basename="user")
 
 app_name = "my_app"
 
@@ -83,8 +76,10 @@ urlpatterns = [
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("", include(router.urls)),
+    path("api/", include(router.urls)),  # Include the router URLs here
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+    path("api/user/", include(router.urls)),
+    # User URLs
     path("users/", UserListCreateView.as_view(), name="user-list-create"),
     path("users/<int:pk>/", UserDetailView.as_view(), name="user-detail"),
     # Auth URLs
