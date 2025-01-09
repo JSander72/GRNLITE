@@ -203,6 +203,8 @@
                 color: white;
             }
         </style>
+        <script src="/staticfiles/JS/signup.js" type="module"></script>
+        <script src="/staticfiles/JS/auth.js" tpye="module"></script>
     </head>
 
     <body>
@@ -227,45 +229,28 @@
                     <h1>Sign Up</h1>
                     <p>Join the Grn Lite community</p>
                 </div>
-                <form id="signupForm" method="POST" action="/store-csrf-token">
-                    <div class="form-group">
-                        <label for="name">User Name</label>
-                        <input type="text" id="name" required autocomplete="name" />
-                    </div>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required autocomplete="username" />
+                </div>
+                <form id="signupForm">
                     <div class="form-group">
                         <label for="email">Email</label>
                         <input type="email" id="email" required autocomplete="email" />
                     </div>
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            required
-                            autocomplete="current-password"
-                        />
+                        <input type="password" id="password" required autocomplete="current-password" />
                     </div>
-
                     <div class="bubble-choice-container">
-                        <div
-                            class="bubble-choice"
-                            id="readerChoice"
-                            onclick="setUserType('reader')"
-                        >
+                        <div class="bubble-choice" id="readerChoice" onclick="setUserType('reader')">
                             Reader
                         </div>
-                        <div
-                            class="bubble-choice"
-                            id="authorChoice"
-                            onclick="setUserType('author')"
-                        >
+                        <div class="bubble-choice" id="authorChoice" onclick="setUserType('author')">
                             Author
                         </div>
                     </div>
-
-                    <input type="hidden" id="csrfToken" name="csrfToken" value="">
-
-                    <button type="submit" class="auth-button">Sign Up</button>
+                    <button type="submit">Sign Up</button>
                 </form>
 
                 <!-- OAuth Buttons -->
@@ -334,28 +319,30 @@
             document.addEventListener("DOMContentLoaded", function() {
                 handleOAuthCallback();
 
-                const csrfTokenElement = document.getElementById("csrfToken");
-                const csrfToken = csrfTokenElement.value;
-
                 document.getElementById("signupForm").addEventListener("submit", function(event) {
                     event.preventDefault();
                     const selectedUserType = document.querySelector('input[name="userType"]:checked').value;
 
-                    fetch('/store-csrf-token', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ csrfToken: csrfToken })
-                    }).then(response => {
-                        if (response.ok) {
-                            if (selectedUserType === "reader") {
-                                window.location.href = "/reader-dashboard.html";
-                            } else if (selectedUserType === "author") {
-                                window.location.href = "/author-dashboard.html";
+                    const csrfTokenElement = document.getElementById("csrfToken");
+                    if (csrfTokenElement) {
+                        const csrfToken = csrfTokenElement.value;
+
+                        fetch('/store-csrf-token', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ csrfToken: csrfToken })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Token stored successfully
+                            } else {
+                                alert("Failed to store CSRF token");
                             }
-                        }
-                    });
+                        });
+                    }
                 });
             });
 
@@ -396,42 +383,90 @@
                 }
             }
 
+            async function isTokenStoredInDatabase(token) {
+                try {
+                    const response = await fetch(`http://127.0.0.1:8000/api/verify-token?token=${token}`);
+                    const data = await response.json();
+                    return data.exists;
+                } catch (error) {
+                    console.error("Failed to verify token in database:", error);
+                    return false;
+                }
+            }
+
+            async function confirmTokenStorage() {
+                const token = localStorage.getItem("accessToken");
+                if (!token) {
+                    console.error("Token not found in local storage");
+                    return false;
+                }
+
+                const isStoredLocally = isTokenStoredLocally();
+                const isStoredInDatabase = await isTokenStoredInDatabase(token);
+
+                return isStoredLocally && isStoredInDatabase;
+            }
+
+            // Example usage
+            // confirmTokenStorage().then(isStored => {
+            //     if (isStored) {
+            //         console.log("Token is stored both locally and in the database");
+            //     } else {
+            //         console.log("Token storage verification failed");
+            //     }
+            // });
+
             document
                 .querySelector("form")
                 .addEventListener("submit", async function (event) {
                     event.preventDefault();
                     const token = localStorage.getItem("accessToken"); // Retrieve token from local storage
-                    if (isTokenExpired(token)) {
-                        try {
-                            const response = await fetch(
-                                "http://127.0.0.1:8000/api/refresh-token",
-                                {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        Authorization: `Bearer ${token}`,
-                                    },
-                                }
-                            );
-                            if (response.status === 403) {
-                                console.error("Token refresh failed: Forbidden");
-                                // Handle forbidden error
-                            } else {
-                                const newToken = await response.json();
-                                // Use the new token
-                            }
-                        } catch (error) {
-                            console.error("Error refreshing token:", error);
-                        }
+                    if (token) {
+                        console.log("Token retrieved from local storage:", token);
                     } else {
-                        // Proceed with form submission
+                        console.log("No token found in local storage");
+                    }
+                    try {
+                        const isStored = await confirmTokenStorage();
+                        if (isStored) {
+                            console.log("Token is stored both locally and in the database");
+                            // Confirm OAuth account creation and token creation/storage
+                            const accountCreated = await confirmOAuthAccountCreation();
+                            if (accountCreated) {
+                                console.log("OAuth account creation confirmed");
+                                // Redirect to the signin page
+                                window.location.href = "/signin";
+                            } else {
+                                console.log("OAuth account creation failed");
+                            }
+                        } else {
+                            console.log("Token storage verification failed");
+                        }
+                    } catch (error) {
+                        console.error("Error verifying token storage:", error);
                     }
                 });
+
+            async function confirmOAuthAccountCreation() {
+                // Implement the logic to confirm OAuth account creation
+                // This is a placeholder function
+                return true;
+            }
 
             document
                 .getElementById("signupForm")
                 .addEventListener("submit", async function (e) {
                     e.preventDefault();
+
+                    function initiateOAuth(provider) {
+                        if (!selectedUserType) {
+                            alert("Please select your role as Reader or Author.");
+                            return;
+                        }
+                        const oauthUrl = `/auth/${provider}/login?userType=${selectedUserType}`;
+                        window.location.href = oauthUrl;
+                    }
+
 
                     if (!selectedUserType) {
                         alert("Please select your role as Reader or Author.");
@@ -458,6 +493,33 @@
                         window.location.href = "/author-dashboard.html";
                     }
                 });
+
+            function isTokenStoredLocally() {
+                return localStorage.getItem("accessToken") !== null;
+            }
+
+            function confirmTokenStorage() {
+                return new Promise((resolve, reject) => {
+                    if (isTokenStoredLocally()) {
+                        // Token is stored locally, proceed with the next steps
+                        resolve(true);
+                    } else {
+                        // Token is not stored locally, handle accordingly
+                        resolve(false);
+                    }
+                });
+            }
+            console.log("OAuth callback token:", token);
+            console.log("OAuth callback userType:", userType);
+
+
+            // confirmTokenStorage().then(isStored => {
+            //     if (isStored) {
+            //         console.log("Token is stored both locally and in the database");
+            //     } else {
+            //         console.log("Token storage verification failed");
+            //     }
+            // });
         </script>
     </body>
 </html>

@@ -76,6 +76,25 @@ app.get('/retrieve-csrf-token/:token', (req, res) => {
     }
 });
 
+const router = express.Router();
+const Token = require('../models/Token'); // Assuming you have a Token model
+
+router.get('/verify-token', async (req, res) => {
+    const token = req.query.token;
+    try {
+        const tokenRecord = await Token.findOne({ token: token });
+        if (tokenRecord) {
+            res.status(200).json({ exists: true });
+        } else {
+            res.status(404).json({ exists: false });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.use('/api', router);
+
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });

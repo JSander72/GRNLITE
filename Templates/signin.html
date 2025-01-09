@@ -286,11 +286,14 @@
                             const data = await response.json();
                             localStorage.setItem('accessToken', data.accessToken);
 
+                            // Retrieve the token from local storage
+                            const token = localStorage.getItem('accessToken');
+
                             // Fetch user type from the server using the token
-                            const userResponse = await fetch('/api/user/', {
+                            const userResponse = await fetch('/api/users/', {
                                 method: 'GET',
                                 headers: {
-                                    'Authorization': `Bearer ${data.accessToken}`
+                                    'Authorization': `Bearer ${token}`
                                 }
                             });
 
@@ -314,6 +317,46 @@
                 });
             }
         });
+
+        async function signIn(username, password) {
+            try {
+                const response = await fetch('/api/token/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('accessToken', data.accessToken);
+
+                    // Retrieve the token from local storage
+                    const token = localStorage.getItem('accessToken');
+                    console.log('Token:', token); // Debugging statement
+
+                    // Fetch user type from the server using the token
+                    const userResponse = await fetch('/api/users/', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (userResponse.ok) {
+                        const userData = await userResponse.json();
+                        console.log('User Data:', userData); // Debugging statement
+                    } else {
+                        console.error('User Response Error:', userResponse.status); // Debugging statement
+                    }
+                } else {
+                    console.error('Token Response Error:', response.status); // Debugging statement
+                }
+            } catch (error) {
+                console.error('Error:', error); // Debugging statement
+            }
+        }
     </script>
 </body>
 

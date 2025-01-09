@@ -244,6 +244,7 @@ urlpatterns = [
         name="beta-reader-application-detail",
     ),
     # Static and Media Files
+    # + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 ]
 
 if settings.DEBUG:
