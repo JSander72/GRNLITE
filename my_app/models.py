@@ -40,6 +40,8 @@ class Profile(models.Model):
     ]
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default=READER)
+    name = models.CharField(max_length=255, default="Default Name")
+    genre = models.CharField(max_length=255, default="Unknown")
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
