@@ -43,6 +43,8 @@ class ManuscriptSubmissionForm(forms.ModelForm):
 class SignupForm(forms.Form):
     username = forms.CharField(max_length=150)
     email = forms.EmailField()
-    password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"})
+    )
     first_name = forms.CharField(max_length=30, required=False)
     last_name = forms.CharField(max_length=30, required=False)
