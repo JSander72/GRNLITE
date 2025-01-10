@@ -1,4 +1,5 @@
 'use strict';
+import require from 'require';
 
 const fs = require('fs');
 const path = require('path');
