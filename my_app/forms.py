@@ -18,14 +18,15 @@ class ManuscriptSubmissionForm(forms.ModelForm):
             "plot_summary",
         ]
         widgets = {
-            "nda_required": forms.CheckboxInput(
-                attrs={"class": "form-check-input", "id": "id_nda_required"}
-            ),
-            "nda_file": forms.FileInput(
-                attrs={"class": "form-control-file", "id": "id_nda_file"}
-            ),
-            "keywords": forms.CheckboxSelectMultiple(),
-            "plot_summary": forms.Textarea(attrs={"rows": 4, "cols": 40}),
+            "title": forms.TextInput(attrs={"autocomplete": "off"}),
+            "file_path": forms.TextInput(attrs={"autocomplete": "off"}),
+            "keywords": forms.TextInput(attrs={"autocomplete": "off"}),
+            "budget": forms.NumberInput(attrs={"autocomplete": "off"}),
+            "beta_readers_needed": forms.NumberInput(attrs={"autocomplete": "off"}),
+            "cover_art": forms.ClearableFileInput(attrs={"autocomplete": "off"}),
+            "nda_required": forms.CheckboxInput(attrs={"autocomplete": "off"}),
+            "nda_file": forms.ClearableFileInput(attrs={"autocomplete": "off"}),
+            "plot_summary": forms.Textarea(attrs={"autocomplete": "off"}),
         }
         labels = {
             "title": _("Title"),

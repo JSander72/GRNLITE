@@ -1,9 +1,10 @@
 'use strict';
 
-import fs from 'fs';
-import path from 'path';
-import browserify from 'browserify';
-import uglify from 'uglify-js';
+const fs = require('fs');
+const path = require('path');
+const browserify = require('browserify');
+const uglify = require('uglify-js');
+
 
 const pkg = process.argv[2];
 const standalone = process.argv[3];
