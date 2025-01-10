@@ -25,4 +25,5 @@ module.exports = {
     pg: 'commonjs pg', 
   },
   mode: 'development',
+  target: 'web',
 };

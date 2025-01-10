@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack"
+    "build": "browserify src/index.js -o static/js/bundle.js --debug"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +25,7 @@
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
     "babel-loader": "^9.2.1",
+    "browserify": "^17.0.1",
     "webpack": "^5.97.1",
     "webpack-cli": "^6.0.1"
   }
