@@ -18,5 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Email:', email);
         console.log('Password:', password);
         // Add your form submission logic here
+        alert('Form submitted successfully!');
     });
 });

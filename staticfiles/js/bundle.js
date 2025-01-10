@@ -1,23 +1,23 @@
 'use strict';
 
-var fs = require('fs')
-  , path = require('path')
-  , browserify = require('browserify')
-  , uglify = require('uglify-js');
+import fs from 'fs';
+import path from 'path';
+import browserify from 'browserify';
+import uglify from 'uglify-js';
 
-var pkg = process.argv[2]
-  , standalone = process.argv[3]
-  , compress = process.argv[4];
+const pkg = process.argv[2];
+const standalone = process.argv[3];
+const compress = process.argv[4];
 
-var packageDir = path.join(__dirname, '..');
-if (pkg != '.') packageDir = path.join(packageDir, 'node_modules', pkg);
+let packageDir = path.join(__dirname, '..');
+if (pkg !== '.') packageDir = path.join(packageDir, 'node_modules', pkg);
 
-var json = require(path.join(packageDir, 'package.json'));
+const json = require(path.join(packageDir, 'package.json'));
 
-var distDir = path.join(__dirname, '..', 'dist');
+const distDir = path.join(__dirname, '..', 'dist');
 if (!fs.existsSync(distDir)) fs.mkdirSync(distDir);
 
-var bOpts = {};
+const bOpts = {};
 if (standalone) bOpts.standalone = standalone;
 
 browserify(bOpts)
@@ -28,8 +28,8 @@ browserify(bOpts)
     process.exit(1);
   }
 
-  var outputFile = path.join(distDir, json.name);
-  var uglifyOpts = {
+  const outputFile = path.join(distDir, json.name);
+  const uglifyOpts = {
     warnings: true,
     compress: {},
     output: {
@@ -37,10 +37,10 @@ browserify(bOpts)
     }
   };
   if (compress) {
-    var compressOpts = compress.split(',');
-    for (var i=0, il = compressOpts.length; i<il; ++i) {
-      var pair = compressOpts[i].split('=');
-      uglifyOpts.compress[pair[0]] = pair.length < 1 || pair[1] != 'false';
+    const compressOpts = compress.split(',');
+    for (let i=0, il = compressOpts.length; i<il; ++i) {
+      const pair = compressOpts[i].split('=');
+      uglifyOpts.compress[pair[0]] = pair.length < 1 || pair[1] !== 'false';
     }
   }
   if (standalone) {
@@ -50,12 +50,12 @@ browserify(bOpts)
     };
   }
 
-  var result = uglify.minify(buf.toString(), uglifyOpts);
+  const result = uglify.minify(buf.toString(), uglifyOpts);
   fs.writeFileSync(outputFile + '.min.js', result.code);
   if (result.map) fs.writeFileSync(outputFile + '.min.js.map', result.map);
   if (standalone) fs.writeFileSync(outputFile + '.bundle.js', buf);
   if (result.warnings) {
-    for (var j=0, jl = result.warnings.length; j<jl; ++j)
+    for (let j=0, jl = result.warnings.length; j<jl; ++j)
       console.warn('UglifyJS warning:', result.warnings[j]);
   }
 });

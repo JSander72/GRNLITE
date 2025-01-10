@@ -9,7 +9,7 @@ function initiateOAuth(provider, redirectUri) {
             oauthUrl = `https://dev-jkea1trp7tro4adh.us.auth0.com/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}`;
             break;
         case 'provider':
-            console.error('Provider not implemented yet: ', provider);
+            console.error('Provider not implemented yet:', provider);
             return;  // Or handle not-implemented providers differently
         case 'token':
         case 'user':
