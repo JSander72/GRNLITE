@@ -5,6 +5,7 @@ module.exports = {
     auth: './staticfiles/JS/auth.js',
     file: './staticfiles/JS/file.js',
     signup: './staticfiles/JS/signup.js',
+    utils: './staticfiles/JS/utils.js',
   },
   output: {
     filename: '[name].bundle.js',

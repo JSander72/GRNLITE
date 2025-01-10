@@ -1,10 +1,10 @@
 from django.shortcuts import redirect, render, get_object_or_404
-from rest_framework import generics, permissions
-from django.contrib.auth import get_user_model
+from rest_framework import generics, permissions, viewsets, serializers
+from django.contrib.auth import get_user_model, login
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .forms import ManuscriptSubmissionForm
+from .forms import ManuscriptSubmissionForm, SignupForm
 from django.views.generic import ListView, CreateView, DetailView, TemplateView
 from django.http import JsonResponse, HttpResponse
 from social_django.utils import load_strategy
@@ -12,6 +12,9 @@ from social_core.backends.google import GoogleOAuth2, BaseOAuth2
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from .utils import get_or_create_user
+
+
 from .models import (
     Manuscript,
     Feedback,
@@ -26,7 +29,6 @@ from .models import (
     Notification,
     BetaReaderApplication,
     BetaReader,
-    Profile,
 )
 from .serializers import (
     UserSerializer,
@@ -41,16 +43,33 @@ from .serializers import (
     NotificationSerializer,
     BetaReaderApplicationSerializer,
     ManuscriptFeedbackPreferenceSerializer,
-    FeedbackSerializer,
-    BetaReaderSerializer,
-    ProfileSerializer,
+    # FeedbackSerializer,
+    # BetaReaderSerializer,
 )
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators import api_view
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
+from .database import save_user
+from django.apps import apps
+
+Profile = apps.get_model("my_app", "Profile")
+Manuscript = apps.get_model("my_app", "Manuscript")
+BetaReader = apps.get_model("my_app", "BetaReader")
+
+
+def some_view(request):
+    from .serializers import UserSerializer
+
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+
+
+class BetaReaderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BetaReader
+        fields = ["id", "user", "experience", "genres", "created_at", "updated_at"]
 
 
 class GoogleLoginView(APIView):
@@ -598,13 +617,66 @@ class InvalidKeyError(Exception):
     pass
 
 
+class ManuscriptViewSet(viewsets.ModelViewSet):
+    queryset = Manuscript.objects.all()
+    serializer_class = ManuscriptSerializer
+
+
+# ViewSets define the view behavior.
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class ProfileViewSet(viewsets.ModelViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+
+
 # Home View
 def home(request):
     return render(request, "main.html")
 
 
-def signup(request):
-    return render(request, "signup.html")
+def signup_view(request):
+    if request.method == "POST":
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["email"]
+            username = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+            first_name = form.cleaned_data["first_name"]
+            last_name = form.cleaned_data["last_name"]
+
+            defaults = {
+                "username": username,
+                "password": password,
+                "first_name": first_name,
+                "last_name": last_name,
+            }
+
+            user = get_or_create_user(email, defaults)
+
+            if user:
+                login(request, user)
+                return redirect("my_app:home")
+        else:
+            oauth_user_data = {
+                "email": form.cleaned_data["email"],
+                "first_name": form.cleaned_data["first_name"],
+                "last_name": form.cleaned_data["last_name"],
+                "oauth_id": "generated_oauth_id",  # Generate or obtain this value as needed
+                "provider": "example_provider",  # Set the provider as needed
+            }
+            user = save_user(oauth_user_data)
+            return render(
+                request,
+                "signup.html",
+                {"form": form, "message": f"User saved with ID: {user.id}"},
+            )
+    else:
+        form = SignupForm()
+    return render(request, "signup.html", {"form": form})
 
 
 def signin(request):

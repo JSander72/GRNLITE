@@ -144,10 +144,10 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class BetaReaderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BetaReader
-        fields = ["id", "user", "experience", "genres", "created_at", "updated_at"]
+# class BetaReaderSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = BetaReader
+#         fields = ["id", "user", "experience", "genres", "created_at", "updated_at"]
 
 
 class BetaReaderApplicationSerializer(serializers.ModelSerializer):
@@ -166,3 +166,10 @@ class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
         fields = "__all__"
+
+
+# Serializers define the API representation.
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = User
+        fields = ["url", "username", "email", "is_staff"]
