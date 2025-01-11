@@ -5,8 +5,8 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <script src="{% static 'Front_End/JS/redirectToAuthPage.js' %}"></script>
-        <title>Sign Up</title>
-        <link rel="stylesheet" href="{% static 'Front_End/CSS/styles.css' %}" />
+        <title>Signup</title>
+        <!-- <link rel="stylesheet" href="{% static 'css/style.css' %}" /> -->
         <style>
             /* Centralized Styles */
             :root {
@@ -227,8 +227,9 @@
                 box-sizing: border-box;
             }
         </style>
-        <script src="/static/js/bundle.js"></script>
-        <script src="/static/js/formHandler.js"></script>
+        <script src="{% static 'js/formHandler.js' %}" defer></script>
+        <script src="{% static 'js/redirectToAuthPage.js' %}" defer></script>
+        <script src="{% static 'js/bundle.js' %}"></script>
     </head>
 
     <body>
