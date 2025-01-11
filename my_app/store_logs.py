@@ -1,80 +1,60 @@
 import os
-import requests
-import psycopg2
 import json
+import django
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.db import connection
 
+# Initialize Django
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_app.settings")
+django.setup()
 
-# Function to get OAuth token
-def get_oauth_token(client_id, client_secret, token_url):
-    response = requests.post(
-        token_url,
-        data={
-            "grant_type": "client_credentials",
-            "client_id": client_id,
-            "client_secret": client_secret,
-        },
-    )
-    response.raise_for_status()
-    return response.json()["access_token"]
-
-
-# Function to fetch log data from the API
-def fetch_log_data(api_url, token):
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(api_url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+User = get_user_model()
 
 
 # Function to process and store log data
 def process_and_store_log(log_entry):
     try:
-        conn = psycopg2.connect(
-            database=os.environ.get("DB_URL").split("/")[-1],
-            user=os.environ.get("DB_USER"),
-            password=os.environ.get("DB_PASSWORD"),
-            host=os.environ.get("DB_HOST"),
-            port=os.environ.get("DB_PORT"),
-        )
-        cur = conn.cursor()
+        with connection.cursor() as cursor:
+            sql = """
+                INSERT INTO auth0_logs (date, type, description, client_id, user_id, ip_address, user_agent, details)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
 
-        sql = """
-            INSERT INTO auth0_logs (date, type, description, client_id, user_id, ip_address, user_agent, details)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """
+            data = (
+                log_entry["date"],
+                log_entry["type"],
+                log_entry["description"],
+                log_entry["client_id"],
+                log_entry.get("user_id"),  # Handle potential missing user_id
+                log_entry["ip"],
+                log_entry["user_agent"],
+                json.dumps(log_entry["details"]),
+            )
 
-        data = (
-            log_entry["date"],
-            log_entry["type"],
-            log_entry["description"],
-            log_entry["client_id"],
-            log_entry.get("user_id"),  # Handle potential missing user_id
-            log_entry["ip"],
-            log_entry["user_agent"],
-            json.dumps(log_entry["details"]),
-        )
+            cursor.execute(sql, data)
 
-        cur.execute(sql, data)
-        conn.commit()
-
-    except (Exception, psycopg2.Error) as error:
+    except Exception as error:
         print("Error while connecting to PostgreSQL:", error)
 
-    finally:
-        if conn:
-            cur.close()
-            conn.close()
 
-
-# Main function to get OAuth token, fetch log data, and store it
+# Main function to fetch log data and store it
 def main():
-    client_id = os.environ.get("AUTH0_CLIENT_ID")
-    client_secret = os.environ.get("AUTH0_CLIENT_SECRET")
-    token_url = f'https://{os.environ.get("AUTH0_DOMAIN")}/oauth/token'
-    api_url = f'https://{os.environ.get("AUTH0_DOMAIN")}/api/v2/logs'
-
-    token = get_oauth_token(client_id, client_secret, token_url)
-    log_data = fetch_log_data(api_url, token)
+    # Assuming log_data is fetched from somewhere within your Django app
+    log_data = [
+        # Example log data
+        {
+            "date": "2023-10-01T12:00:00Z",
+            "type": "login",
+            "description": "User logged in",
+            "client_id": "example_client_id",
+            "user_id": 1,  # Example user ID
+            "ip": "192.168.1.1",
+            "user_agent": "Mozilla/5.0",
+            "details": {"example_detail": "detail_value"},
+        },
+        # Add more log entries as needed
+    ]
 
     if log_data:
         for log_entry in log_data:
