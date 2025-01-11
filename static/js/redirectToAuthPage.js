@@ -1,10 +1,10 @@
 function redirectToAuthPage(page) {
-    // Use URLs dynamically passed from Django template
+    // Use URLs for Django's built-in authentication system
     let url;
     if (page === 'signup') {
-        url = signupUrl;
+        url = '/accounts/signup/';
     } else if (page === 'signin') {
-        url = signinUrl;
+        url = '/accounts/login/';
     } else {
         console.error('Invalid page requested:', page);
         return;

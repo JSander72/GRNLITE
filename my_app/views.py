@@ -1,7 +1,7 @@
 import json
 from django.shortcuts import redirect, render, get_object_or_404
 from rest_framework import generics, permissions, viewsets, serializers
-from django.contrib.auth import get_user_model, login
+from django.contrib.auth import get_user_model, login, authenticate, logout
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -679,6 +679,25 @@ def signup_view(request):
     else:
         form = SignupForm()
     return render(request, "signup.html", {"form": form})
+
+
+def signin(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect("home")
+        else:
+            return render(request, "signin.html", {"error": "Invalid credentials"})
+    return render(request, "signin.html")
+
+
+@login_required
+def logout_view(request):
+    logout(request)
+    return redirect("signin")
 
 
 def signin(request):

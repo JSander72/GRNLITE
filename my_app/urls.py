@@ -62,17 +62,17 @@ urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/", include(router.urls)),
+    path("admin/", admin.site.urls),
     path(
         "auth/",
         include(
             [
                 path("", include("djoser.urls")),
                 path("", include("djoser.urls.jwt")),
-                path(
-                    "social/", include("social_django.urls", namespace="social_django")
-                ),
-                path("provider/login/", views.login_view, name="login"),
-                path("accounts/", include("allauth.urls")),
+                # Remove OAuth-related URLs
+                # path("social/", include("social_django.urls", namespace="social_django")),
+                # path("provider/login/", views.login_view, name="login"),
+                # path("accounts/", include("allauth.urls")),
             ]
         ),
     ),
@@ -109,9 +109,10 @@ urlpatterns = [
             [
                 path("", include("djoser.urls")),
                 path("", include("djoser.urls.jwt")),
-                path("social/", include("social_django.urls", namespace="social")),
-                path("provider/login/", views.login_view, name="login"),
-                path("accounts/", include("allauth.urls")),
+                # Remove OAuth-related URLs
+                # path("social/", include("social_django.urls", namespace="social")),
+                # path("provider/login/", views.login_view, name="login"),
+                # path("accounts/", include("allauth.urls")),
             ]
         ),
     ),

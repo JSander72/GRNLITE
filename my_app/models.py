@@ -86,12 +86,6 @@ class Feedback(models.Model):
 
 
 class FeedbackQuestion(models.Model):
-    # category = models.ForeignKey(
-    #     'my_app.FeedbackCategory',
-    #     on_delete=models.CASCADE,
-    #     related_name="questions",
-    #     help_text="The category this question belongs to",
-    # )
     question_text = models.TextField(help_text="The text of the feedback question")
     is_active = models.BooleanField(
         default=True, help_text="Is this question active and selectable?"
@@ -157,20 +151,6 @@ class Manuscript(models.Model):
     plot_summary = models.TextField(max_length=1000, null=True)
     created_at = models.DateTimeField(default=now, help_text="Timestamp of creation")
     updated_at = models.DateTimeField(default=now, help_text="Timestamp of last update")
-
-    # New fields for feedback categories and questions
-    # feedback_categories = models.ManyToManyField(
-    #     FeedbackCategory,
-    #     related_name="manuscripts",
-    #     blank=True,
-    #     help_text="Selected feedback categories for this manuscript",
-    # )
-    # feedback_questions = models.ManyToManyField(
-    #     FeedbackQuestion,
-    #     related_name="manuscripts",
-    #     blank=True,
-    #     help_text="Selected feedback questions for this manuscript",
-    # )
 
     def __str__(self):
         return self.title
@@ -438,9 +418,3 @@ class Genre(models.Model):
 class ManuscriptKeywords(models.Model):
     manuscript = models.ForeignKey("Manuscript", on_delete=models.CASCADE)
     keyword = models.ForeignKey("Keyword", on_delete=models.CASCADE)
-
-
-class Token(models.Model):
-    token = models.CharField(max_length=255)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)

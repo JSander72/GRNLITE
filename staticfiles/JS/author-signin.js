@@ -7,19 +7,42 @@ document.getElementById("authForm").addEventListener("submit", function (e) {
         return;
     }
 
-    // Redirect to Auth0 for author sign-in
-    const auth0Url = `https://dev-jkea1trp7tro4adh.us.auth0.com/authorize?response_type=code&client_id=YltoeNqyw0gcTm4ToOaIIvkUqJZ2VDkh&redirect_uri=${window.location.origin}/author-dashboard.html&scope=openid profile email&state=author`;
-    window.location.href = auth0Url;
+    // Submit the form to Django's built-in authentication system
+    const form = e.target;
+    const formData = new FormData(form);
+
+    fetch('/login/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/author-dashboard/';
+        } else {
+            alert('Login failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    });
 });
 
-function initiateOAuth(provider) {
-    if (!selectedUserType || selectedUserType !== "author") {
-        alert("Please select 'Author' as your role.");
-        return;
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
     }
-
-    // Redirect to Auth0 OAuth for specific provider
-    const auth0Url = `https://dev-jkea1trp7tro4adh.us.auth0.com/authorize?response_type=code&client_id=YltoeNqyw0gcTm4ToOaIIvkUqJZ2VDkh&connection=${provider}&redirect_uri=${window.location.origin}/author-dashboard.html&scope=openid profile email&state=author`;
-    window.location.href = auth0Url;
+    return cookieValue;
 }
-

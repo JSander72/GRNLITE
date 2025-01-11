@@ -181,27 +181,6 @@
                 height: 80px; /* Adjusted logo size for a bigger logo */
                 width: auto;
             }
-            /* OAuth Button Styles */
-            .oauth-button {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: white;
-                color: var(--primary-color);
-                border: 1px solid var(--primary-color);
-                padding: 0.8rem;
-                border-radius: 5px;
-                font-size: 1.1rem;
-                font-weight: bold;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                margin-top: 1rem;
-            }
-
-            .oauth-button:hover {
-                background-color: var(--primary-color);
-                color: white;
-            }
 
             .form-container {
                 display: flex;
@@ -264,19 +243,6 @@
                         <div id="authorChoice" class="bubble-choice" onclick="setUserType('author')">Author</div>
                     </div>
                 </form>
-
-                <!-- OAuth Buttons -->
-                <div class="oauth-buttons">
-                    <button class="oauth-button" onclick="initiateOAuth('google')">
-                        Sign Up with Google
-                    </button>
-                    <button class="oauth-button" onclick="initiateOAuth('facebook')">
-                        Sign Up with Facebook
-                    </button>
-                    <button class="oauth-button" onclick="initiateOAuth('provider')">
-                        Sign Up with OAuth
-                    </button>
-                </div>
             </div>
         </div>
 
@@ -286,45 +252,6 @@
         {% endif %}
 
         <script>
-            function initiateOAuth(provider) {
-                const oauthUrl = `/auth/${provider}/login/`;
-                window.location.href = oauthUrl;
-            }
-
-            // Refactored handleOAuthCallback function
-            async function handleOAuthCallback() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const globalToken = urlParams.get("token");
-                console.log("Token received:", globalToken);
-                // Call dependent functions with globalToken
-                if (globalToken && !isTokenExpired(globalToken)) {
-                    someDependentFunction(globalToken);
-                }
-            }
-
-            function someDependentFunction(token) {
-                // Use the token here
-                console.log("Using token in someDependentFunction:", token);
-            }
-
-            function isTokenExpired(token) {
-                try {
-                    const payload = JSON.parse(atob(token.split('.')[1]));
-                    if (!payload.exp) {
-                        console.error("Token missing expiration date.");
-                        return true; // Assume expired
-                    }
-                    const expiryDate = new Date(payload.exp * 1000);
-                    return expiryDate < new Date();
-                } catch (e) {
-                    console.error("Invalid token format.", e);
-                    return true; // Assume expired
-                }
-            }
-
-            // Call handleOAuthCallback when the page loads
-            document.addEventListener('DOMContentLoaded', handleOAuthCallback);
-
             // Function to get CSRF token
             function getCsrfToken() {
                 const csrfTokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');

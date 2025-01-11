@@ -7,19 +7,43 @@ document.getElementById("authForm").addEventListener("submit", function (e) {
         return;
     }
 
-    // Redirect to Auth0 for reader sign-in
-    const auth0Url = `https://dev-jkea1trp7tro4adh.us.auth0.com/authorize?response_type=code&client_id=YltoeNqyw0gcTm4ToOaIIvkUqJZ2VDkh&redirect_uri=${window.location.origin}/reader-dashboard.html&scope=openid profile email&state=reader`;
-    window.location.href = auth0Url;
+    // Collect form data
+    const formData = new FormData(this);
+
+    // Send AJAX request to Django backend for authentication
+    fetch('/login/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/reader-dashboard/';
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    });
 });
 
-function initiateOAuth(provider) {
-    if (!selectedUserType || selectedUserType !== "reader") {
-        alert("Please select 'Reader' as your role.");
-        return;
+// Function to get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
     }
-
-    // Redirect to Auth0 OAuth for specific provider
-    const auth0Url = `https://dev-jkea1trp7tro4adh.us.auth0.com/authorize?response_type=code&client_id=YltoeNqyw0gcTm4ToOaIIvkUqJZ2VDkh&connection=${provider}&redirect_uri=${window.location.origin}/reader-dashboard.html&scope=openid profile email&state=reader`;
-    window.location.href = auth0Url;
+    return cookieValue;
 }
-
