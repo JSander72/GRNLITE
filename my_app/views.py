@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import redirect, render, get_object_or_404
 from rest_framework import generics, permissions, viewsets, serializers
 from django.contrib.auth import get_user_model, login
@@ -51,6 +52,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view, permission_classes
 from .database import save_user
+from rest_framework.authtoken.models import Token
 from django.apps import apps
 
 Profile = apps.get_model("my_app", "Profile")
@@ -822,6 +824,23 @@ def error_404_view(request, exception):
 def login_view(request):
     # Your login logic here
     return render(request, "signin.html")
+
+
+@csrf_exempt
+def save_token(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        token = data.get("token")
+        user_id = data.get("user_id")
+        if not token or not user_id:
+            return JsonResponse({"error": "Token and user_id are required"}, status=400)
+        try:
+            user = User.objects.get(id=user_id)
+            Token.objects.create(token=token, user=user)
+            return JsonResponse({"message": "Token saved successfully"}, status=200)
+        except User.DoesNotExist:
+            return JsonResponse({"error": "User not found"}, status=404)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
 handler404 = error_404_view

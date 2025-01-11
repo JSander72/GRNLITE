@@ -228,10 +228,7 @@
             }
         </style>
         <script src="/static/js/bundle.js"></script>
-
-        <!-- <script src="/staticfiles/JS/signup.js" type="module"></script>
-        <script src="/staticfiles/JS/auth.js" tpye="module"></script>
-        <script src="/staticfiles/JS/file.js" type="module"></script> -->
+        <script src="/static/js/formHandler.js"></script>
     </head>
 
     <body>
@@ -284,254 +281,54 @@
 
         <!-- Display success or error messages -->
         {% if message %}
-            <p>{{ message }}</p>
+        <p>{{ message }}</p>
         {% endif %}
 
         <script>
-            let selectedUserType = "";
-
             function initiateOAuth(provider) {
                 const oauthUrl = `/auth/${provider}/login/`;
                 window.location.href = oauthUrl;
             }
 
+            // Refactored handleOAuthCallback function
             async function handleOAuthCallback() {
                 const urlParams = new URLSearchParams(window.location.search);
-                const token = urlParams.get("token");
-                const userType = urlParams.get("userType");
-
-                if (token) {
-                    localStorage.setItem("accessToken", token);
-
-                    // Send token to server to create account in the database
-                    const response = await fetch("/api/create-account", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({ userType }),
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        localStorage.setItem("accessToken", data.accessToken);
-
-                        if (userType === "reader") {
-                            window.location.href = "/reader-dashboard.html";
-                        } else if (userType === "author") {
-                            window.location.href = "/author-dashboard.html";
-                        }
-                    } else {
-                        alert("Failed to create account");
-                    }
+                const globalToken = urlParams.get("token");
+                console.log("Token received:", globalToken);
+                // Call dependent functions with globalToken
+                if (!isTokenExpired(globalToken)) {
+                    someDependentFunction(globalToken);
                 }
             }
 
-            document.addEventListener("DOMContentLoaded", function() {
-                handleOAuthCallback();
-
-                document.getElementById("signupForm").addEventListener("submit", function(event) {
-                    event.preventDefault();
-                    const selectedUserType = document.querySelector('input[name="userType"]:checked').value;
-
-                    const csrfTokenElement = document.getElementById("csrfToken");
-                    if (csrfTokenElement) {
-                        const csrfToken = csrfTokenElement.value;
-
-                        fetch('/store-csrf-token', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ csrfToken: csrfToken })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Token stored successfully
-                            } else {
-                                alert("Failed to store CSRF token");
-                            }
-                        });
-                    }
-                });
-            });
-
-            function setUserType(userType) {
-                selectedUserType = userType;
-                document.getElementById("readerChoice").classList.remove("selected");
-                document.getElementById("authorChoice").classList.remove("selected");
-                document.getElementById(`${userType}Choice`).classList.add("selected");
-            }
-
-            async function refreshToken() {
-                const response = await fetch("/api/refresh-token", {
-                    method: "POST",
-                    credentials: "include",
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    localStorage.setItem("accessToken", data.accessToken);
-                } else {
-                    alert("Failed to refresh token");
-                }
+            function someDependentFunction(token) {
+                // Use the token here
+                console.log("Using token in someDependentFunction:", token);
             }
 
             function isTokenExpired(token) {
-                if (!token || token.split(".").length !== 3) {
-                    console.error("Invalid token format");
-                    return true; // Assume token is expired if format is invalid
-                }
                 try {
-                    const payload = JSON.parse(atob(token.split(".")[1]));
-                    const expiry = payload.exp;
-                    const now = Math.floor(Date.now() / 1000);
-                    return now >= expiry;
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    if (!payload.exp) {
+                        console.error("Token missing expiration date.");
+                        return true; // Assume expired
+                    }
+                    const expiryDate = new Date(payload.exp * 1000);
+                    return expiryDate < new Date();
                 } catch (e) {
-                    console.error("Failed to decode token:", e);
-                    return true; // Assume token is expired if decoding fails
+                    console.error("Invalid token format.", e);
+                    return true; // Assume expired
                 }
             }
 
-            async function isTokenStoredInDatabase(token) {
-                try {
-                    const response = await fetch(`http://127.0.0.1:8000/api/verify-token?token=${token}`);
-                    const data = await response.json();
-                    return data.exists;
-                } catch (error) {
-                    console.error("Failed to verify token in database:", error);
-                    return false;
-                }
+            // Call handleOAuthCallback when the page loads
+            document.addEventListener('DOMContentLoaded', handleOAuthCallback);
+
+            // Function to get CSRF token
+            function getCsrfToken() {
+                const csrfTokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+                return csrfTokenInput ? csrfTokenInput.value : null;
             }
-
-            async function confirmTokenStorage() {
-                const token = localStorage.getItem("accessToken");
-                if (!token) {
-                    console.error("Token not found in local storage");
-                    return false;
-                }
-
-                const isStoredLocally = isTokenStoredLocally();
-                const isStoredInDatabase = await isTokenStoredInDatabase(token);
-
-                return isStoredLocally && isStoredInDatabase;
-            }
-
-            // Example usage
-            // confirmTokenStorage().then(isStored => {
-            //     if (isStored) {
-            //         console.log("Token is stored both locally and in the database");
-            //     } else {
-            //         console.log("Token storage verification failed");
-            //     }
-            // });
-
-            document
-                .querySelector("form")
-                .addEventListener("submit", async function (event) {
-                    event.preventDefault();
-                    const token = localStorage.getItem("accessToken"); // Retrieve token from local storage
-                    if (token) {
-                        console.log("Token retrieved from local storage:", token);
-                    } else {
-                        console.log("No token found in local storage");
-                    }
-                    try {
-                        const isStored = await confirmTokenStorage();
-                        if (isStored) {
-                            console.log("Token is stored both locally and in the database");
-                            // Confirm OAuth account creation and token creation/storage
-                            const accountCreated = await confirmOAuthAccountCreation();
-                            if (accountCreated) {
-                                console.log("OAuth account creation confirmed");
-                                // Redirect to the signin page
-                                window.location.href = "/signin";
-                            } else {
-                                console.log("OAuth account creation failed");
-                            }
-                        } else {
-                            console.log("Token storage verification failed");
-                        }
-                    } catch (error) {
-                        console.error("Error verifying token storage:", error);
-                    }
-                });
-
-            async function confirmOAuthAccountCreation() {
-                // Implement the logic to confirm OAuth account creation
-                // This is a placeholder function
-                return true;
-            }
-
-            document
-                .getElementById("signupForm")
-                .addEventListener("submit", async function (e) {
-                    e.preventDefault();
-
-                    function initiateOAuth(provider) {
-                        if (!selectedUserType) {
-                            alert("Please select your role as Reader or Author.");
-                            return;
-                        }
-                        const oauthUrl = `/auth/${provider}/login?userType=${selectedUserType}`;
-                        window.location.href = oauthUrl;
-                    }
-
-
-                    if (!selectedUserType) {
-                        alert("Please select your role as Reader or Author.");
-                        return;
-                    }
-
-                    const accessToken = localStorage.getItem("accessToken");
-                    if (!accessToken || isTokenExpired(accessToken)) {
-                        await refreshToken();
-                    }
-
-                    const csrfTokenElement = document.querySelector(
-                        "[name=csrfmiddlewaretoken]"
-                    );
-                    if (!csrfTokenElement) {
-                        alert("CSRF token not found. Please refresh the page and try again.");
-                        return;
-                    }
-                    const csrfToken = csrfTokenElement.value;
-
-                    if (selectedUserType === "reader") {
-                        window.location.href = "/reader-dashboard.html";
-                    } else if (selectedUserType === "author") {
-                        window.location.href = "/author-dashboard.html";
-                    }
-                });
-
-            function isTokenStoredLocally() {
-                return localStorage.getItem("accessToken") !== null;
-            }
-
-            function confirmTokenStorage() {
-                return new Promise((resolve, reject) => {
-                    if (isTokenStoredLocally()) {
-                        // Token is stored locally, proceed with the next steps
-                        resolve(true);
-                    } else {
-                        // Token is not stored locally, handle accordingly
-                        resolve(false);
-                    }
-                });
-            }
-            console.log("OAuth callback token:", token);
-            console.log("OAuth callback userType:", userType);
-
-
-            // confirmTokenStorage().then(isStored => {
-            //     if (isStored) {
-            //         console.log("Token is stored both locally and in the database");
-            //     } else {
-            //         console.log("Token storage verification failed");
-            //     }
-            // });
         </script>
     </body>
 </html>

@@ -356,6 +356,20 @@
             } catch (error) {
                 console.error('Error:', error); // Debugging statement
             }
+            console.log("OAuth callback token:", token);
+            console.log("OAuth callback userType:", userType);
+            console.log("OAuth URL:", oauthUrl);
+            console.log("Callback query params:", window.location.search);
+            console.log("Token received:", token);
+        }
+
+        async function fetchUserProfile(token) {
+            console.log("Fetching profile with token:", token);
+            const response = await fetch('https://api.example.com/user', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            console.log("Profile fetch response:", response);
+            return response.json();
         }
     </script>
 </body>

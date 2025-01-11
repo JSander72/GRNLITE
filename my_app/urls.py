@@ -41,6 +41,7 @@ from .views import (
     ManuscriptViewSet,
     UserViewSet,
     ProfileViewSet,
+    save_token,
 )
 
 # Routers provide an easy way of automatically determining the URL conf.
@@ -143,6 +144,7 @@ urlpatterns = [
             ]
         ),
     ),
+    path("save_token/", save_token, name="save_token"),
 ]
 
 if settings.DEBUG:

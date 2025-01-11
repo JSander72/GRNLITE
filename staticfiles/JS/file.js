@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import url from 'url';
 
 const pool = new Pool({
     user: process.env.DB_USER,
@@ -23,6 +24,11 @@ async function saveOAuthUserToDatabase(oauthProvider, accessToken, profileData) 
     } finally {
         client.release();
     }
+}
+
+function extractTokenFromQueryParams(req) {
+    const queryObject = url.parse(req.url, true).query;
+    return queryObject.token;
 }
 
 async function handleOAuthCallback() {
