@@ -296,7 +296,7 @@
                 const globalToken = urlParams.get("token");
                 console.log("Token received:", globalToken);
                 // Call dependent functions with globalToken
-                if (!isTokenExpired(globalToken)) {
+                if (globalToken && !isTokenExpired(globalToken)) {
                     someDependentFunction(globalToken);
                 }
             }
