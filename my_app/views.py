@@ -8,8 +8,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from .forms import ManuscriptSubmissionForm, SignupForm
 from django.views.generic import ListView, CreateView, DetailView, TemplateView
 from django.http import JsonResponse, HttpResponse
-from social_django.utils import load_strategy
-from social_core.backends.google import GoogleOAuth2, BaseOAuth2
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -74,38 +72,6 @@ class BetaReaderSerializer(serializers.ModelSerializer):
         fields = ["id", "user", "experience", "genres", "created_at", "updated_at"]
 
 
-class GoogleLoginView(APIView):
-    def post(self, request):
-        token = request.data.get("token")
-        if not token:
-            return Response({"error": "Token not provided"}, status=400)
-
-        try:
-            strategy = load_strategy(request)
-            backend = GoogleOAuth2(strategy=strategy)
-            user_data = backend.user_data(token)
-
-            # Create or update the user without requiring a password
-            user, created = User.objects.update_or_create(
-                email=user_data["email"],
-                defaults={
-                    "name": user_data["email"],
-                    "first_name": user_data.get("first_name", ""),
-                    "last_name": user_data.get("last_name", ""),
-                },
-            )
-
-            # Ensure the user has a profile
-            Profile.objects.get_or_create(user=user)  # Create if doesn't exist
-
-            refresh = RefreshToken.for_user(user)
-            return Response(
-                {"access": str(refresh.access_token), "refresh": str(refresh)}
-            )
-        except Exception as e:
-            return Response({"error": str(e)}, status=400)
-
-
 User = get_user_model()
 
 
@@ -135,49 +101,6 @@ class MyTokenObtainPairView(TokenObtainPairView):
             ] = user_type  # Add user_type to the token response
 
         return response
-
-
-class OAuth2LoginView(APIView):
-    def post(self, request):
-        token = request.data.get("token")
-        if not token:
-            return Response({"error": "Token not provided"}, status=400)
-
-        try:
-            strategy = load_strategy(request)
-            backend = BaseOAuth2(strategy=strategy)
-            user_data = backend.user_data(token)
-
-            user, created = User.objects.get_or_create(
-                email=user_data.get("email"),
-                defaults={"username": user_data.get("email")},
-            )
-
-            return Response(
-                {
-                    "username": user.username,
-                    "email": user.email,
-                    "created": created,
-                }
-            )
-        except Exception as e:
-            return Response({"error": str(e)}, status=400)
-
-
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-
-        # Add custom claims
-        token["name"] = user.username
-        token["role"] = user.profile.role  # Assuming the role is stored in the profile
-
-        return token
-
-
-class MyTokenObtainPairView(TokenObtainPairView):
-    serializer_class = MyTokenObtainPairSerializer
 
 
 class ReaderDashboardView(APIView):

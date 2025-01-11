@@ -31,14 +31,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "my_app",
     "my_custom_app",
-    # Remove OAuth-related apps
-    # "social_django",
-    # "allauth",
-    # "allauth.account",
-    # "allauth.socialaccount",
-    # "allauth.socialaccount.providers.google",
-    # "allauth.socialaccount.providers.auth0",
-    # "allauth.socialaccount.providers.facebook",
 ]
 
 MIDDLEWARE = [
@@ -51,9 +43,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-AUTHENTICATION_BACKENDS = (
-    "django.contrib.auth.backends.ModelBackend",
-)
+AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
 
 ROOT_URLCONF = "grnlite.urls"
 
@@ -93,6 +83,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
+AUTH_USER_MODEL = "auth.User"  # Use the default User model
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),

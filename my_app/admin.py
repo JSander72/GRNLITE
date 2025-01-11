@@ -1,5 +1,5 @@
 from django.contrib import admin
-from allauth.socialaccount.models import SocialAccount
+from django.contrib.auth.admin import UserAdmin
 
 # from my_app.models import CustomUser
 from .models import (
@@ -47,9 +47,14 @@ class FeedbackQuestionAdmin(admin.ModelAdmin):
     list_filter = ("is_active",)
 
 
-@admin.register(CustomUser)
-class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ["id", "username", "email"]
+class CustomUserAdmin(UserAdmin):
+    model = CustomUser
+    list_display = ("id", "username", "email", "first_name", "last_name", "is_staff")
+    search_fields = ("username", "email", "first_name", "last_name")
+    ordering = ("id",)
+
+
+admin.site.register(CustomUser, CustomUserAdmin)
 
 
 @admin.register(FeedbackResponse)

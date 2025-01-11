@@ -8,32 +8,40 @@ import django
 django.setup()
 
 from django.contrib.auth.models import User
-from allauth.socialaccount.models import SocialAccount
 
 
-def migrate_oauth_users():
-    social_accounts = SocialAccount.objects.all()
-    for social_account in social_accounts:
-        user = social_account.user  # Get the associated user (might be None)
-        extra_data = social_account.extra_data
+def migrate_users():
+    # Example data to simulate user migration
+    users_data = [
+        {
+            "username": "user1",
+            "email": "user1@example.com",
+            "first_name": "User",
+            "last_name": "One",
+        },
+        {
+            "username": "user2",
+            "email": "user2@example.com",
+            "first_name": "User",
+            "last_name": "Two",
+        },
+    ]
 
-        if not user:
-            # Create a new User
-            user = User.objects.create_user(
-                username=extra_data.get("username")
-                or extra_data.get("email"),  # Choose a username
-                email=extra_data.get("email"),
-                first_name=extra_data.get("first_name"),
-                last_name=extra_data.get("last_name"),
-            )
-            social_account.user = user
-            social_account.save()
-        else:
+    for user_data in users_data:
+        user, created = User.objects.get_or_create(
+            username=user_data["username"],
+            defaults={
+                "email": user_data["email"],
+                "first_name": user_data["first_name"],
+                "last_name": user_data["last_name"],
+            },
+        )
+        if not created:
             # Update existing User (if needed)
-            if not user.email and extra_data.get("email"):
-                user.email = extra_data.get("email")
+            if not user.email and user_data.get("email"):
+                user.email = user_data["email"]
                 user.save()
 
 
 if __name__ == "__main__":
-    migrate_oauth_users()
+    migrate_users()

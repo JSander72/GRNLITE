@@ -112,13 +112,13 @@ REST_FRAMEWORK = {
 
 # CSRF_TRUSTED_ORIGINS = ["https://grnlite.onrender.com"]  # Add your domain if needed
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:8000",
-    "http://localhost:8080",
-    "http://localhost:5000",
-    "https://grnlite.onrender.com",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "http://localhost:8000",
+#     "http://localhost:8080",
+#     "http://localhost:5000",
+#     "https://grnlite.onrender.com",
+# ]
 
 # JWT SETTING
 from datetime import timedelta
@@ -147,7 +147,7 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 }
 
-AUTH_USER_MODEL = "my_app.CustomUser"
+AUTH_USER_MODEL = "auth.User"  # Use the default User model
 
 LOGGING = {
     "version": 1,

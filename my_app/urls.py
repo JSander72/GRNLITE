@@ -6,41 +6,18 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
 from .views import (
-    GoogleLoginView,
     UserProfileView,
     BetaReaderListCreateView,
-    find_beta_readers,
-    beta_reader_list,
     ProfileListCreateView,
     ProfileDetailView,
-    KeywordListCreateView,
-    KeywordDetailView,
     FeedbackQuestionListCreateView,
-    FeedbackQuestionDetailView,
     ManuscriptFeedbackPreferenceListCreateView,
-    ManuscriptFeedbackPreferenceDetailView,
-    FeedbackResponseListCreateView,
-    FeedbackResponseDetailView,
-    AuthorSettingsListCreateView,
-    AuthorSettingsDetailView,
     ResourceListCreateView,
-    ResourceDetailView,
-    ResourceInteractionListCreateView,
-    ResourceInteractionDetailView,
-    NotificationListCreateView,
-    NotificationDetailView,
-    BetaReaderApplicationDetailView,
     ManuscriptListCreateView,
     ManuscriptDetailView,
-    UserListCreateView,
-    UserDetailView,
-    ReaderDashboardView,
-    ReaderDashboardTemplateView,
-    AuthorDashboardTemplateView,
-    OAuth2LoginView,
-    ManuscriptViewSet,
     UserViewSet,
     ProfileViewSet,
+    ManuscriptViewSet,
     save_token,
 )
 
@@ -66,14 +43,7 @@ urlpatterns = [
     path(
         "auth/",
         include(
-            [
-                path("", include("djoser.urls")),
-                path("", include("djoser.urls.jwt")),
-                # Remove OAuth-related URLs
-                # path("social/", include("social_django.urls", namespace="social_django")),
-                # path("provider/login/", views.login_view, name="login"),
-                # path("accounts/", include("allauth.urls")),
-            ]
+            [path("", include("djoser.urls")), path("", include("djoser.urls.jwt"))]
         ),
     ),
     path(
@@ -106,14 +76,7 @@ urlpatterns = [
     path(
         "auth/",
         include(
-            [
-                path("", include("djoser.urls")),
-                path("", include("djoser.urls.jwt")),
-                # Remove OAuth-related URLs
-                # path("social/", include("social_django.urls", namespace="social")),
-                # path("provider/login/", views.login_view, name="login"),
-                # path("accounts/", include("allauth.urls")),
-            ]
+            [path("", include("djoser.urls")), path("", include("djoser.urls.jwt"))]
         ),
     ),
     # Profile URLs

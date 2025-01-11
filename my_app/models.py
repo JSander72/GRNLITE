@@ -1,34 +1,6 @@
-from django.contrib.auth.models import User
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User, AbstractUser, Group, Permission
 from django.db import models
 from django.utils.timezone import now
-from django.conf import settings
-from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.utils.timezone import now
-
-
-class CustomUser(AbstractUser):
-    profile_picture = models.ImageField(upload_to="profiles/", blank=True, null=True)
-    groups = models.ManyToManyField(Group, related_name="customuser_set", blank=True)
-    user_permissions = models.ManyToManyField(
-        Permission, related_name="customuser_set", blank=True
-    )
-
-    def __str__(self):
-        return self.username
-
-    def set_unusable_password(self):
-        self.password = None
-
-
-class CustomUserGroup(models.Model):
-    custom_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
-
-
-class CustomUserPermission(models.Model):
-    custom_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
 
 
 class Profile(models.Model):
@@ -38,7 +10,7 @@ class Profile(models.Model):
         (READER, "Reader"),
         (AUTHOR, "Author"),
     ]
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default=READER)
     name = models.CharField(max_length=255, default="Default Name")
     genre = models.CharField(max_length=255, default="Unknown")
@@ -94,9 +66,6 @@ class FeedbackQuestion(models.Model):
     def __str__(self):
         return f"{self.question_text}"
 
-    class Meta:
-        abstract = False
-
 
 class Manuscript(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -119,8 +88,7 @@ class Manuscript(models.Model):
         related_name="manuscripts",
         help_text="The author of the manuscript",
     )
-    title = models.CharField(max_length=200)
-    file_path = models.FileField(upload_to="uploads/manuscript/% Y/% m/% d/")
+    file_path = models.FileField(upload_to="uploads/manuscript/%Y/%m/%d/")
     status = models.CharField(
         max_length=30,
         choices=STATUS_CHOICES,
@@ -142,11 +110,10 @@ class Manuscript(models.Model):
     budget = models.IntegerField(null=False, default=0)
     beta_readers_needed = models.IntegerField(null=False, default=0)
     cover_art = models.FileField(
-        null=True, blank=True, upload_to="uploads/cover_art/% Y/% m/% d/"
+        null=True, blank=True, upload_to="uploads/cover_art/%Y/%m/%d/"
     )
-    nda_required = models.BooleanField(null=False, blank=True, default=False)
     nda_file = models.FileField(
-        null=True, blank=True, upload_to="uploads/nda/% Y/% m/% d/"
+        null=True, blank=True, upload_to="uploads/nda/%Y/%m/%d/"
     )
     plot_summary = models.TextField(max_length=1000, null=True)
     created_at = models.DateTimeField(default=now, help_text="Timestamp of creation")
@@ -178,7 +145,7 @@ class FeedbackResponse(models.Model):
         help_text="The manuscript this feedback is for",
     )
     reader = models.ForeignKey(
-        get_user_model(),
+        User,
         on_delete=models.CASCADE,
         limit_choices_to={
             "groups__name": "beta_reader"
@@ -204,7 +171,7 @@ class FeedbackResponse(models.Model):
 
 class AuthorSettings(models.Model):
     author = models.OneToOneField(
-        get_user_model(),
+        User,
         on_delete=models.CASCADE,
         related_name="settings",
         help_text="The author this settings configuration belongs to",
@@ -274,7 +241,7 @@ class ResourceInteraction(models.Model):
         Resource, on_delete=models.CASCADE, related_name="interactions"
     )
     user = models.ForeignKey(
-        get_user_model(),
+        User,
         on_delete=models.CASCADE,
         related_name="resource_interactions",
         help_text="The user interacting with the resource",
@@ -298,7 +265,7 @@ class Notification(models.Model):
         ("not_read", "Not Read"),
     ]
     user = models.ForeignKey(
-        get_user_model(),
+        User,
         on_delete=models.CASCADE,
         related_name="notifications",
         help_text="The user receiving the notification",
@@ -334,7 +301,7 @@ class BetaReaderApplication(models.Model):
         help_text="The manuscript this application is for",
     )
     beta_reader = models.ForeignKey(
-        get_user_model(),
+        User,
         on_delete=models.CASCADE,
         limit_choices_to={
             "groups__name": "beta_reader"
@@ -374,21 +341,29 @@ class BetaReaderApplication(models.Model):
     )
 
 
-class BetaReader(models.Model):
-    user = models.OneToOneField(
-        get_user_model(),
-        on_delete=models.CASCADE,
-        related_name="beta_reader_profile",
-        help_text="The user who is a beta reader",
+class Genre(models.Model):
+    name = models.CharField(max_length=100, null=False, help_text="Name of the genre")
+    description = models.TextField(
+        null=True, blank=True, help_text="Description of the genre"
     )
+
+    def __str__(self):
+        return self.name
+
+
+class CustomUser(AbstractUser):
+    genres = models.ManyToManyField(Genre, related_name="custom_users")
+    groups = models.ManyToManyField(Group, related_name="custom_user_set")
+    user_permissions = models.ManyToManyField(
+        Permission, related_name="custom_user_set_permissions"
+    )
+
+
+class BetaReader(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    genres = models.ManyToManyField(Genre, related_name="beta_readers")
     experience = models.TextField(
         null=True, blank=True, help_text="Summary of the beta reader's experience"
-    )
-    genres = models.ManyToManyField(
-        "Genre",
-        related_name="beta_readers",
-        blank=True,
-        help_text="Genres the beta reader is interested in",
     )
     created_at = models.DateTimeField(
         auto_now_add=True, help_text="When the beta reader profile was created"
@@ -399,20 +374,6 @@ class BetaReader(models.Model):
 
     def __str__(self):
         return self.user.username
-
-
-def __str__(self):
-    return f"{self.beta_reader.username} applied for {self.manuscript.title}"
-
-
-class Genre(models.Model):
-    name = models.CharField(max_length=100, null=False, help_text="Name of the genre")
-    description = models.TextField(
-        null=True, blank=True, help_text="Description of the genre"
-    )
-
-    def __str__(self):
-        return self.name
 
 
 class ManuscriptKeywords(models.Model):
