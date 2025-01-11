@@ -4,7 +4,6 @@
         {% load static %}
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <script src="{% static 'Front_End/JS/redirectToAuthPage.js' %}"></script>
         <title>Signup</title>
         <!-- <link rel="stylesheet" href="{% static 'css/style.css' %}" /> -->
         <style>
@@ -206,9 +205,6 @@
                 box-sizing: border-box;
             }
         </style>
-        <script src="{% static 'js/formHandler.js' %}" defer></script>
-        <script src="{% static 'js/redirectToAuthPage.js' %}" defer></script>
-        <script src="{% static 'js/bundle.js' %}"></script>
     </head>
 
     <body>
@@ -252,10 +248,17 @@
         {% endif %}
 
         <script>
-            // Function to get CSRF token
-            function getCsrfToken() {
-                const csrfTokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
-                return csrfTokenInput ? csrfTokenInput.value : null;
+            // Function to set user type
+            function setUserType(userType) {
+                const readerChoice = document.getElementById('readerChoice');
+                const authorChoice = document.getElementById('authorChoice');
+                readerChoice.classList.remove('selected');
+                authorChoice.classList.remove('selected');
+                if (userType === 'reader') {
+                    readerChoice.classList.add('selected');
+                } else if (userType === 'author') {
+                    authorChoice.classList.add('selected');
+                }
             }
         </script>
     </body>

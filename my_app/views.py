@@ -644,38 +644,9 @@ def signup_view(request):
     if request.method == "POST":
         form = SignupForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data["email"]
-            username = form.cleaned_data["username"]
-            password = form.cleaned_data["password"]
-            first_name = form.cleaned_data["first_name"]
-            last_name = form.cleaned_data["last_name"]
-
-            defaults = {
-                "username": username,
-                "password": password,
-                "first_name": first_name,
-                "last_name": last_name,
-            }
-
-            user = get_or_create_user(email, defaults)
-
-            if user:
-                login(request, user)
-                return redirect("my_app:home")
-        else:
-            oauth_user_data = {
-                "email": form.cleaned_data["email"],
-                "first_name": form.cleaned_data["first_name"],
-                "last_name": form.cleaned_data["last_name"],
-                "oauth_id": "generated_oauth_id",  # Generate or obtain this value as needed
-                "provider": "example_provider",  # Set the provider as needed
-            }
-            user = save_user(oauth_user_data)
-            return render(
-                request,
-                "signup.html",
-                {"form": form, "message": f"User saved with ID: {user.id}"},
-            )
+            user = form.save()
+            login(request, user)
+            return redirect("home")
     else:
         form = SignupForm()
     return render(request, "signup.html", {"form": form})
