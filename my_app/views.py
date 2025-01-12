@@ -4,15 +4,17 @@ from rest_framework import generics, permissions, viewsets, serializers
 from django.contrib.auth import get_user_model, login, authenticate, logout
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from .forms import ManuscriptSubmissionForm, SignupForm
-from django.views.generic import ListView, CreateView, DetailView, TemplateView
+from django.views.generic import TemplateView
 from django.http import JsonResponse, HttpResponse
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .utils import get_or_create_user
-
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import status
+from .serializers import UserSerializer
+from django.urls import path
 
 from .models import (
     Manuscript,
@@ -46,12 +48,13 @@ from .serializers import (
     # BetaReaderSerializer,
 )
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from rest_framework.decorators import api_view, permission_classes
 from .database import save_user
 from rest_framework.authtoken.models import Token
 from django.apps import apps
+from django.db import IntegrityError
 
 Profile = apps.get_model("my_app", "Profile")
 Manuscript = apps.get_model("my_app", "Manuscript")
@@ -59,8 +62,6 @@ BetaReader = apps.get_model("my_app", "BetaReader")
 
 
 def some_view(request):
-    from .serializers import UserSerializer
-
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -542,6 +543,43 @@ class InvalidKeyError(Exception):
     pass
 
 
+class SignUpView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = UserSerializer(data=request.data)
+            if serializer.is_valid():
+                user = serializer.save()
+                refresh = RefreshToken.for_user(user)
+
+                return Response(
+                    {
+                        "user": serializer.data,
+                        "refresh": str(refresh),
+                        "access": str(refresh.access_token),
+                        "message": "User created successfully",
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class SignInView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = MyTokenObtainPairSerializer(data=request.data)
+            if serializer.is_valid():
+                return Response(serializer.validated_data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
 class ManuscriptViewSet(viewsets.ModelViewSet):
     queryset = Manuscript.objects.all()
     serializer_class = ManuscriptSerializer
@@ -563,26 +601,61 @@ def home(request):
     return render(request, "main.html")
 
 
+from django.contrib.auth import login as auth_login
+
+
 def signup_view(request):
     if request.method == "POST":
         form = SignupForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            auth_login(request, user)
             return redirect("home")
     else:
         form = SignupForm()
     return render(request, "signup.html", {"form": form})
 
 
+def signup(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user_type = request.POST["user_type"]
+
+        try:
+            user = User.objects.create_user(username=username, password=password)
+            user.profile.user_type = (
+                user_type  # Assuming you have a profile model with user_type field
+            )
+            user.save()
+
+            # Generate JWT token
+            refresh = RefreshToken.for_user(user)
+            jwt_token = {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            }
+
+            login(request, user)
+            return redirect("my_app:home")  # Redirect to home or any other page
+        except IntegrityError:
+            return render(request, "signup.html", {"error": "Username already exists"})
+    return render(request, "signup.html")
+
+
 def signin(request):
     if request.method == "POST":
         username = request.POST["username"]
         password = request.POST["password"]
+        user_type = request.POST["user_type"]  # Get the user type from the form
+
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect("home")
+            if user_type == "author":
+                return redirect("my_app:author_dashboard")
+            else:
+                return redirect("my_app:reader_dashboard")
         else:
             return render(request, "signin.html", {"error": "Invalid credentials"})
     return render(request, "signin.html")
@@ -611,7 +684,7 @@ def reader_dashboard(request):
     return render(request, "reader-dashboard.html")
 
 
-def available_manuscripts(request):
+def reader_dashboard(request):
     return render(request, "available-manuscripts.html")
 
 
@@ -632,7 +705,7 @@ def author_dashboard(request):
     return render(request, "author-dashboard.html")
 
 
-def my_manuscripts(request):
+def author_dashboard(request):
     return render(request, "my-manuscripts.html")
 
 
@@ -724,6 +797,9 @@ def beta_reader_list(request):
     """
     Returns a list of all beta readers.
     """
+
+
+def beta_reader_list(request):
     beta_readers = BetaReader.objects.all()
     serializer = BetaReaderSerializer(beta_readers, many=True)
     return Response(serializer.data)
@@ -734,7 +810,7 @@ def error_404_view(request, exception):
     return render(request, "404.html", status=404)
 
 
-def login_view(request):
+def error_404_view(request, _exception):
     # Your login logic here
     return render(request, "signin.html")
 
@@ -754,6 +830,11 @@ def save_token(request):
         except User.DoesNotExist:
             return JsonResponse({"error": "User not found"}, status=404)
     return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+class UserCreate(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 
 handler404 = error_404_view

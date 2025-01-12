@@ -5,7 +5,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Signup</title>
-        <!-- <link rel="stylesheet" href="{% static 'css/style.css' %}" /> -->
+        <link rel="stylesheet" href="{% static 'Front_End/CSS/styles.css' %}">
         <style>
             /* Centralized Styles */
             :root {
@@ -24,6 +24,7 @@
             }
 
             .navbar {
+                margin: auto;
                 position: fixed;
                 top: 0;
                 width: 100%;
@@ -69,6 +70,7 @@
             }
 
             .auth-container {
+                margin: auto;
                 min-height: 120vh;
                 display: flex;
                 align-items: center;
@@ -230,14 +232,11 @@
                     <p>Join the Grn Lite community</p>
                 </div>
                 
-                <form class="form-group" id="signupForm" action="{% url 'my_app:signup' %}" method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
+                <form id="signup-form" method="POST" action="/api/signup/">
+                    <input type="text" name="username" placeholder="Username" required>
+                    <input type="email" name="email" placeholder="Email" required>
+                    <input type="password" name="password" placeholder="Password" required>
                     <button type="submit">Sign Up</button>
-                    <div class="bubble-choice-container">
-                        <div id="readerChoice" class="bubble-choice" onclick="setUserType('reader')">Reader</div>
-                        <div id="authorChoice" class="bubble-choice" onclick="setUserType('author')">Author</div>
-                    </div>
                 </form>
             </div>
         </div>
@@ -259,6 +258,7 @@
                 } else if (userType === 'author') {
                     authorChoice.classList.add('selected');
                 }
+                document.getElementById('user-type').value = userType;
             }
         </script>
     </body>

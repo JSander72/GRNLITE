@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
+import my_app
 from .views import (
     UserProfileView,
     BetaReaderListCreateView,
@@ -19,7 +20,17 @@ from .views import (
     ProfileViewSet,
     ManuscriptViewSet,
     save_token,
+    UserCreate,
+    SignInView,
+    SignUpView,
 )
+
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .serializers import UserSerializer
+
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = DefaultRouter()
@@ -27,19 +38,21 @@ router.register(r"users", UserViewSet, basename="user")
 router.register(r"profiles", ProfileViewSet, basename="profile")
 router.register(r"manuscripts", ManuscriptViewSet, basename="manuscript")
 
-app_name = "my_app"
 
 urlpatterns = [
     path("", views.home, name="home"),
     # User URLs
-    path("signin/", views.signin, name="signin"),
-    path("signup/", views.signup_view, name="signup"),
+    path("signin/", SignInView.as_view(), name="signin"),
+    path("signup/", SignUpView.as_view(), name="signup"),
     path("login/", views.login, name="login"),
     path("logout/", views.logout, name="logout"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/", include(router.urls)),
+    # Admin URLs
     path("admin/", admin.site.urls),
+    path("author-dashboard/", views.author_dashboard, name="author_dashboard"),
+    path("reader-dashboard/", views.reader_dashboard, name="reader_dashboard"),
     path(
         "auth/",
         include(
@@ -109,6 +122,7 @@ urlpatterns = [
         ),
     ),
     path("save_token/", save_token, name="save_token"),
+    path("signup/", UserCreate.as_view(), name="user-create"),
 ]
 
 if settings.DEBUG:

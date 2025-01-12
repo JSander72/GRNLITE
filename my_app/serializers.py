@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 
 # from my_app.models import CustomUser
 from .models import (
@@ -17,31 +18,32 @@ from .models import (
     Feedback,
     CustomUser,
     BetaReader,
+    User,
 )
-
-User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
-    profile = serializers.PrimaryKeyRelatedField(read_only=True)  # Add this line
-
     class Meta:
         model = User
-        fields = [
-            "id",
+        fields = (
             "username",
             "email",
+            "password",
             "first_name",
             "last_name",
-            "password",
-            "profile",  # Add this line
-        ]
-        extra_kwargs = {"password": {"write_only": True}}
+            "user_type",
+        )
+        write_only_fields = ("password",)
 
     def create(self, validated_data):
-        password = validated_data.pop("password")
-        user = User(**validated_data)
-        user.set_password(password)
+        user = User(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            first_name=validated_data["first_name"],
+            last_name=validated_data["last_name"],
+            user_type=validated_data["user_type"],
+        )
+        user.set_password(validated_data["password"])
         user.save()
         return user
 
