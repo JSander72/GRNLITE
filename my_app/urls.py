@@ -38,12 +38,15 @@ router.register(r"users", UserViewSet, basename="user")
 router.register(r"profiles", ProfileViewSet, basename="profile")
 router.register(r"manuscripts", ManuscriptViewSet, basename="manuscript")
 
+app_name = "my_app"
 
 urlpatterns = [
     path("", views.home, name="home"),
     # User URLs
-    path("signin/", SignInView.as_view(), name="signin"),
     path("signup/", SignUpView.as_view(), name="signup"),
+    path("signin/", SignInView.as_view(), name="signin"),
+    # path("api/signup/", SignUpView.as_view(), name="signup"),
+    # path("api/signin/", SignInView.as_view(), name="signin"),
     path("login/", views.login, name="login"),
     path("logout/", views.logout, name="logout"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
@@ -51,14 +54,11 @@ urlpatterns = [
     path("api/", include(router.urls)),
     # Admin URLs
     path("admin/", admin.site.urls),
+    path("", include("django.contrib.auth.urls")),
     path("author-dashboard/", views.author_dashboard, name="author_dashboard"),
     path("reader-dashboard/", views.reader_dashboard, name="reader_dashboard"),
-    path(
-        "auth/",
-        include(
-            [path("", include("djoser.urls")), path("", include("djoser.urls.jwt"))]
-        ),
-    ),
+    path("auth/", include("djoser.urls")),
+    path("auth/", include("djoser.urls.jwt")),
     path(
         "profiles/",
         include(

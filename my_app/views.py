@@ -1,21 +1,43 @@
 import json
 from django.shortcuts import redirect, render, get_object_or_404
-from rest_framework import generics, permissions, viewsets, serializers
 from django.contrib.auth import get_user_model, login, authenticate, logout
+from django.urls import reverse_lazy
+from django.http import JsonResponse, HttpResponse
+from django.views.generic import TemplateView, FormView
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.apps import apps
+from django.db import IntegrityError
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from rest_framework import generics, permissions, viewsets, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from .forms import ManuscriptSubmissionForm, SignupForm
-from django.views.generic import TemplateView
-from django.http import JsonResponse, HttpResponse
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .utils import get_or_create_user
+from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
-from .serializers import UserSerializer
-from django.urls import path
-
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.authtoken.models import Token
+from .database import save_user
+from .forms import ManuscriptSubmissionForm, SignUpForm, SignInForm
+from .serializers import (
+    UserSerializer,
+    ProfileSerializer,
+    ManuscriptSerializer,
+    KeywordSerializer,
+    FeedbackQuestionSerializer,
+    FeedbackResponseSerializer,
+    AuthorSettingsSerializer,
+    ResourceSerializer,
+    ResourceInteractionSerializer,
+    NotificationSerializer,
+    BetaReaderApplicationSerializer,
+    ManuscriptFeedbackPreferenceSerializer,
+)
 from .models import (
     Manuscript,
     Feedback,
@@ -31,60 +53,47 @@ from .models import (
     BetaReaderApplication,
     BetaReader,
 )
-from .serializers import (
-    UserSerializer,
-    ProfileSerializer,
-    ManuscriptSerializer,
-    KeywordSerializer,
-    FeedbackQuestionSerializer,
-    FeedbackResponseSerializer,
-    AuthorSettingsSerializer,
-    ResourceSerializer,
-    ResourceInteractionSerializer,
-    NotificationSerializer,
-    BetaReaderApplicationSerializer,
-    ManuscriptFeedbackPreferenceSerializer,
-    # FeedbackSerializer,
-    # BetaReaderSerializer,
-)
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators import api_view, permission_classes
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
-from .database import save_user
-from rest_framework.authtoken.models import Token
-from django.apps import apps
-from django.db import IntegrityError
 
+
+# Models
 Profile = apps.get_model("my_app", "Profile")
 Manuscript = apps.get_model("my_app", "Manuscript")
 BetaReader = apps.get_model("my_app", "BetaReader")
 
-
-def some_view(request):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
+User = get_user_model()
 
 
+# Serializers
 class BetaReaderSerializer(serializers.ModelSerializer):
     class Meta:
         model = BetaReader
         fields = ["id", "user", "experience", "genres", "created_at", "updated_at"]
 
 
-User = get_user_model()
+# Views
+def some_view(request):
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+
+
+class CustomSignUpView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except ValidationError as e:
+            return Response({"errors": e.detail}, status=400)
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-
-        # Add custom claims
         token["name"] = user.username
-        token["role"] = user.profile.role  # Assuming the role is stored in the profile
-
+        token["role"] = user.profile.role
         return token
 
 
@@ -93,34 +102,20 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
-
-        # Check if the user_type is provided in the request body
         user_type = request.data.get("user_type")
         if user_type:
-            response.data[
-                "user_type"
-            ] = user_type  # Add user_type to the token response
-
+            response.data["user_type"] = user_type
         return response
 
 
 class ReaderDashboardView(APIView):
-    """
-    Provides an aggregated view of data relevant to the reader.
-    """
-
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Fetch manuscripts available to the reader
         manuscripts = Manuscript.objects.all()
         manuscripts_data = ManuscriptSerializer(manuscripts, many=True).data
-
-        # Fetch notifications for the reader
         notifications = Notification.objects.filter(user=request.user, is_read=False)
         notifications_data = NotificationSerializer(notifications, many=True).data
-
-        # Aggregate data into a dashboard response
         data = {
             "manuscripts": manuscripts_data,
             "notifications": notifications_data,
@@ -129,22 +124,13 @@ class ReaderDashboardView(APIView):
 
 
 class AuthorDashboardView(APIView):
-    """
-    Provides an aggregated view of data relevant to the author.
-    """
-
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Fetch manuscripts available to the author
         manuscripts = Manuscript.objects.filter(author=request.user)
         manuscripts_data = ManuscriptSerializer(manuscripts, many=True).data
-
-        # Fetch notifications for the author
         notifications = Notification.objects.filter(user=request.user, is_read=False)
         notifications_data = NotificationSerializer(notifications, many=True).data
-
-        # Aggregate data into a dashboard response
         data = {
             "manuscripts": manuscripts_data,
             "notifications": notifications_data,
@@ -153,18 +139,10 @@ class AuthorDashboardView(APIView):
 
 
 class ReaderDashboardTemplateView(TemplateView):
-    """
-    Serves the reader dashboard as an HTML template.
-    """
-
     template_name = "reader-dashboard.html"
 
 
 class AuthorDashboardTemplateView(TemplateView):
-    """
-    Serves the author dashboard as an HTML template.
-    """
-
     template_name = "author-dashboard.html"
 
 
@@ -186,124 +164,71 @@ class UserProfileView(APIView):
 
 
 class UserListCreateView(generics.ListCreateAPIView):
-    """
-    Handles listing and creating users.
-    """
-
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Handles retrieving, updating, and deleting a specific user.
-    """
-
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        """
-        Ensures users can only access their own user details.
-        """
         return User.objects.filter(id=self.request.user.id)
 
 
 class ManuscriptListCreateView(generics.ListCreateAPIView):
-    """
-    Handles listing and creating manuscripts.
-    """
-
     queryset = Manuscript.objects.all()
     serializer_class = ManuscriptSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        """
-        Associates the created manuscript with the logged-in user.
-        """
         serializer.save(author=self.request.user)
 
 
 class ManuscriptDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Handles retrieving, updating, and deleting a specific manuscript.
-    """
-
     queryset = Manuscript.objects.all()
     serializer_class = ManuscriptSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        """
-        Ensures users can only access their own manuscripts.
-        """
         return Manuscript.objects.filter(author=self.request.user)
 
 
 class ProfileDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Handles retrieving, updating, and deleting a specific profile.
-    """
-
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        """
-        Ensures that a user can only access their own profile or profiles they are allowed to view.
-        """
         return Profile.objects.filter(user=self.request.user)
 
 
 class ProfileListCreateView(generics.ListCreateAPIView):
-    """
-    Handles listing and creating profiles.
-    """
-
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        """
-        Associates the created profile with the currently logged-in user.
-        """
         serializer.save(user=self.request.user)
 
 
 class AuthorSettingsListCreateView(generics.ListCreateAPIView):
-    """
-    Handles listing and creating author settings.
-    """
-
     queryset = AuthorSettings.objects.all()
     serializer_class = AuthorSettingsSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        """
-        Associates the created settings with the logged-in user.
-        """
         serializer.save(author=self.request.user)
 
 
 class AuthorSettingsDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Handles retrieving, updating, and deleting a specific author settings object.
-    """
-
     queryset = AuthorSettings.objects.all()
     serializer_class = AuthorSettingsSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        """
-        Ensures a user can only access their own author settings.
-        """
         return AuthorSettings.objects.filter(author=self.request.user)
 
 
@@ -313,229 +238,132 @@ class BetaReaderListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        # Optionally add the currently logged-in user to the BetaReader object
         serializer.save(user=self.request.user)
 
 
 class ResourceInteractionListCreateView(generics.ListCreateAPIView):
-    """
-    Handles listing and creating resource interactions.
-    """
-
     queryset = ResourceInteraction.objects.all()
     serializer_class = ResourceInteractionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        """
-        Associates the created interaction with the logged-in user.
-        """
         serializer.save(user=self.request.user)
 
 
 class ResourceListCreateView(generics.ListCreateAPIView):
-    """
-    Handles listing and creating resources.
-    """
-
     queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        """
-        Associates the created resource with the logged-in user.
-        """
         serializer.save(creator=self.request.user)
 
 
 class ResourceInteractionDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Handles retrieving, updating, and deleting a specific resource interaction.
-    """
-
     queryset = ResourceInteraction.objects.all()
     serializer_class = ResourceInteractionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        """
-        Ensures users can only access their own resource interactions.
-        """
         return ResourceInteraction.objects.filter(user=self.request.user)
 
 
 class ResourceDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Handles retrieving, updating, and deleting a specific resource.
-    """
-
     queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        """
-        Ensures a user can only access resources they have created.
-        """
         return Resource.objects.filter(creator=self.request.user)
 
 
 class NotificationListCreateView(generics.ListCreateAPIView):
-    """
-    Handles listing and creating notifications.
-    """
-
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        """
-        Associates the created notification with the logged-in user.
-        """
         serializer.save(user=self.request.user)
 
 
 class NotificationDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Handles retrieving, updating, and deleting a specific notification.
-    """
-
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        """
-        Ensures users can only access their own notifications.
-        """
         return Notification.objects.filter(user=self.request.user)
 
 
 class KeywordListCreateView(generics.ListCreateAPIView):
-    """
-    Handles listing and creating keywords.
-    """
-
     queryset = Keyword.objects.all()
     serializer_class = KeywordSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        """
-        Save the keyword instance.
-        """
         serializer.save()
 
 
 class KeywordDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Handles retrieving, updating, and deleting a specific keyword.
-    """
-
     queryset = Keyword.objects.all()
     serializer_class = KeywordSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
 class BetaReaderApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Handles retrieving, updating, and deleting a specific beta reader application.
-    """
-
     queryset = BetaReaderApplication.objects.all()
     serializer_class = BetaReaderApplicationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        """
-        Ensures users can only access their own beta reader applications.
-        """
         return BetaReaderApplication.objects.filter(user=self.request.user)
 
 
 class FeedbackQuestionListCreateView(generics.ListCreateAPIView):
-    """
-    Handles listing and creating feedback questions.
-    """
-
     queryset = FeedbackQuestion.objects.all()
     serializer_class = FeedbackQuestionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        """
-        Save the feedback question instance.
-        """
         serializer.save()
 
 
 class FeedbackResponseDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Handles retrieving, updating, and deleting a specific feedback response.
-    """
-
     queryset = FeedbackResponse.objects.all()
     serializer_class = FeedbackResponseSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        """
-        Ensures users can only access their own feedback responses.
-        """
         return FeedbackResponse.objects.filter(reader=self.request.user)
 
 
 class FeedbackQuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Handles retrieving, updating, and deleting a specific feedback question.
-    """
-
     queryset = FeedbackQuestion.objects.all()
     serializer_class = FeedbackQuestionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
 class ManuscriptFeedbackPreferenceListCreateView(generics.ListCreateAPIView):
-    """
-    Handles listing and creating manuscript feedback preferences.
-    """
-
     queryset = ManuscriptFeedbackPreference.objects.all()
     serializer_class = ManuscriptFeedbackPreferenceSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        """
-        Save the manuscript feedback preference instance.
-        """
         serializer.save()
 
 
 class ManuscriptFeedbackPreferenceDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Handles retrieving, updating, and deleting a specific manuscript feedback preference.
-    """
-
     queryset = ManuscriptFeedbackPreference.objects.all()
     serializer_class = ManuscriptFeedbackPreferenceSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
 class FeedbackResponseListCreateView(generics.ListCreateAPIView):
-    """
-    Handles listing and creating feedback responses.
-    """
-
     queryset = FeedbackResponse.objects.all()
     serializer_class = FeedbackResponseSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        """
-        Associates the feedback response with the currently logged-in user.
-        """
         serializer.save(reader=self.request.user)
 
 
@@ -543,49 +371,11 @@ class InvalidKeyError(Exception):
     pass
 
 
-class SignUpView(APIView):
-    def post(self, request, *args, **kwargs):
-        try:
-            serializer = UserSerializer(data=request.data)
-            if serializer.is_valid():
-                user = serializer.save()
-                refresh = RefreshToken.for_user(user)
-
-                return Response(
-                    {
-                        "user": serializer.data,
-                        "refresh": str(refresh),
-                        "access": str(refresh.access_token),
-                        "message": "User created successfully",
-                    },
-                    status=status.HTTP_201_CREATED,
-                )
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-
-class SignInView(TokenObtainPairView):
-    def post(self, request, *args, **kwargs):
-        try:
-            serializer = MyTokenObtainPairSerializer(data=request.data)
-            if serializer.is_valid():
-                return Response(serializer.validated_data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-
 class ManuscriptViewSet(viewsets.ModelViewSet):
     queryset = Manuscript.objects.all()
     serializer_class = ManuscriptSerializer
 
 
-# ViewSets define the view behavior.
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -601,63 +391,95 @@ def home(request):
     return render(request, "main.html")
 
 
-from django.contrib.auth import login as auth_login
+class SignUpView(FormView):
+    template_name = "signup.html"
+    form_class = SignUpForm
+    success_url = reverse_lazy("home")
+
+    def form_valid(self, form):
+        user = form.save()
+        login(self.request, user)
+        return super().form_valid(form)
+
+
+class SignInView(FormView):
+    template_name = "signin.html"
+    form_class = SignInForm
+    success_url = reverse_lazy("home")
+
+    def form_valid(self, form):
+        username = form.cleaned_data["username"]
+        password = form.cleaned_data["password"]
+        user = authenticate(self.request, username=username, password=password)
+        if user is not None:
+            login(self.request, user)
+            return super().form_valid(form)
+        else:
+            form.add_error(None, "Invalid username or password")
+            return self.form_invalid(form)
 
 
 def signup_view(request):
     if request.method == "POST":
-        form = SignupForm(request.POST)
+        form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            auth_login(request, user)
+            login(request, user)
             return redirect("home")
+        else:
+            return render(request, "signup.html", {"form": form, "errors": form.errors})
     else:
-        form = SignupForm()
+        form = SignUpForm()
     return render(request, "signup.html", {"form": form})
 
 
 def signup(request):
     if request.method == "POST":
         username = request.POST["username"]
+        first_name = request.POST["first_name"]
+        last_name = request.POST["last_name"]
+        email = request.POST["email"]
         password = request.POST["password"]
         user_type = request.POST["user_type"]
 
-        try:
-            user = User.objects.create_user(username=username, password=password)
-            user.profile.user_type = (
-                user_type  # Assuming you have a profile model with user_type field
-            )
-            user.save()
+        user = User.objects.create_user(
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            password=password,
+        )
+        user.save()
 
-            # Generate JWT token
-            refresh = RefreshToken.for_user(user)
-            jwt_token = {
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            }
-
+        user = authenticate(username=username, password=password)
+        if user is not None:
             login(request, user)
-            return redirect("my_app:home")  # Redirect to home or any other page
-        except IntegrityError:
-            return render(request, "signup.html", {"error": "Username already exists"})
-    return render(request, "signup.html")
+            return redirect("home")
+        else:
+            return HttpResponse("Invalid login details")
+    else:
+        return render(request, "signup.html")
 
 
 def signin(request):
     if request.method == "POST":
         username = request.POST["username"]
         password = request.POST["password"]
-        user_type = request.POST["user_type"]  # Get the user type from the form
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            login(request, user)
-            if user_type == "author":
-                return redirect("my_app:author_dashboard")
+            if user.is_active:
+                login(request, user)
+                if user.profile.user_type == "author":
+                    return redirect("my_app:author_dashboard")
+                else:
+                    return redirect("my_app:reader_dashboard")
             else:
-                return redirect("my_app:reader_dashboard")
+                messages.error(
+                    request, "Your account is inactive. Please contact support."
+                )
         else:
-            return render(request, "signin.html", {"error": "Invalid credentials"})
+            messages.error(request, "Invalid username or password.")
     return render(request, "signin.html")
 
 
@@ -756,30 +578,20 @@ def feedback_form(request, manuscript_id):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def reader_dashboard(request):
-    # Your view logic here
     return HttpResponse("Reader Dashboard Content", content_type="text/html")
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def author_dashboard(request):
-    # Your view logic here
     return HttpResponse("Author Dashboard Content", content_type="text/html")
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def find_beta_readers(request):
-    """
-    Filters beta readers based on query parameters.
-    Query parameters:
-        - experience (string): Text to match in experience field.
-        - genres (list of IDs): Genre IDs to filter by.
-    """
     experience_query = request.GET.get("experience", "")
     genres_query = request.GET.getlist("genres")
-
-    # Filter beta readers by experience and genres
     beta_readers = BetaReader.objects.all()
 
     if experience_query:
@@ -794,12 +606,6 @@ def find_beta_readers(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def beta_reader_list(request):
-    """
-    Returns a list of all beta readers.
-    """
-
-
-def beta_reader_list(request):
     beta_readers = BetaReader.objects.all()
     serializer = BetaReaderSerializer(beta_readers, many=True)
     return Response(serializer.data)
@@ -808,11 +614,6 @@ def beta_reader_list(request):
 # Error 404 View
 def error_404_view(request, exception):
     return render(request, "404.html", status=404)
-
-
-def error_404_view(request, _exception):
-    # Your login logic here
-    return render(request, "signin.html")
 
 
 @csrf_exempt
@@ -837,4 +638,18 @@ class UserCreate(generics.CreateAPIView):
     serializer_class = UserSerializer
 
 
-handler404 = error_404_view
+class SignUpView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+            return Response(
+                {
+                    "user": serializer.data,
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                },
+                status=201,
+            )
+        return Response(serializer.errors, status=400)
