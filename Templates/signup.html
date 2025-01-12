@@ -224,7 +224,7 @@
                 <h1>Sign Up</h1>
                 <p>Join the Grn Lite community</p>
             </div>
-            <form id="signupForm" method="POST" action="/api/signup/">
+            <form id="signupForm" method="POST" action="{% url 'my_app:signup' %}">
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="username">Username</label>
@@ -266,8 +266,30 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Ensure no API calls are made on page load that require authentication
-            // Example: Remove or modify any code making unauthorized API calls
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent the default form submission
+                if (isFormValid()) {
+                    // Make GET request here
+                    fetch('/signin.html')
+                        .then(response => response.text())
+                        .then(html => {
+                            document.body.innerHTML = html;
+                        });
+                }
+            });
+        });
+
+        function isFormValid() {
+            // Implement your form validation logic here
+            // For example:
+            const usernameField = document.getElementById("username");
+            // ...validation logic...
+            return true; // Return true if the form is valid
+        }
+
+        window.addEventListener('load', function() {
+            // Code that triggers a GET request
         });
 
         // Function to set user type
@@ -282,35 +304,35 @@
                 authorChoice.classList.add('selected');
             }
             document.getElementById('user-type').value = userType;
-            document.getElementById('${userType}Choice').classList.add('selected');
+            document.getElementById(`${userType}Choice`).classList.add('selected');
         }
 
-        const form = document.getElementById("signupForm");
-        form.addEventListener("submit", async (event) => {
-            event.preventDefault();
-            const formData = new FormData(form);
-            const jsonData = Object.fromEntries(formData.entries());
+        // const form = document.getElementById("signupForm");
+        // form.addEventListener("submit", async (event) => {
+        //     event.preventDefault();
+        //     const formData = new FormData(form);
+        //     const jsonData = Object.fromEntries(formData.entries());
 
-            try {
-                const response = await fetch("/api/signup/", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(jsonData),
-                });
+        //     try {
+        //         const response = await fetch("/api/signup/", {
+        //             method: "POST",
+        //             headers: {
+        //                 "Content-Type": "application/json",
+        //             },
+        //             body: JSON.stringify(jsonData),
+        //         });
 
-                const data = await response.json();
-                if (response.ok) {
-                    alert("Account created successfully!");
-                    window.location.href = "/signin/";
-                } else {
-                    alert(`Error: ${JSON.stringify(data.errors)}`);
-                }
-            } catch (error) {
-                alert("An error occurred.");
-            }
-        });
+        //         const data = await response.json();
+        //         if (response.ok) {
+        //             alert("Account created successfully!");
+        //             window.location.href = "/signin/";
+        //         } else {
+        //             alert(`Error: ${JSON.stringify(data.errors)}`);
+        //         }
+        //     } catch (error) {
+        //         alert("An error occurred.");
+        //     }
+        // });
     </script>
 </body>
 </html>

@@ -1,7 +1,6 @@
 from django import forms
 from .models import Manuscript, User
 from django.utils.translation import gettext_lazy as _
-
 from django.contrib.auth.models import User
 
 
@@ -43,12 +42,15 @@ class ManuscriptSubmissionForm(forms.ModelForm):
         }
 
 
-class SignUpForm(forms.Form):
-    password = forms.CharField(widget=forms.PasswordInput)
+class SignUpForm(forms.ModelForm):
+    user_type = forms.ChoiceField(choices=[("author", "Author"), ("reader", "Reader")])
 
     class Meta:
         model = User
-        fields = ["username", "email", "password", "first_name", "last_name"]
+        fields = ["username", "password", "email", "user_type"]
+        widgets = {
+            "password": forms.PasswordInput(),
+        }
 
 
 class SignInForm(forms.Form):

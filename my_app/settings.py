@@ -14,6 +14,8 @@ from pathlib import Path
 import dj_database_url
 import os
 from datetime import timedelta
+import datetime
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -54,6 +56,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # ... other middleware ...
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -61,7 +64,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
+    # ... other middleware ...
 ]
 
 ROOT_URLCONF = "my_app.urls"
@@ -106,15 +109,16 @@ DJOSER = {
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_jwt.authentication.JSONWebTokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
+        # 'rest_framework.authentication.TokenAuthentication',  # Comment this out if it's causing issues
     ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
 }
 
 
 # JWT SETTING
-from datetime import datetime
+
 
 JWT_AUTH = {
     "JWT_EXPIRATION_DELTA": datetime.timedelta(days=7),

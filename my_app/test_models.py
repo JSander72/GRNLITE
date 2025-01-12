@@ -1,12 +1,28 @@
 import os
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "grnlite.settings")
+# os.environ.setdefault("DJANGO_SETTINGS_MODULE", "grnlite.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_app.settings")
 django.setup()
 
 from django.test import TestCase
-from my_app.models import Profile, Manuscript, Genre
-from django.contrib.auth.models import User
+from my_app.models import (
+    Profile,
+    Manuscript,
+    Genre,
+    CustomUser,
+    Keyword,
+    Feedback,
+    FeedbackQuestion,
+    ManuscriptFeedbackPreference,
+    FeedbackResponse,
+    AuthorSettings,
+    Resource,
+    ResourceInteraction,
+    Notification,
+    BetaReaderApplication,
+    BetaReader,
+)
 from django.contrib.auth.models import User, Group, Permission
 
 
@@ -97,25 +113,6 @@ class TestProfileModel(TestCase):
         self.genre.delete()
         genres = Genre.objects.all()
         self.assertEqual(genres.count(), 0)
-
-
-from my_app.models import (
-    CustomUser,
-    Profile,
-    Manuscript,
-    Keyword,
-    Feedback,
-    FeedbackQuestion,
-    ManuscriptFeedbackPreference,
-    FeedbackResponse,
-    AuthorSettings,
-    Resource,
-    ResourceInteraction,
-    Notification,
-    BetaReaderApplication,
-    BetaReader,
-    Genre,
-)
 
 
 class TestModels(TestCase):

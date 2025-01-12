@@ -3,26 +3,24 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth import get_user_model, login, authenticate, logout
 from django.urls import reverse_lazy
 from django.http import JsonResponse, HttpResponse
-from django.views.generic import TemplateView, FormView
+from django.views.generic import TemplateView, FormView, View
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.apps import apps
 from django.db import IntegrityError
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from django.contrib import messages
 from rest_framework import generics, permissions, viewsets, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
-from .database import save_user
 from .forms import ManuscriptSubmissionForm, SignUpForm, SignInForm
 from .serializers import (
     UserSerializer,
@@ -391,32 +389,47 @@ def home(request):
     return render(request, "main.html")
 
 
-class SignUpView(FormView):
+class SignUpView(APIView):
+    permission_classes = [AllowAny]
     template_name = "signup.html"
     form_class = SignUpForm
     success_url = reverse_lazy("home")
 
-    def form_valid(self, form):
-        user = form.save()
-        login(self.request, user)
-        return super().form_valid(form)
+    def get(self, request, *args, **kwargs):
+        form = self.form_class()
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect(self.success_url)
+        return render(request, self.template_name, {"form": form})
 
 
-class SignInView(FormView):
+class SignInView(APIView):
+    permission_classes = [AllowAny]
     template_name = "signin.html"
     form_class = SignInForm
     success_url = reverse_lazy("home")
 
-    def form_valid(self, form):
-        username = form.cleaned_data["username"]
-        password = form.cleaned_data["password"]
-        user = authenticate(self.request, username=username, password=password)
-        if user is not None:
-            login(self.request, user)
-            return super().form_valid(form)
-        else:
-            form.add_error(None, "Invalid username or password")
-            return self.form_invalid(form)
+    def get(self, request, *args, **kwargs):
+        form = self.form_class()
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect(self.success_url)
+            else:
+                form.add_error(None, "Invalid username or password")
+        return render(request, self.template_name, {"form": form})
 
 
 def signup_view(request):
@@ -435,30 +448,21 @@ def signup_view(request):
 
 def signup(request):
     if request.method == "POST":
-        username = request.POST["username"]
-        first_name = request.POST["first_name"]
-        last_name = request.POST["last_name"]
-        email = request.POST["email"]
-        password = request.POST["password"]
-        user_type = request.POST["user_type"]
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            user_type = form.cleaned_data.get("user_type")
+            login(request, user)  # Log the user in after signup
+            return redirect("my_app:signin")  # Redirect to signin page after signup
 
-        user = User.objects.create_user(
-            username=username,
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            password=password,
-        )
-        user.save()
-
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect("home")
-        else:
-            return HttpResponse("Invalid login details")
+            # Redirect based on user type
+            if user_type == "author":
+                return redirect("my_app:author_dashboard")
+            elif user_type == "reader":
+                return redirect("my_app:reader_dashboard")
     else:
-        return render(request, "signup.html")
+        form = SignUpForm()
+    return render(request, "signup.html", {"form": form})
 
 
 def signin(request):
@@ -489,12 +493,12 @@ def logout_view(request):
     return redirect("signin")
 
 
-def signin(request):
-    return render(request, "signin.html")
+# def signin(request):
+#     return render(request, "signin.html")
 
 
-def login(request):
-    return render(request, "signin.html")
+# def login(request):
+#     return render(request, "signin.html")
 
 
 def logout(request):
@@ -575,6 +579,27 @@ def feedback_form(request, manuscript_id):
     return render(request, "reader-feedback.html", {"manuscript": manuscript})
 
 
+# @method_decorator(never_cache, name='dispatch')
+
+# class SignUpView(APIView):
+#     def post(self, request):
+#         serializer = UserSerializer(data=request.data)
+#         if serializer.is_valid():
+#             user = serializer.save()
+#             refresh = RefreshToken.for_user(user)
+#             return Response(
+#                 {
+#                     "user": serializer.data,
+#                     "refresh": str(refresh),
+#                     "access": str(refresh.access_token),
+#                 },
+#                 status=201,
+#             )
+#         return Response(serializer.errors, status=400)
+#     def get(self, request, *args,**kwargs):
+#         return Response({"detail": "Method 'GET' not allowed."}, status=405)
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def reader_dashboard(request):
@@ -638,18 +663,46 @@ class UserCreate(generics.CreateAPIView):
     serializer_class = UserSerializer
 
 
-class SignUpView(APIView):
+class SignInView(View):
+    def get(self, request):
+        return render(request, "signin.html")
+
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            refresh = RefreshToken.for_user(user)
-            return Response(
-                {
-                    "user": serializer.data,
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token),
-                },
-                status=201,
-            )
-        return Response(serializer.errors, status=400)
+        username = request.POST["username"]
+        password = request.POST["password"]
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            if user.is_active:
+                login(request, user)
+                if user.profile.user_type == "author":
+                    return redirect("my_app:author_dashboard")
+                else:
+                    return redirect("my_app:reader_dashboard")
+            else:
+                messages.error(
+                    request, "Your account is inactive. Please contact support."
+                )
+        else:
+            messages.error(request, "Invalid username or password.")
+        return render(request, "signin.html")
+
+
+class SignUpView(View):
+    def get(self, request):
+        form = SignUpForm()
+        return render(request, "signup.html", {"form": form})
+
+    def post(self, request):
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("home")
+        return render(request, "signup.html", {"form": form})
+
+
+@method_decorator(login_required, name="dispatch")
+class LogoutView(View):
+    def get(self, request):
+        logout(request)
+        return redirect("signin")

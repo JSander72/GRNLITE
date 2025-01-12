@@ -55,8 +55,16 @@ urlpatterns = [
     # Admin URLs
     path("admin/", admin.site.urls),
     path("", include("django.contrib.auth.urls")),
-    path("author-dashboard/", views.author_dashboard, name="author_dashboard"),
-    path("reader-dashboard/", views.reader_dashboard, name="reader_dashboard"),
+    path(
+        "author-dashboard/",
+        views.AuthorDashboardTemplateView.as_view(),
+        name="author_dashboard",
+    ),
+    path(
+        "reader-dashboard/",
+        views.ReaderDashboardTemplateView.as_view(),
+        name="reader_dashboard",
+    ),
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
     path(
