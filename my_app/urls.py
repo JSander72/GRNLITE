@@ -40,6 +40,11 @@ router.register(r"manuscripts", ManuscriptViewSet, basename="manuscript")
 
 app_name = "my_app"
 
+
+def my_view(request, base_url):
+    refresh = request.data.get("refresh")
+
+
 urlpatterns = [
     # Home Page
     path("", views.home, name="home"),
@@ -47,6 +52,7 @@ urlpatterns = [
     path("signup/", SignUpView.as_view(), name="signup"),
     path("signup_page/", views.signup_page, name="signup_page"),  # Form loading
     path("signin/", SignInView.as_view(), name="signin"),
+    path("signin/api/authenticate/", my_view, name="signin_auth"),
     path("api/signup/", views.signup, name="signup"),
     path("api/signin/", views.signin, name="signin"),
     path("login/", views.login, name="login"),
@@ -69,6 +75,8 @@ urlpatterns = [
         views.ReaderDashboardTemplateView.as_view(),
         name="reader-dashboard-html",
     ),
+    # path("author-dashboard/", views.author_dashboard_view, name="author_dashboard"),
+    # path("reader-dashboard/", views.reader_dashboard_view, name="reader_dashboard"),
     # Reader-Related URLs
     path("reader-feedback/", views.reader_feedback, name="reader-feedback-html"),
     path("reader-profile/", views.reader_profile, name="reader-profile-html"),

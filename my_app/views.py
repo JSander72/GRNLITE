@@ -54,10 +54,6 @@ from .models import (
 )
 
 
-def base_url(request):
-    return {"BASE_URL": settings.BASE_URL}
-
-
 # Models
 Profile = apps.get_model("my_app", "Profile")
 Manuscript = apps.get_model("my_app", "Manuscript")
@@ -77,6 +73,10 @@ def some_view(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
+
+
+def base_url(request):
+    return {"BASE_URL": settings.BASE_URL}
 
 
 class CustomSignUpView(generics.CreateAPIView):
@@ -517,29 +517,49 @@ def signup(request):
 
 def signin(request):
     if request.method == "POST":
-        username = request.POST["username"]
-        password = request.POST["password"]
-
-        if not username or not password:
-            messages.error(request, "Username and password are required.")
-            return render(request, "signin.html")
-
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                if user.profile.user_type == "author":
-                    return redirect("my_app:author_dashboard")
-                else:
-                    return redirect("my_app:reader_dashboard")
+        try:
+            logger.debug(f"Content-Type: {request.META.get('CONTENT_TYPE')}")
+            logger.debug(f"Request body: {request.body}")
+            # Parse JSON body
+            if request.META.get("CONTENT_TYPE") == "application/json":
+                # Parse JSON body
+                data = json.loads(request.body)
             else:
-                messages.error(
-                    request, "Your account is inactive. Please contact support."
+                # Fallback for form-encoded data
+                data = request.POST
+
+            username = data.get("username")
+            password = data.get("password")
+
+            # Validate input
+            if not username or not password:
+                return JsonResponse(
+                    {"error": "Username and password are required."}, status=400
                 )
-        else:
-            messages.error(request, "Invalid username or password.")
-    return render(request, "signin.html")
+
+            # Authenticate user
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+                    return JsonResponse(
+                        {
+                            "success": True,
+                            "redirect": f"/{user.profile.user_type}-dashboard/",
+                        }
+                    )
+                else:
+                    return JsonResponse(
+                        {"error": "Your account is inactive. Please contact support."},
+                        status=403,
+                    )
+            else:
+                return JsonResponse(
+                    {"error": "Invalid username or password."}, status=400
+                )
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format."}, status=400)
+    return JsonResponse({"error": "Invalid request method."}, status=405)
 
 
 @login_required
@@ -549,7 +569,7 @@ def logout_view(request):
 
 
 def signin_view(request):
-    return render(request, "signin.html", {"BASE_URL": settings.BASE_URL})
+    return render(request, "signin.html")
 
 
 # def login(request):
@@ -716,8 +736,14 @@ def save_token(request):
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 @csrf_exempt
 def authenticate_user(request):
+    logger.info(f"Request to authenticate: {request.method} {request.body}")
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -740,7 +766,7 @@ def authenticate_user(request):
                 {"success": False, "message": "Invalid JSON"}, status=400
             )
         except Exception as e:
-            print(f"Error: {e}")  # Log any other errors
+            logger.error(f"Error in authenticate_user: {e}")
             return JsonResponse(
                 {"success": False, "message": "Internal server error"}, status=500
             )

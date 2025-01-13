@@ -260,7 +260,12 @@
             </form>
             
             <script>
-                const BASE_URL = "{{ BASE_URL }}";
+                   // Define BASE_URL based on window location
+                const BASE_URL = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
+                    ? "http://127.0.0.1:8000"
+                    : "https://grnlite.onrender.com";
+
+                console.log("BASE_URL:", BASE_URL); // Verify this outputs the correct URL
                 function setUserType(userType) {
                     const readerChoice = document.getElementById("readerChoice");
                     const authorChoice = document.getElementById("authorChoice");
@@ -286,7 +291,7 @@
                     const jsonData = Object.fromEntries(formData.entries());
 
                     try {
-                        const response = await fetch("${BASE_URL}/api/signup/", {
+                        const response = await fetch("/api/signup/", {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",

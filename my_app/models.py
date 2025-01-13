@@ -14,6 +14,7 @@ class Profile(models.Model):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default=READER)
     name = models.CharField(max_length=255, default="Default Name")
     genre = models.CharField(max_length=255, default="Unknown")
+    user_type = models.CharField(max_length=50, default="default_type")  # Add this line
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"

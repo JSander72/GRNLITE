@@ -16,12 +16,15 @@ import os
 from datetime import timedelta
 import datetime
 
-ENVIRONMENT = os.getenv("DJANGO_ENV", "development")
 
-if ENVIRONMENT == "production":
-    BASE_URL = "https://grnlite.onrender.com"
-else:
-    BASE_URL = "http://127.0.0.1:8000"
+def str_to_bool(value):
+    return value.lower() in ("true", "1", "t", "y", "yes")
+
+
+ENVIRONMENT = os.getenv("DJANGO_ENV", "development")
+DEBUG = os.getenv("DEBUG", "False") == "True"
+BASE_URL = "http://127.0.0.1:8000" if DEBUG else "https://grnlite.onrender.com"
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -33,7 +36,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "your-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = str_to_bool(os.getenv("DEBUG", "False"))
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
 

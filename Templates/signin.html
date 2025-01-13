@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In</title>
     <link rel="stylesheet" href="{% static 'Front_End/CSS/styles.css' %}">
-    <a href="{{ BASE_URL }}/api/authenticate/">API Link</a>
+    <!-- <a href="{{ BASE_URL }}/api/authenticate/">API Link</a> -->
 
     <style>
         :root {
@@ -183,7 +183,7 @@
                 <h1>Sign In</h1>
                 <p>Welcome back to Grn Lite</p>
             </div>
-            <form method="post" action="{% url 'my_app:signin' %}" id="signinForm">
+            <form method="post" id="signinForm" action="api/signin/">
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="username">Username:</label>
@@ -206,7 +206,11 @@
     </div>
 
     <script>
-        const BASE_URL = '{{ BASE_URL }}';
+           // Define BASE_URL based on window location
+        const BASE_URL = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
+            ? "http://127.0.0.1:8000"
+            : "https://grnlite.onrender.com";
+        console.log("BASE_URL:", BASE_URL); // Verify this outputs the correct URL
         document.addEventListener('DOMContentLoaded', function() {
             function getCookie(name) {
                 let cookieValue = null;
@@ -223,6 +227,8 @@
                 return cookieValue;
             }
 
+            const csrfToken = getCookie('csrftoken');
+
             function authenticateUser(event) {
                 if (event) event.preventDefault();
                 const username = document.getElementById('username').value;
@@ -230,7 +236,7 @@
                 const userType = document.getElementById('user-type').value;
                 const csrfToken = getCookie('csrftoken');
 
-                fetch('${BASE_URL}/api/authenticate/', {
+                fetch('/api/signin/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
