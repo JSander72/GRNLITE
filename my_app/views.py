@@ -384,7 +384,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
 
 
-# Home View
+# main View
 def home(request):
     return render(request, "main.html")
 
@@ -393,7 +393,7 @@ class SignUpView(APIView):
     permission_classes = [AllowAny]
     template_name = "signup.html"
     form_class = SignUpForm
-    success_url = reverse_lazy("home")
+    success_url = reverse_lazy("main")
 
     def get(self, request, *args, **kwargs):
         form = self.form_class()
@@ -412,7 +412,7 @@ class SignInView(APIView):
     permission_classes = [AllowAny]
     template_name = "signin.html"
     form_class = SignInForm
-    success_url = reverse_lazy("home")
+    success_url = reverse_lazy("main")
 
     def get(self, request, *args, **kwargs):
         form = self.form_class()
@@ -438,7 +438,7 @@ def signup_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect("home")
+            return redirect("main")
         else:
             return render(request, "signup.html", {"form": form, "errors": form.errors})
     else:
@@ -467,10 +467,15 @@ def signup(request):
 
 def signin(request):
     if request.method == "POST":
-        username = request.POST["username"]
-        password = request.POST["password"]
+        username = request.POST.get["username"]
+        password = request.POST.get["password"]
+
+        if not username or not password:
+            messages.error(request, "Username and password are required.")
+            return render(request, "signin.html")
 
         user = authenticate(request, username=username, password=password)
+
         if user is not None:
             if user.is_active:
                 login(request, user)
@@ -579,27 +584,6 @@ def feedback_form(request, manuscript_id):
     return render(request, "reader-feedback.html", {"manuscript": manuscript})
 
 
-# @method_decorator(never_cache, name='dispatch')
-
-# class SignUpView(APIView):
-#     def post(self, request):
-#         serializer = UserSerializer(data=request.data)
-#         if serializer.is_valid():
-#             user = serializer.save()
-#             refresh = RefreshToken.for_user(user)
-#             return Response(
-#                 {
-#                     "user": serializer.data,
-#                     "refresh": str(refresh),
-#                     "access": str(refresh.access_token),
-#                 },
-#                 status=201,
-#             )
-#         return Response(serializer.errors, status=400)
-#     def get(self, request, *args,**kwargs):
-#         return Response({"detail": "Method 'GET' not allowed."}, status=405)
-
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def reader_dashboard(request):
@@ -697,7 +681,7 @@ class SignUpView(View):
         form = SignUpForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect("home")
+            return redirect("main")
         return render(request, "signup.html", {"form": form})
 
 
