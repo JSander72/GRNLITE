@@ -1,7 +1,7 @@
 import json
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth import get_user_model, login, authenticate, logout
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.http import JsonResponse, HttpResponse
 from django.views.generic import TemplateView, FormView, View
 from django.views.decorators.csrf import csrf_exempt
@@ -22,6 +22,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
 from .forms import ManuscriptSubmissionForm, SignUpForm, SignInForm
+from django.conf import settings
 from .serializers import (
     UserSerializer,
     ProfileSerializer,
@@ -53,6 +54,10 @@ from .models import (
 )
 
 
+def base_url(request):
+    return {"BASE_URL": settings.BASE_URL}
+
+
 # Models
 Profile = apps.get_model("my_app", "Profile")
 Manuscript = apps.get_model("my_app", "Manuscript")
@@ -68,6 +73,7 @@ class BetaReaderSerializer(serializers.ModelSerializer):
 
 # Views
 def some_view(request):
+    url = reverse("reader-dashboard-html")
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -559,20 +565,44 @@ def reader_dashboard(request):
     return render(request, "reader-dashboard.html")
 
 
-def reader_dashboard(request):
-    return render(request, "available-manuscripts.html")
+def available_manuscripts(request):
+    # Your view logic here
+    return render(request, "available_manuscripts.html")
 
 
 def reader_feedback(request):
-    return render(request, "reader-feedback.html")
+    # Your view logic here
+    return render(request, "reader_feedback.html")
+
+
+def beta_reader_training(request):
+    # Your view logic here
+    return render(request, "beta_reader_training.html")
+
+
+def beta_reader_performance_metrics(request):
+    # Your view logic here
+    return render(request, "beta_reader_performance_metrics.html")
 
 
 def reader_profile(request):
-    return render(request, "reader-profile.html")
+    # Your view logic here
+    return render(request, "reader_profile.html")
 
 
 def reader_resource_library(request):
-    return render(request, "reader-resource-library.html")
+    # Your view logic here
+    return render(request, "reader_resource_library.html")
+
+
+def reader_payment_page(request):
+    # Your view logic here
+    return render(request, "reader_payment_page.html")
+
+
+def reader_settings(request):
+    # Your view logic here
+    return render(request, "reader_settings.html")
 
 
 # Author Dashboard Views

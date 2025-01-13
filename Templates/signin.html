@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In</title>
     <link rel="stylesheet" href="{% static 'Front_End/CSS/styles.css' %}">
+    <a href="{{ BASE_URL }}/api/authenticate/">API Link</a>
+
     <style>
         :root {
             --primary-color: #2A9D8F;
@@ -204,6 +206,7 @@
     </div>
 
     <script>
+        const BASE_URL = '{{ BASE_URL }}';
         document.addEventListener('DOMContentLoaded', function() {
             function getCookie(name) {
                 let cookieValue = null;
@@ -227,7 +230,7 @@
                 const userType = document.getElementById('user-type').value;
                 const csrfToken = getCookie('csrftoken');
 
-                fetch('/api/authenticate/', {
+                fetch('${BASE_URL}/api/authenticate/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Signup</title>
     <link rel="stylesheet" href="{% static 'Front_End/CSS/styles.css' %}">
+    <a href="{{ BASE_URL }}/api/authenticate/">API Link</a>
+
     <meta name="csrf-token" content="{{ csrf_token }}">
     <style>
         /* Centralized Styles */
@@ -258,6 +260,7 @@
             </form>
             
             <script>
+                const BASE_URL = "{{ BASE_URL }}";
                 function setUserType(userType) {
                     const readerChoice = document.getElementById("readerChoice");
                     const authorChoice = document.getElementById("authorChoice");
@@ -283,7 +286,7 @@
                     const jsonData = Object.fromEntries(formData.entries());
 
                     try {
-                        const response = await fetch("/api/signup/", {
+                        const response = await fetch("${BASE_URL}/api/signup/", {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",

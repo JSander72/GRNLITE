@@ -16,6 +16,14 @@ import os
 from datetime import timedelta
 import datetime
 
+DJANGO_ENV = os.getenv("DJANGO_ENV", "development")
+
+if DJANGO_ENV == "production":
+    DEBUG = False
+    ALLOWED_HOSTS = ["grnlite.onrender.com"]
+else:
+    DEBUG = True
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -64,7 +72,33 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     # ... other middleware ...
+]
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "https://grnlite.onrender.com",
+    # Add any other origins you need to allow
+]
+
+# If you want to allow all origins (use with caution)
+# CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent with cross-origin requests
+
+CORS_ALLOW_HEADERS = [
+    "authorization",
+    "content-type",
+    # Add any other headers you need to allow
+]
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
 ]
 
 ROOT_URLCONF = "my_app.urls"
@@ -90,6 +124,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "myapp.context_processors.base_url",
             ],
         },
     },
@@ -172,6 +207,8 @@ DATABASES = {
         "PORT": os.getenv("DB_PORT", "5432"),
     }
 }
+
+CSRF_TRUSTED_ORIGINS = ["https://grnlite.onrender.com"]
 
 # Ensure secure cookies
 SESSION_COOKIE_SECURE = True

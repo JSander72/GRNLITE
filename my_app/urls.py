@@ -41,12 +41,11 @@ router.register(r"manuscripts", ManuscriptViewSet, basename="manuscript")
 app_name = "my_app"
 
 urlpatterns = [
+    # Home Page
     path("", views.home, name="home"),
-    # User URLs
+    # User Authentication URLs
     path("signup/", SignUpView.as_view(), name="signup"),
-    path(
-        "signup_page/", views.signup_page, name="signup_page"
-    ),  # For loading the signup form
+    path("signup_page/", views.signup_page, name="signup_page"),  # Form loading
     path("signin/", SignInView.as_view(), name="signin"),
     path("api/signup/", views.signup, name="signup"),
     path("api/signin/", views.signin, name="signin"),
@@ -54,22 +53,47 @@ urlpatterns = [
     path("logout/", views.logout, name="logout"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("api/", include(router.urls)),
+    path("auth/", include("djoser.urls")),
+    path("auth/", include("djoser.urls.jwt")),
     # Admin URLs
     path("admin/", admin.site.urls),
     path("", include("django.contrib.auth.urls")),
+    # Dashboard URLs
     path(
         "author-dashboard/",
         views.AuthorDashboardTemplateView.as_view(),
-        name="author_dashboard",
+        name="author-dashboard-html",
     ),
     path(
         "reader-dashboard/",
         views.ReaderDashboardTemplateView.as_view(),
-        name="reader_dashboard",
+        name="reader-dashboard-html",
     ),
-    path("auth/", include("djoser.urls")),
-    path("auth/", include("djoser.urls.jwt")),
+    # Reader-Related URLs
+    path("reader-feedback/", views.reader_feedback, name="reader-feedback-html"),
+    path("reader-profile/", views.reader_profile, name="reader-profile-html"),
+    path(
+        "reader-resource-library/",
+        views.reader_resource_library,
+        name="reader-resource-library-html",
+    ),
+    path(
+        "beta-reader-training/",
+        views.beta_reader_training,
+        name="beta-reader-training-html",
+    ),
+    path(
+        "beta-reader-performance-metrics/",
+        views.beta_reader_performance_metrics,
+        name="beta-reader-performance-metrics-html",
+    ),
+    path(
+        "reader-payment-page/",
+        views.reader_payment_page,
+        name="reader-payment-page-html",
+    ),
+    path("reader-settings/", views.reader_settings, name="reader-settings-html"),
+    # Profile Management URLs
     path(
         "profiles/",
         include(
@@ -80,41 +104,7 @@ urlpatterns = [
             ]
         ),
     ),
-    path(
-        "manuscript-feedback-preferences/",
-        ManuscriptFeedbackPreferenceListCreateView.as_view(),
-        name="manuscript-feedback-preference-list",
-    ),
-    path(
-        "feedback-questions/",
-        FeedbackQuestionListCreateView.as_view(),
-        name="feedback-question-list",
-    ),
-    path("resources/", ResourceListCreateView.as_view(), name="resource-list"),
-    path(
-        "beta-readers/",
-        BetaReaderListCreateView.as_view(),
-        name="beta-reader-list",
-    ),
-    # Auth URLs
-    path(
-        "auth/",
-        include(
-            [path("", include("djoser.urls")), path("", include("djoser.urls.jwt"))]
-        ),
-    ),
-    # Profile URLs
-    path(
-        "profiles/",
-        include(
-            [
-                path("", ProfileListCreateView.as_view(), name="profile-list-create"),
-                path("<int:pk>/", ProfileDetailView.as_view(), name="profile-detail"),
-                path("me/", UserProfileView.as_view(), name="user-profile"),
-            ]
-        ),
-    ),
-    # Manuscript URLs
+    # Manuscript Management URLs
     path(
         "manuscripts/",
         include(
@@ -132,10 +122,32 @@ urlpatterns = [
             ]
         ),
     ),
+    path(
+        "available-manuscripts/",
+        views.available_manuscripts,
+        name="available-manuscripts-html",
+    ),
+    # Feedback Management URLs
+    path(
+        "manuscript-feedback-preferences/",
+        ManuscriptFeedbackPreferenceListCreateView.as_view(),
+        name="manuscript-feedback-preference-list",
+    ),
+    path(
+        "feedback-questions/",
+        FeedbackQuestionListCreateView.as_view(),
+        name="feedback-question-list",
+    ),
+    path("resources/", ResourceListCreateView.as_view(), name="resource-list"),
+    path("beta-readers/", BetaReaderListCreateView.as_view(), name="beta-reader-list"),
+    # Token and Authentication URLs
     path("save_token/", save_token, name="save_token"),
     path("signup/", UserCreate.as_view(), name="user-create"),
     path("api/authenticate/", views.authenticate_user, name="authenticate"),
+    # API Router URLs
+    path("api/", include(router.urls)),
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
