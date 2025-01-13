@@ -10,11 +10,15 @@ class Profile(models.Model):
         (READER, "Reader"),
         (AUTHOR, "Author"),
     ]
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default=READER)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    user_type = models.CharField(max_length=50, default="default_type")
     name = models.CharField(max_length=255, default="Default Name")
     genre = models.CharField(max_length=255, default="Unknown")
-    user_type = models.CharField(max_length=50, default="default_type")  # Add this line
+    role = models.CharField(
+        max_length=10,
+        choices=[("reader", "Reader"), ("author", "Author")],
+        default="reader",
+    )
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
