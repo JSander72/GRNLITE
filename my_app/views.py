@@ -688,8 +688,18 @@ def save_token(request):
 @csrf_exempt
 def authenticate_user(request):
     if request.method == "POST":
-        # Your authentication logic here
-        return JsonResponse({"success": True})
+        data = json.loads(request.body)
+        username = data.get("username")
+        password = data.get("password")
+        user_type = data.get("user_type")
+
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            return JsonResponse({"success": True, "user_type": user_type})
+        else:
+            return JsonResponse(
+                {"success": False, "message": "Invalid credentials"}, status=400
+            )
     return JsonResponse({"success": False}, status=400)
 
 
