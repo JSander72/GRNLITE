@@ -134,7 +134,7 @@ urlpatterns = [
     ),
     path("save_token/", save_token, name="save_token"),
     path("signup/", UserCreate.as_view(), name="user-create"),
-    path("api/authenticate/", views.authenticate, name="authenticate"),
+    path("api/authenticate/", views.authenticate_user, name="authenticate"),
 ]
 
 if settings.DEBUG:

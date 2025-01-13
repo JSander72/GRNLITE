@@ -500,7 +500,8 @@ def signup(request):
 
             user.save()
             return JsonResponse(
-                {"message": "Account created successfully!"}, status=201
+                {"message": "Account created successfully!", "table": "auth_user"},
+                status=201,
             )
         except Exception as e:
             return JsonResponse({"message": str(e)}, status=400)
@@ -688,17 +689,30 @@ def save_token(request):
 @csrf_exempt
 def authenticate_user(request):
     if request.method == "POST":
-        data = json.loads(request.body)
-        username = data.get("username")
-        password = data.get("password")
-        user_type = data.get("user_type")
+        try:
+            data = json.loads(request.body)
+            username = data.get("username")
+            password = data.get("password")
+            user_type = data.get("user_type")
 
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            return JsonResponse({"success": True, "user_type": user_type})
-        else:
+            print(f"Received data: {data}")  # Log received data
+
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                return JsonResponse({"success": True, "user_type": user_type})
+            else:
+                return JsonResponse(
+                    {"success": False, "message": "Invalid credentials"}, status=400
+                )
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error: {e}")  # Log JSON decode error
             return JsonResponse(
-                {"success": False, "message": "Invalid credentials"}, status=400
+                {"success": False, "message": "Invalid JSON"}, status=400
+            )
+        except Exception as e:
+            print(f"Error: {e}")  # Log any other errors
+            return JsonResponse(
+                {"success": False, "message": "Internal server error"}, status=500
             )
     return JsonResponse({"success": False}, status=400)
 
