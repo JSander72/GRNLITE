@@ -559,6 +559,8 @@ def signin(request):
                 )
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON format."}, status=400)
+    elif request.method == "GET":
+        return render(request, "signin.html")
     return JsonResponse({"error": "Invalid request method."}, status=405)
 
 
