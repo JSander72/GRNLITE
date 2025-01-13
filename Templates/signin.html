@@ -181,7 +181,7 @@
                 <h1>Sign In</h1>
                 <p>Welcome back to Grn Lite</p>
             </div>
-            <form method="post" action="{% url 'my_app:signin' %}">
+            <form method="post" action="{% url 'my_app:signin' %}" id="signinForm">
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="username">Username:</label>
@@ -193,8 +193,7 @@
                 </div>
                 <input type="hidden" id="user-type" name="user_type" value="reader"> <!-- Hidden input for user type -->
                 <div class="form-group">
-                    <button type="button" class="auth-button" onclick="setUserTypeAndSubmit('reader')">Sign In as Reader</button>
-                    <button type="button" class="auth-button" onclick="setUserTypeAndSubmit('author')">Sign In as Author</button>
+                    <button type="submit" class="auth-button">Sign In</button>
                 </div>
             </form>
         </div>
@@ -205,78 +204,80 @@
     </div>
 
     <script>
-        function setUserTypeAndSubmit(userType) {
-            document.getElementById('user-type').value = userType;
-            authenticateUser();
-        }
-    
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
+        document.addEventListener('DOMContentLoaded', function() {
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
                     }
                 }
+                return cookieValue;
             }
-            return cookieValue;
-        }
-    
-        function authenticateUser(event) {
-            if (event) event.preventDefault(); // Prevent default form submission
-    
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const userType = document.getElementById('user-type').value;
-            const csrfToken = getCookie('csrftoken');
-    
-            // Ensure fields are not empty
-            if (!username || !password) {
-                alert('Username and password are required.');
-                return;
-            }
-    
-            fetch('{% url "my_app:signin" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({
-                    username: username,
-                    password: password,
-                    user_type: userType
+
+            function authenticateUser(event) {
+                if (event) event.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const userType = document.getElementById('user-type').value;
+                const csrfToken = getCookie('csrftoken');
+
+                fetch('/api/authenticate/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        user_type: userType
+                    })
                 })
-            })
-            .then(async (response) => {
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || 'Unknown error occurred.');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    if (userType === 'author') {
-                        window.location.href = '{% url "my_app:author_dashboard" %}';
-                    } else {
-                        window.location.href = '{% url "my_app:reader_dashboard" %}';
+                .then(async (response) => {
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || 'Unknown error occurred.');
                     }
-                } else {
-                    alert('Authentication failed: ' + (data.message || 'Invalid credentials.'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred. Please try again.');
-            });
-        }
-    
-        // Attach to form submission
-        document.getElementById('signinForm').addEventListener('submit', authenticateUser);
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        if (userType === 'author') {
+                            window.location.href = '/author-dashboard/';
+                        } else {
+                            window.location.href = '/reader-dashboard/';
+                        }
+                    } else {
+                        alert('Authentication failed: ' + (data.message || 'Invalid credentials.'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            }
+
+            function setUserTypeAndSubmit(userType) {
+                document.getElementById('user-type').value = userType;
+                authenticateUser();
+            }
+
+            // Add your event listeners here
+            const someElement = document.getElementById('some-element-id');
+            if (someElement) {
+                someElement.addEventListener('click', function() {
+                    // Your event handler code
+                });
+            }
+
+            document.querySelector('form').addEventListener('submit', authenticateUser);
+        });
     </script>
     
 </body>

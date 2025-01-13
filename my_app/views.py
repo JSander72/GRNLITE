@@ -685,6 +685,14 @@ def save_token(request):
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
+@csrf_exempt
+def authenticate_user(request):
+    if request.method == "POST":
+        # Your authentication logic here
+        return JsonResponse({"success": True})
+    return JsonResponse({"success": False}, status=400)
+
+
 class UserCreate(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
