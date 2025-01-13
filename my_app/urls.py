@@ -44,9 +44,12 @@ urlpatterns = [
     path("", views.home, name="home"),
     # User URLs
     path("signup/", SignUpView.as_view(), name="signup"),
+    path(
+        "signup_page/", views.signup_page, name="signup_page"
+    ),  # For loading the signup form
     path("signin/", SignInView.as_view(), name="signin"),
-    # path("api/signup/", SignUpView.as_view(), name="signup"),
-    # path("api/signin/", SignInView.as_view(), name="signin"),
+    path("api/signup/", views.signup, name="signup"),
+    path("api/signin/", views.signin, name="signin"),
     path("login/", views.login, name="login"),
     path("logout/", views.logout, name="logout"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),

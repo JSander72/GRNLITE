@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.apps import apps
 from django.db import IntegrityError
-from rest_framework import generics, permissions, viewsets, serializers
+from rest_framework import generics, permissions, viewsets, serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -56,8 +56,6 @@ from .models import (
 # Models
 Profile = apps.get_model("my_app", "Profile")
 Manuscript = apps.get_model("my_app", "Manuscript")
-BetaReader = apps.get_model("my_app", "BetaReader")
-
 User = get_user_model()
 
 
@@ -399,13 +397,15 @@ class SignUpView(APIView):
         form = self.form_class()
         return render(request, self.template_name, {"form": form})
 
-    def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect(self.success_url)
-        return render(request, self.template_name, {"form": form})
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"success": True, "message": "User created successfully!"},
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SignInView(APIView):
@@ -432,43 +432,86 @@ class SignInView(APIView):
         return render(request, self.template_name, {"form": form})
 
 
-def signup_view(request):
-    if request.method == "POST":
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("main")
-        else:
-            return render(request, "signup.html", {"form": form, "errors": form.errors})
-    else:
-        form = SignUpForm()
-    return render(request, "signup.html", {"form": form})
+# def signup_view(request):
+#     if request.method == "POST":
+#         form = SignUpForm(request.POST)
+#         if form.is_valid():
+#             user = form.save()
+#             login(request, user)
+#             return redirect("main")
+#         else:
+#             return render(request, "signup.html", {"form": form, "errors": form.errors})
+#     else:
+#         form = SignUpForm()
+#     return render(request, "signup.html", {"form": form})
 
 
+def signup_page(request):
+    if request.method == "GET":
+        return render(request, "signup.html")
+
+
+@csrf_exempt
 def signup(request):
-    if request.method == "POST":
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            user_type = form.cleaned_data.get("user_type")
-            login(request, user)  # Log the user in after signup
-            return redirect("my_app:signin")  # Redirect to signin page after signup
+    if request.method == "GET":
+        # Render the signup HTML form
+        return render(request, "signup.html")
 
-            # Redirect based on user type
+    elif request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            username = data.get("username")
+            first_name = data.get("first_name")
+            last_name = data.get("last_name")
+            email = data.get("email")
+            password = data.get("password")
+            user_type = data.get(
+                "user_type", ""
+            )  # Provide a default value if not present
+
+            # Ensure all required fields are provided
+            if (
+                not username
+                or not first_name
+                or not last_name
+                or not email
+                or not password
+            ):
+                return JsonResponse({"message": "All fields are required."}, status=400)
+
+            # Create the user with the provided data
+            user = User(
+                username=username,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+            )
+            user.set_password(password)  # Hash the password before saving
+
+            # Additional logic based on user_type
             if user_type == "author":
-                return redirect("my_app:author_dashboard")
+                # Handle author-specific logic
+                pass
             elif user_type == "reader":
-                return redirect("my_app:reader_dashboard")
-    else:
-        form = SignUpForm()
-    return render(request, "signup.html", {"form": form})
+                # Handle reader-specific logic
+                pass
+            else:
+                return JsonResponse({"message": "Invalid user type."}, status=400)
+
+            user.save()
+            return JsonResponse(
+                {"message": "Account created successfully!"}, status=201
+            )
+        except Exception as e:
+            return JsonResponse({"message": str(e)}, status=400)
+
+    return JsonResponse({"message": "Invalid request method"}, status=405)
 
 
 def signin(request):
     if request.method == "POST":
-        username = request.POST.get["username"]
-        password = request.POST.get["password"]
+        username = request.POST["username"]
+        password = request.POST["password"]
 
         if not username or not password:
             messages.error(request, "Username and password are required.")
@@ -680,8 +723,11 @@ class SignUpView(View):
     def post(self, request):
         form = SignUpForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect("main")
+            user = form.save()
+            if user.is_author:
+                return redirect("author_dashboard")
+            else:
+                return redirect("reader_dashboard")
         return render(request, "signup.html", {"form": form})
 
 
