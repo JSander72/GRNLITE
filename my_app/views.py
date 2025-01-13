@@ -548,8 +548,8 @@ def logout_view(request):
     return redirect("signin")
 
 
-# def signin(request):
-#     return render(request, "signin.html")
+def signin_view(request):
+    return render(request, "signin.html", {"BASE_URL": settings.BASE_URL})
 
 
 # def login(request):
