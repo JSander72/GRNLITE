@@ -5,14 +5,12 @@ from django.conf import settings
 
 
 class Profile(models.Model):
-    READER = "reader"
-    AUTHOR = "author"
-    ROLE_CHOICES = [
-        (READER, "Reader"),
-        (AUTHOR, "Author"),
-    ]
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default=READER)
+    user_type = models.CharField(
+        max_length=50,
+        choices=[("reader", "Reader"), ("admin", "Admin")],
+        default="reader",
+    )
     name = models.CharField(max_length=255, default="Default Name")
     genre = models.CharField(max_length=255, default="Unknown")
 
