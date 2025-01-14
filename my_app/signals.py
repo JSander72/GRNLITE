@@ -27,7 +27,7 @@ def redirect_after_login(sender, user, request, **kwargs):
 
     # Check if user has a profile and determine redirection based on user_type
     if not hasattr(user, "profile"):
-        Profile.object.create(user=user)
+        Profile.objects.create(user=user)
 
         if user.profile.user_type == "reader":
             return redirect("reader-dashboard")  # Redirect to reader dashboard
