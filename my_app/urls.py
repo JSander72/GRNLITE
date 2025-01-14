@@ -67,16 +67,16 @@ urlpatterns = [
     # Dashboard URLs
     path(
         "author-dashboard/",
-        views.AuthorDashboardTemplateView.as_view(),
-        name="author-dashboard-html",
+        views.AuthorDashboardView.as_view(),
+        name="author_dashboard",
     ),
     path(
         "reader-dashboard/",
-        views.ReaderDashboardTemplateView.as_view(),
-        name="reader-dashboard-html",
+        views.ReaderDashboardView.as_view(),
+        name="reader_dashboard",
     ),
-    # path("author-dashboard/", views.author_dashboard_view, name="author_dashboard"),
-    # path("reader-dashboard/", views.reader_dashboard_view, name="reader_dashboard"),
+    path("reader-dashboard/", views.reader_dashboard, name="reader-dashboard"),
+    path("author-dashboard/", views.author_dashboard, name="author-dashboard"),
     # Reader-Related URLs
     path("reader-feedback/", views.reader_feedback, name="reader-feedback-html"),
     path("reader-profile/", views.reader_profile, name="reader-profile-html"),

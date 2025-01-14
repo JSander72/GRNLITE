@@ -28,13 +28,14 @@ def redirect_after_login(sender, user, request, **kwargs):
     if not hasattr(user, "profile"):
         # Handle missing profile gracefully
         return redirect("profile_setup")  # Redirect to a profile setup page if needed
-    if user.profile.user_type == "author":
-        return redirect("author_dashboard")
-    return redirect("reader_dashboard")
+    pass
 
 
 @receiver(user_logged_out)
 def redirect_after_logout(sender, user, request, **kwargs):
+    # Skip redirection for admin logout
+    if request.path.startswith("/admin/"):
+        return
     return redirect("home")
 
 

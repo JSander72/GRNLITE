@@ -69,7 +69,10 @@ class BetaReaderSerializer(serializers.ModelSerializer):
 
 # Views
 def some_view(request):
-    url = reverse("reader-dashboard-html")
+    if request.user.profile.user_type == "author":
+        url = reverse("author-dashboard.html")
+    else:
+        url = reverse("reader-dashboard.html")
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -438,18 +441,12 @@ class SignInView(APIView):
         return render(request, self.template_name, {"form": form})
 
 
-# def signup_view(request):
-#     if request.method == "POST":
-#         form = SignUpForm(request.POST)
-#         if form.is_valid():
-#             user = form.save()
-#             login(request, user)
-#             return redirect("main")
-#         else:
-#             return render(request, "signup.html", {"form": form, "errors": form.errors})
-#     else:
-#         form = SignUpForm()
-#     return render(request, "signup.html", {"form": form})
+class AuthorDashboardView(TemplateView):
+    template_name = "author-dashboard.html"
+
+
+class ReaderDashboardView(TemplateView):
+    template_name = "reader-dashboard.html"
 
 
 def signup_page(request):

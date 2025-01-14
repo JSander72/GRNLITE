@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 
-
-# from my_app.models import CustomUser
 from .models import (
     Manuscript,
     Profile,
@@ -19,8 +18,22 @@ from .models import (
 )
 
 
-# Remove the duplicate registration
-# admin.site.register(MyModel)
+class CustomUserAdmin(UserAdmin):
+    model = CustomUser
+    list_display = (
+        "id",
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "is_staff",
+        "is_active",
+    )
+    search_fields = ("username", "email", "first_name", "last_name")
+    ordering = ("id",)
+
+
+admin.site.register(CustomUser, CustomUserAdmin)
 
 
 @admin.register(MyModel)
@@ -46,16 +59,6 @@ class KeywordAdmin(admin.ModelAdmin):
 class FeedbackQuestionAdmin(admin.ModelAdmin):
     list_display = ("question_text", "is_active")
     list_filter = ("is_active",)
-
-
-class CustomUserAdmin(UserAdmin):
-    model = CustomUser
-    list_display = ("id", "username", "email", "first_name", "last_name", "is_staff")
-    search_fields = ("username", "email", "first_name", "last_name")
-    ordering = ("id",)
-
-
-admin.site.register(CustomUser, CustomUserAdmin)
 
 
 @admin.register(FeedbackResponse)
