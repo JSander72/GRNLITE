@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User, AbstractUser, Group, Permission
 from django.db import models
 from django.utils.timezone import now
+from django.conf import settings
 
 
 class Profile(models.Model):
@@ -10,7 +11,7 @@ class Profile(models.Model):
         (READER, "Reader"),
         (AUTHOR, "Author"),
     ]
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     user_type = models.CharField(
         max_length=20, choices=[("reader", "Reader"), ("author", "Author")]
     )
