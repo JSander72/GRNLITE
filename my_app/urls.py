@@ -23,6 +23,8 @@ from .views import (
     UserCreate,
     SignInView,
     SignUpView,
+    reader_dashboard,
+    author_dashboard,
 )
 
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -77,6 +79,8 @@ urlpatterns = [
     ),
     path("reader-dashboard/", views.reader_dashboard, name="reader-dashboard"),
     path("author-dashboard/", views.author_dashboard, name="author-dashboard"),
+    path("reader/dashboard/", views.reader_dashboard, name="reader-dashboard"),
+    path("author/dashboard/", views.author_dashboard, name="author-dashboard"),
     # Reader-Related URLs
     path("reader-feedback/", views.reader_feedback, name="reader-feedback-html"),
     path("reader-profile/", views.reader_profile, name="reader-profile-html"),

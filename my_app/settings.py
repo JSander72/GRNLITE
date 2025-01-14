@@ -26,6 +26,22 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 BASE_URL = "http://127.0.0.1:8000" if DEBUG else "https://grnlite.onrender.com"
 
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME"),  # Will use .env or environment variable
+        "USER": os.getenv("DB_USER"),  # Will use .env or environment variable
+        "PASSWORD": os.getenv("DB_PASSWORD"),  # Will use .env or environment variable
+        "HOST": os.getenv("DB_HOST"),  # Will use .env or environment variable
+        "PORT": os.getenv("DB_PORT"),  # Default to 5432 if not in .env
+    }
+}
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -50,6 +66,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.extensions",
     "rest_framework",
     "my_app",
     "my_custom_app",
@@ -197,20 +214,6 @@ LOGGING = {
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-import dj_database_url
-from decouple import config
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME"),  # Will use .env or environment variable
-        "USER": config("DB_USER"),  # Will use .env or environment variable
-        "PASSWORD": config("DB_PASSWORD"),  # Will use .env or environment variable
-        "HOST": config("DB_HOST"),  # Will use .env or environment variable
-        "PORT": config("DB_PORT", default="5432"),  # Default to 5432 if not in .env
-    }
-}
 
 
 CSRF_TRUSTED_ORIGINS = ["https://grnlite.onrender.com"]

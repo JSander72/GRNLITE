@@ -11,7 +11,9 @@ class Profile(models.Model):
         (AUTHOR, "Author"),
     ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    user_type = models.CharField(max_length=50, default="default_type")
+    user_type = models.CharField(
+        max_length=20, choices=[("reader", "Reader"), ("author", "Author")]
+    )
     name = models.CharField(max_length=255, default="Default Name")
     genre = models.CharField(max_length=255, default="Unknown")
     role = models.CharField(

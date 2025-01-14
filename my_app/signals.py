@@ -24,11 +24,20 @@ def redirect_after_login(sender, user, request, **kwargs):
     # Skip redirection for admin login
     if request.path.startswith("/admin/"):
         return
-    # Redirect logic here
+
+    # Check if user has a profile and determine redirection based on user_type
     if not hasattr(user, "profile"):
-        # Handle missing profile gracefully
-        return redirect("profile_setup")  # Redirect to a profile setup page if needed
-    pass
+        Profile.object.create(user=user)
+
+        if user.profile.user_type == "reader":
+            return redirect("reader-dashboard")  # Redirect to reader dashboard
+        elif user.profile.user_type == "author":
+            return redirect("author-dashboard")  # Redirect to author dashboard
+
+    # Default case if no profile or user_type, redirect to the home page
+    return redirect(
+        "my_app:home"
+    )  # This will now correctly use the home route to render main.html
 
 
 @receiver(user_logged_out)
@@ -36,7 +45,7 @@ def redirect_after_logout(sender, user, request, **kwargs):
     # Skip redirection for admin logout
     if request.path.startswith("/admin/"):
         return
-    return redirect("home")
+    return redirect("my_app:home")  # Redirect to home page after logout
 
 
 @receiver(post_save, sender=User)
