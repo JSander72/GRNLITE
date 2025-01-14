@@ -21,6 +21,9 @@ def send_verification_email(sender, instance, created, **kwargs):
 
 @receiver(user_logged_in)
 def redirect_after_login(sender, user, request, **kwargs):
+    # Skip redirection for admin login
+    if request.path.startswith("/admin/"):
+        return
     # Redirect logic here
     if not hasattr(user, "profile"):
         # Handle missing profile gracefully

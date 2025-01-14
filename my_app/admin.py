@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
+
 # from my_app.models import CustomUser
 from .models import (
     Manuscript,
@@ -18,10 +19,10 @@ from .models import (
 )
 
 
-# admin.site.register(SocialAccount)
-
-
+# Remove the duplicate registration
 # admin.site.register(MyModel)
+
+
 @admin.register(MyModel)
 class MyModelAdmin(admin.ModelAdmin):
     list_display = ["field1"]

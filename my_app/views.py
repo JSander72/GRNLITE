@@ -648,11 +648,6 @@ def my_books(request):
     return render(request, "my-books.html")
 
 
-def profile_setup(request):
-    # Your view logic here
-    return render(request, "profile_setup.html")
-
-
 @login_required
 def create_manuscript(request):
     if request.method == "POST":
