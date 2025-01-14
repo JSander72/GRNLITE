@@ -53,7 +53,7 @@ def redirect_after_logout(sender, user, request, **kwargs):
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        Profile.objects.create(user=instance)
+        Profile.objects.create(user=instance, user_type="default")
 
 
 @receiver(post_save, sender=User)

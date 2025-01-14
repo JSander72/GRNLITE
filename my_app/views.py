@@ -461,6 +461,7 @@ def signup(request):
         return render(request, "signup.html")
 
     elif request.method == "POST":
+        logger.info("Signup request data: %s", request.POST)
         try:
             data = json.loads(request.body)
             username = data.get("username")
@@ -471,6 +472,8 @@ def signup(request):
             user_type = data.get(
                 "user_type", ""
             )  # Provide a default value if not present
+            # Create the profile
+            Profile.objects.create(user=user, user_type=data.get("user_type"))
 
             # Ensure all required fields are provided
             if (

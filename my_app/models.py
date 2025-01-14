@@ -12,20 +12,13 @@ class Profile(models.Model):
         (AUTHOR, "Author"),
     ]
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    user_type = models.CharField(
-        max_length=20, choices=[("reader", "Reader"), ("author", "Author")]
-    )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default=READER)
     name = models.CharField(max_length=255, default="Default Name")
     genre = models.CharField(max_length=255, default="Unknown")
-    role = models.CharField(
-        max_length=10,
-        choices=[("reader", "Reader"), ("author", "Author")],
-        default="reader",
-    )
 
     @staticmethod
     def update_existing_profiles():
-        Profile.objects.filter(user_type="default_type").update(user_type="reader")
+        Profile.objects.filter(role="default_type").update(role="reader")
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
