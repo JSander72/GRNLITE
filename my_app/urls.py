@@ -64,6 +64,7 @@ urlpatterns = [
     # Admin URLs
     path("admin/", admin.site.urls),
     path("", include("django.contrib.auth.urls")),
+    path("profile-setup/", views.profile_setup, name="profile_setup"),
     # Dashboard URLs
     path(
         "author-dashboard/",
