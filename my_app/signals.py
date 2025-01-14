@@ -4,7 +4,7 @@ from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from django.contrib.auth.signals import user_logged_in, user_logged_out
-from .models import Profile
+from my_app.models import Profile, CustomUser
 
 
 @receiver(post_save, sender=User)
@@ -19,7 +19,7 @@ def send_verification_email(sender, instance, created, **kwargs):
         )
 
 
-@receiver(user_logged_in)
+@receiver(user_logged_in, sender=CustomUser)
 def redirect_after_login(sender, user, request, **kwargs):
     # Skip redirection for admin login
     if request.path.startswith("/admin/"):
@@ -27,7 +27,9 @@ def redirect_after_login(sender, user, request, **kwargs):
 
     # Check if user has a profile and determine redirection based on user_type
     if not hasattr(user, "profile"):
-        Profile.objects.create(user=user)
+        # Ensure the user belongs to the correct model
+        if isinstance(user, CustomUser):
+            Profile.objects.create(user=user)
 
         if user.profile.user_type == "reader":
             return redirect("reader-dashboard")  # Redirect to reader dashboard

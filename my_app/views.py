@@ -535,6 +535,8 @@ def signin(request):
                 )
 
             # Authenticate user
+
+            User = get_user_model()  # Custom user model
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 if user.is_active:
