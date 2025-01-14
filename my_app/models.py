@@ -20,6 +20,10 @@ class Profile(models.Model):
         default="reader",
     )
 
+    @staticmethod
+    def update_existing_profiles():
+        Profile.objects.filter(user_type="default_type").update(user_type="reader")
+
     def __str__(self):
         return f"{self.user.username} - {self.role}"
 
