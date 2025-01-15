@@ -33,6 +33,12 @@ class CustomUserAdmin(UserAdmin):
     ordering = ("id",)
 
 
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "user_type", "name", "genre")
+    search_fields = ("user__username", "user__email", "user_type")
+
+
+admin.site.register(Profile, ProfileAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)
 
 

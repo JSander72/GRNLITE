@@ -293,6 +293,10 @@
                     console.log("Form Data:", jsonData); // log the form data being sent
 
                     try {
+                        console.log("Payload:", jsonData);
+                        console.log("Payload being sent:", jsonData);
+                         // Verify user_type is included and correct
+
                         const response = await fetch("/api/signup/", {
                             method: "POST",
                             headers: {
@@ -300,7 +304,9 @@
                                 "X-CSRFToken": csrfToken,
                             },
                             body: JSON.stringify(jsonData),
+                            
                         });
+                        
                         if (!response.ok) {
                             const contentType = response.headers.get("Content-Type");
                             if (contentType && contentType.includes("application/json")) {
@@ -338,6 +344,8 @@
                         alert("Password must be at least 6 characters long.");
                         return false;
                     }
+                    console.log("Confirmed profile created");
+                    console.log("Confirmed account created");
                     return true;
                 }
             </script>

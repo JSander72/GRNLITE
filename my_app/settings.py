@@ -204,7 +204,11 @@ LOGGING = {
         },
     },
     "loggers": {
-        "django.template": {
+        "django": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+        "my_app": {
             "handlers": ["console"],
             "level": "DEBUG",
             "propagate": True,

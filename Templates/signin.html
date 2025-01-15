@@ -235,6 +235,7 @@
                 const password = document.getElementById('password').value;
                 const userType = document.getElementById('user-type').value;
                 const csrfToken = getCookie('csrftoken');
+                
 
                 fetch('/api/signin/', {
                     method: 'POST',

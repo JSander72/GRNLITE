@@ -1,14 +1,16 @@
-from django.core.mail import send_mail
-from django.dispatch import receiver
 from django.db.models.signals import post_save
-from django.contrib.auth.models import User
-from django.shortcuts import redirect
-from django.contrib.auth.signals import user_logged_in, user_logged_out
-from django.db import transaction
+from django.dispatch import receiver
+from django.core.mail import send_mail
 from my_app.models import Profile, CustomUser
+import jwt
+from datetime import datetime, timedelta, timezone
+from django.conf import settings
+import logging
+from django.db import transaction
 
 
-@receiver(post_save, sender=User)
+# Send verification email after user is created
+@receiver(post_save, sender=CustomUser)
 def send_verification_email(sender, instance, created, **kwargs):
     if created:
         send_mail(
@@ -20,48 +22,33 @@ def send_verification_email(sender, instance, created, **kwargs):
         )
 
 
-@receiver(user_logged_in, sender=CustomUser)
-def redirect_after_login(sender, user, request, **kwargs):
-    # Skip redirection for admin login
-    if request.path.startswith("/admin/"):
-        return
-
-    # Check if user has a profile and determine redirection based on user_type
-    if not hasattr(user, "profile"):
-        # Ensure the user belongs to the correct model
-        if isinstance(user, CustomUser):
-            Profile.objects.create(user=user)
-
-        if user.profile.user_type == "reader":
-            return redirect("reader-dashboard")  # Redirect to reader dashboard
-        elif user.profile.user_type == "author":
-            return redirect("author-dashboard")  # Redirect to author dashboard
-
-    # Default case if no profile or user_type, redirect to the home page
-    return redirect(
-        "my_app:home"
-    )  # This will now correctly use the home route to render main.html
+logger = logging.getLogger(__name__)
 
 
-@receiver(user_logged_out)
-def redirect_after_logout(sender, user, request, **kwargs):
-    # Skip redirection for admin logout
-    if request.path.startswith("/admin/"):
-        return
-    return redirect("my_app:home")  # Redirect to home page after logout
-
-
-# Create the user profile only after the user has been saved to the database
+# Create a profile and JWT token after user creation
 @receiver(post_save, sender=CustomUser)
-def create_user_profile(sender, instance, created, **kwargs):
+def create_user_dependencies(sender, instance, created, **kwargs):
     if created:
-        # Ensure the creation of the profile is done within a transaction
-        with transaction.atomic():
-            # Create a Profile only after the user instance is committed
-            Profile.objects.create(user=instance, user_type="default")
+        # Create the profile (ensure defaults are meaningful)
+        # Use on_commit to ensure the user is fully saved in the database
+        transaction.on_commit(
+            lambda: Profile.objects.create(user=instance, user_type="default")
+        )
+        if created:
+            logger.debug(f"Profile created for user: {instance.username}")
 
+        else:
+            logger.debug(f"Profile already exists for user: {instance.username}")
 
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    if hasattr(instance, "profile"):
-        instance.profile.save()
+        # Generate a JWT token
+        token = jwt.encode(
+            {
+                "user_id": instance.id,
+                "exp": datetime.now(timezone.utc) + timedelta(days=1),
+            },
+            settings.SECRET_KEY,
+            algorithm="HS256",
+        )
+
+        # Log or return the token (based on use case)
+        logger.debug(f"JWT Token for {instance.username}: {token}")

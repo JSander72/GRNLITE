@@ -23,6 +23,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
 from .forms import ManuscriptSubmissionForm, SignUpForm, SignInForm
 from django.conf import settings
+import jwt
+from datetime import datetime, timedelta, timezone
 from .serializers import (
     UserSerializer,
     ProfileSerializer,
@@ -486,11 +488,16 @@ def signup(request):
             user.last_name = last_name
             user.save()
             logger.debug("User created successfully: %s", user)
+            print(f"Username{username} and password validated successfully.")
 
             return JsonResponse({"message": "User created successfully!"}, status=201)
 
         except Exception as e:
             logger.error("Error during user creation: %s", str(e))
+            token = jwt.encode(
+                {"user_id": user.id}, settings.SECRET_KEY, algorithm="HS256"
+            )
+            print(f"JWT token generated: {token}")
             return JsonResponse({"message": f"Error: {str(e)}"}, status=400)
 
     return JsonResponse({"message": "Invalid request method."}, status=405)
@@ -499,52 +506,48 @@ def signup(request):
 def signin(request):
     if request.method == "POST":
         try:
-            logger.debug(f"Content-Type: {request.META.get('CONTENT_TYPE')}")
-            logger.debug(f"Request body: {request.body}")
-            # Parse JSON body
-            if request.META.get("CONTENT_TYPE") == "application/json":
-                # Parse JSON body
-                data = json.loads(request.body)
-            else:
-                # Fallback for form-encoded data
-                data = request.POST
+            body = json.loads(request.body)
 
-            username = data.get("username")
-            password = data.get("password")
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error: {e}")
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-            # Validate input
-            if not username or not password:
-                return JsonResponse(
-                    {"error": "Username and password are required."}, status=400
+        username = body.get("username")
+        password = body.get("password")
+        user_type = body.get("user_type")  # Ensure this exists if necessary
+
+        # Authenticate user
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            print(f"Username{username} and password validated successfully.")
+            # Authentication successful
+            user_type = body.get("user_type")
+            if not hasattr(user, "profile"):
+                print(f"Profile missing for user {user.username}, creating now.")
+                Profile.objects.create(
+                    user=user, user_type="reader"
+                )  # Use a sensible default
+            if user.profile.user_type != user_type:
+                print(
+                    f"Expected user_type: {user_type}, Actual user_type: {user.profile.user_type}"
                 )
-
-            # Authenticate user
-
-            User = get_user_model()  # Custom user model
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                if user.is_active:
-                    login(request, user)
-                    return JsonResponse(
-                        {
-                            "success": True,
-                            "redirect": f"/{user.profile.user_type}-dashboard/",
-                        }
-                    )
-                else:
-                    return JsonResponse(
-                        {"error": "Your account is inactive. Please contact support."},
-                        status=403,
-                    )
+                return JsonResponse({"error": "User type mismatch"}, status=401)
             else:
-                return JsonResponse(
-                    {"error": "Invalid username or password."}, status=400
-                )
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON format."}, status=400)
-    elif request.method == "GET":
-        return render(request, "signin.html")
-    return JsonResponse({"error": "Invalid request method."}, status=405)
+                if user.profile.user_type != user_type:
+                    print(
+                        f"Expected user_type: {user_type}, Actual user_type: {user.profile.user_type}"
+                    )
+
+                    return JsonResponse({"error": "User type mismatch"}, status=401)
+                # Success response
+            return JsonResponse(
+                {"message": "Login successful", "redirect": f"/{user_type}-dashboard/"}
+            )
+        else:
+            # Invalid credentials
+            return JsonResponse({"error": "Invalid credentials"}, status=401)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
 @login_required
