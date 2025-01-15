@@ -19,7 +19,7 @@ class Profile(models.Model):
         Profile.objects.filter(role="default_type").update(role="reader")
 
     def __str__(self):
-        return f"{self.user.username} - {self.role}"
+        return f"{self.user.username} - {self.user_type}"
 
 
 class MyModel(models.Model):

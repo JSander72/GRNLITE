@@ -290,6 +290,8 @@
 
                     const jsonData = Object.fromEntries(formData.entries());
 
+                    console.log("Form Data:", jsonData); // log the form data being sent
+
                     try {
                         const response = await fetch("/api/signup/", {
                             method: "POST",

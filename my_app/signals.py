@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.db import transaction
 from my_app.models import Profile, CustomUser
 
 
@@ -50,10 +51,14 @@ def redirect_after_logout(sender, user, request, **kwargs):
     return redirect("my_app:home")  # Redirect to home page after logout
 
 
-@receiver(post_save, sender=User)
+# Create the user profile only after the user has been saved to the database
+@receiver(post_save, sender=CustomUser)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        Profile.objects.create(user=instance, user_type="default")
+        # Ensure the creation of the profile is done within a transaction
+        with transaction.atomic():
+            # Create a Profile only after the user instance is committed
+            Profile.objects.create(user=instance, user_type="default")
 
 
 @receiver(post_save, sender=User)

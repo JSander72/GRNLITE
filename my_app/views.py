@@ -460,59 +460,40 @@ def signup(request):
         # Render the signup HTML form
         return render(request, "signup.html")
 
-    elif request.method == "POST":
-        logger.info("Signup request data: %s", request.POST)
+    if request.method == "POST":
         try:
             data = json.loads(request.body)
+            # Log the incoming data for debugging
+            logger.debug("Received signup data: %s", data)
+
             username = data.get("username")
-            first_name = data.get("first_name")
-            last_name = data.get("last_name")
             email = data.get("email")
             password = data.get("password")
-            user_type = data.get(
-                "user_type", ""
-            )  # Provide a default value if not present
-            # Create the profile
-            Profile.objects.create(user=user, user_type=data.get("user_type"))
+            first_name = data.get("first_name")
+            last_name = data.get("last_name")
+            user_type = data.get("user_type")
 
             # Ensure all required fields are provided
-            if (
-                not username
-                or not first_name
-                or not last_name
-                or not email
-                or not password
-            ):
-                return JsonResponse({"message": "All fields are required."}, status=400)
+            if not all([username, email, password, first_name, last_name, user_type]):
+                logger.error("Missing required fields.")
+                return JsonResponse({"message": "Missing required fields."}, status=400)
 
-            # Create the user with the provided data
-            user = User(
-                username=username,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
+            # Create the user and log it
+            user = User.objects.create_user(
+                username=username, email=email, password=password
             )
-            user.set_password(password)  # Hash the password before saving
-
-            # Additional logic based on user_type
-            if user_type == "author":
-                # Handle author-specific logic
-                pass
-            elif user_type == "reader":
-                # Handle reader-specific logic
-                pass
-            else:
-                return JsonResponse({"message": "Invalid user type."}, status=400)
-
+            user.first_name = first_name
+            user.last_name = last_name
             user.save()
-            return JsonResponse(
-                {"message": "Account created successfully!", "table": "auth_user"},
-                status=201,
-            )
-        except Exception as e:
-            return JsonResponse({"message": str(e)}, status=400)
+            logger.debug("User created successfully: %s", user)
 
-    return JsonResponse({"message": "Invalid request method"}, status=405)
+            return JsonResponse({"message": "User created successfully!"}, status=201)
+
+        except Exception as e:
+            logger.error("Error during user creation: %s", str(e))
+            return JsonResponse({"message": f"Error: {str(e)}"}, status=400)
+
+    return JsonResponse({"message": "Invalid request method."}, status=405)
 
 
 def signin(request):
