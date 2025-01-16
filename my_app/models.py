@@ -24,25 +24,21 @@ class CustomUserPermission(models.Model):
 
 
 class Profile(models.Model):
-    ROLE_CHOICES = [
+    USER_TYPE_CHOICES = [
         ("author", "Author"),
         ("beta_reader", "Beta Reader"),
         ("editor", "Editor"),
     ]
 
-    role = models.CharField(
+    user_type = models.CharField(
         max_length=20,
-        choices=ROLE_CHOICES,
+        choices=USER_TYPE_CHOICES,
         default="author",
-        help_text="Role of the user",
+        help_text="User type",
     )
-    user = models.OneToOneField(
-        get_user_model(),
-        on_delete=models.CASCADE,
-        help_text="User who owns the profile",
-    )
-    profile_img = models.ImageField(upload_to="profile_images/", null=True, blank=True)
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     bio = models.TextField(null=True, blank=True)
+    profile_img = models.ImageField(upload_to="profile_images/", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
