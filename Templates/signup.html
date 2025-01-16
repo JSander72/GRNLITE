@@ -272,7 +272,7 @@
                     readerChoice.classList.remove("selected");
                     authorChoice.classList.remove("selected");
 
-                    if (userType === "reader") {
+                    if (userType === "beta_reader") {
                         readerChoice.classList.add("selected");
                     } else if (userType === "author") {
                         authorChoice.classList.add("selected");
@@ -331,6 +331,7 @@
                     const username = document.getElementById("username").value;
                     const email = document.getElementById("email").value;
                     const password = document.getElementById("password").value;
+                    const userType = document.querySelector('input[name="user_type"]:checked').value;
 
                     if (!username || username.length < 3) {
                         alert("Username must be at least 3 characters long.");
@@ -342,6 +343,10 @@
                     }
                     if (password.length < 6) {
                         alert("Password must be at least 6 characters long.");
+                        return false;
+                    }
+                    if (!userType) {
+                        alert("Please select a user type.");
                         return false;
                     }
                     console.log("Confirmed profile created");

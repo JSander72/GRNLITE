@@ -34,8 +34,41 @@ class CustomUserAdmin(UserAdmin):
 
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "user_type", "name", "genre")
-    search_fields = ("user__username", "user__email", "user_type")
+    list_display = (
+        "id",
+        "user",
+        "user_type",
+        "get_name",
+        "get_genre",
+        "bio",
+        "created_at",
+    )
+    search_fields = (
+        "user__username",
+        "user__email",
+        "user_type",
+        "bio",
+        "genre",
+        "name",
+        "created_at",
+    )
+
+    def get_name(self, obj):
+        return obj.user.get_full_name()  # Assuming `user` is a OneToOneField to User
+
+    get_name.short_description = "Name"
+
+    def get_genre(self, obj):
+        if (
+            hasattr(obj, "beta_reader_profile")
+            and obj.beta_reader_profile.genres.exists()
+        ):
+            return ", ".join(
+                genre.name for genre in obj.beta_reader_profile.genres.all()
+            )
+        return "N/A"
+
+    get_genre.short_description = "Genres"
 
 
 admin.site.register(Profile, ProfileAdmin)
