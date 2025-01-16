@@ -29,26 +29,50 @@ logger = logging.getLogger(__name__)
 @receiver(post_save, sender=CustomUser)
 def create_user_dependencies(sender, instance, created, **kwargs):
     if created:
-        # Create the profile (ensure defaults are meaningful)
-        # Use on_commit to ensure the user is fully saved in the database
+        # Ensure that the profile is created only if it doesn't exist
         transaction.on_commit(
-            lambda: Profile.objects.create(user=instance, user_type="default")
+            lambda: Profile.objects.create(
+                user=instance, user_type="default"
+            )  # Adjust user_type as needed
         )
-        if created:
-            logger.debug(f"Profile created for user: {instance.username}")
+        logger.debug(f"Profile created for user: {instance.username}")
+    else:
+        # Optionally update the profile if it exists or if you want to perform some other action
+        if hasattr(instance, "profile"):
+            logger.debug(f"Profile already exists for user: {instance.username}")
+        else:
+            # In case there is no profile, you can create one here too
+            Profile.objects.create(user=instance)
 
+    # Generate a JWT token
+    token = jwt.encode(
+        {
+            "user_id": instance.id,
+            "exp": datetime.now(timezone.utc) + timedelta(days=1),
+        },
+        settings.SECRET_KEY,
+        algorithm="HS256",
+    )
+
+    logger.debug(f"JWT Token for {instance.username}: {token}")
+
+
+@receiver(post_save, sender=CustomUser)
+def create_or_update_profile(sender, instance, created, **kwargs):
+    if created:
+        # Check if the profile already exists or create one based on a unique field
+        try:
+            profile = Profile.objects.get(
+                user__username=instance.username
+            )  # You can also check by email
+        except Profile.DoesNotExist:
+            # Create a new profile if one doesn't exist
+            Profile.objects.create(user=instance)
+            logger.debug(f"Profile created for user: {instance.username}")
         else:
             logger.debug(f"Profile already exists for user: {instance.username}")
-
-        # Generate a JWT token
-        token = jwt.encode(
-            {
-                "user_id": instance.id,
-                "exp": datetime.now(timezone.utc) + timedelta(days=1),
-            },
-            settings.SECRET_KEY,
-            algorithm="HS256",
-        )
-
-        # Log or return the token (based on use case)
-        logger.debug(f"JWT Token for {instance.username}: {token}")
+    else:
+        # Optionally handle updates to the profile if necessary
+        if hasattr(instance, "profile"):
+            instance.profile.save()
+            logger.debug(f"Profile updated for user: {instance.username}")

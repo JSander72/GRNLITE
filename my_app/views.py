@@ -488,65 +488,62 @@ def signup(request):
             user.last_name = last_name
             user.save()
             logger.debug("User created successfully: %s", user)
-            print(f"Username{username} and password validated successfully.")
 
             return JsonResponse({"message": "User created successfully!"}, status=201)
 
         except Exception as e:
             logger.error("Error during user creation: %s", str(e))
-            token = jwt.encode(
-                {"user_id": user.id}, settings.SECRET_KEY, algorithm="HS256"
-            )
-            print(f"JWT token generated: {token}")
             return JsonResponse({"message": f"Error: {str(e)}"}, status=400)
 
     return JsonResponse({"message": "Invalid request method."}, status=405)
 
 
+@csrf_exempt
 def signin(request):
+    if request.method == "GET":
+        # Render the signup HTML form
+        return render(request, "signin.html")
+
     if request.method == "POST":
         try:
             body = json.loads(request.body)
-
         except json.JSONDecodeError as e:
-            print(f"JSON decode error: {e}")
+            logger.error("JSON decode error: %s", e)
             return JsonResponse({"error": "Invalid JSON"}, status=400)
 
         username = body.get("username")
         password = body.get("password")
-        user_type = body.get("user_type")  # Ensure this exists if necessary
+        user_type = body.get("user_type")
 
         # Authenticate user
         user = authenticate(username=username, password=password)
 
         if user is not None:
-            print(f"Username{username} and password validated successfully.")
-            # Authentication successful
-            user_type = body.get("user_type")
+            logger.debug("User authenticated successfully: %s", username)
+
+            # Check if the user has a profile
             if not hasattr(user, "profile"):
-                print(f"Profile missing for user {user.username}, creating now.")
-                Profile.objects.create(
-                    user=user, user_type="reader"
-                )  # Use a sensible default
+                logger.error("Profile missing for user: %s", username)
+                return JsonResponse({"error": "Profile not found"}, status=404)
+
+            # Verify the user type
             if user.profile.user_type != user_type:
-                print(
-                    f"Expected user_type: {user_type}, Actual user_type: {user.profile.user_type}"
+                logger.warning(
+                    "User type mismatch. Expected: %s, Actual: %s",
+                    user_type,
+                    user.profile.user_type,
                 )
                 return JsonResponse({"error": "User type mismatch"}, status=401)
-            else:
-                if user.profile.user_type != user_type:
-                    print(
-                        f"Expected user_type: {user_type}, Actual user_type: {user.profile.user_type}"
-                    )
 
-                    return JsonResponse({"error": "User type mismatch"}, status=401)
-                # Success response
+            # Successful login and redirect
             return JsonResponse(
                 {"message": "Login successful", "redirect": f"/{user_type}-dashboard/"}
             )
         else:
             # Invalid credentials
+            logger.error("Invalid credentials for username: %s", username)
             return JsonResponse({"error": "Invalid credentials"}, status=401)
+
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
