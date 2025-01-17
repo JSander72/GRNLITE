@@ -7,6 +7,9 @@ from datetime import datetime, timedelta, timezone
 from django.conf import settings
 import logging
 from django.db import transaction
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 # Send verification email after user is created
@@ -60,19 +63,11 @@ def create_user_dependencies(sender, instance, created, **kwargs):
 @receiver(post_save, sender=CustomUser)
 def create_or_update_profile(sender, instance, created, **kwargs):
     if created:
-        # Check if the profile already exists or create one based on a unique field
-        try:
-            profile = Profile.objects.get(
-                user__username=instance.username
-            )  # You can also check by email
-        except Profile.DoesNotExist:
-            # Create a new profile if one doesn't exist
-            Profile.objects.create(user=instance)
-            logger.debug(f"Profile created for user: {instance.username}")
-        else:
-            logger.debug(f"Profile already exists for user: {instance.username}")
+        # Create a Profile when a new CustomUser is created
+        Profile.objects.create(user=instance, user_type="default")
+        logger.info(f"Profile created for user: {instance.username}")
     else:
-        # Optionally handle updates to the profile if necessary
+        # Optionally update the profile if necessary
         if hasattr(instance, "profile"):
             instance.profile.save()
-            logger.debug(f"Profile updated for user: {instance.username}")
+            logger.info(f"Profile updated for user: {instance.username}")

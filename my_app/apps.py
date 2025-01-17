@@ -1,17 +1,12 @@
 from django.apps import AppConfig
 
 
-# class GrnliteConfig(AppConfig):
-#     default_auto_field = "django.db.models.BigAutoField"
-#     name = "grnlite"
-
-#     def ready(self):
-#         import grnlite.signals
-
-
 class MyAppConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "my_app"
 
     def ready(self):
-        import my_app.signals
+        # Import signal handlers to connect them to their respective signals
+        import my_app.signals  # Ensure signals are registered
+
+        print("Signals have been imported and registered.")

@@ -331,7 +331,8 @@
                     const username = document.getElementById("username").value;
                     const email = document.getElementById("email").value;
                     const password = document.getElementById("password").value;
-                    const userType = document.querySelector('input[name="user_type"]:checked').value;
+                    const userType = document.getElementById("user-type").value;
+
 
                     if (!username || username.length < 3) {
                         alert("Username must be at least 3 characters long.");

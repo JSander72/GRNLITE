@@ -1,9 +1,10 @@
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import CustomUser
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.timezone import now
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils.timezone import now
+from django.conf import settings
 
 
 class CustomUser(AbstractUser):
@@ -14,12 +15,12 @@ class CustomUser(AbstractUser):
 
 
 class CustomUserGroup(models.Model):
-    custom_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    custom_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
 
 
 class CustomUserPermission(models.Model):
-    custom_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    custom_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
 
 
@@ -34,32 +35,29 @@ class Profile(models.Model):
         max_length=20,
         choices=USER_TYPE_CHOICES,
         default="author",
-        help_text="User type",
+        help_text="User Type of the user",
     )
-    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
-    bio = models.TextField(null=True, blank=True)
-    profile_img = models.ImageField(upload_to="profile_images/", null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user_type = models.CharField(max_length=50)
+    profile_img = models.ImageField(
+        upload_to="profile_images/",
+        null=True,
+        blank=True,
+        help_text="User's profile picture",
+    )
 
-    @property
-    def user_type(self):
-        return self.role  # Alias for role
+    bio = models.TextField(
+        null=True, blank=True, help_text="Short biography for the user"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, help_text="When the user account was created"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, help_text="When the user account was last updated"
+    )
 
-    @property
-    def name(self):
-        return self.user.get_full_name()  # Derived from User model
-
-    @property
-    def genre(self):
-        if (
-            hasattr(self, "beta_reader_profile")
-            and self.beta_reader_profile.genres.exists()
-        ):
-            return ", ".join(
-                genre.name for genre in self.beta_reader_profile.genres.all()
-            )
-        return None
+    def __str__(self):
+        return self.user.username
 
 
 class MyModel(models.Model):
@@ -102,12 +100,15 @@ class Feedback(models.Model):
     manuscript = models.ForeignKey(
         "Manuscript", on_delete=models.CASCADE, related_name="feedbacks"
     )
-    reader = models.ForeignKey(User, on_delete=models.CASCADE)
+    reader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     plot = models.TextField(null=True, blank=True)
     characters = models.TextField(null=True, blank=True)
     pacing = models.TextField(null=True, blank=True)
     worldbuilding = models.TextField(null=True, blank=True)
     comments = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.manuscript} - {self.reader}"
 
 
 class FeedbackQuestion(models.Model):
@@ -139,7 +140,7 @@ class Manuscript(models.Model):
     ]
 
     author = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name="manuscripts",
         help_text="The author of the manuscript",
@@ -199,6 +200,30 @@ class Manuscript(models.Model):
         return self.title
 
 
+class ReaderManuscript(models.Model):
+    reader = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name="reader_manuscripts",
+        help_text="The reader associated with the manuscript",
+    )
+    manuscript = models.ForeignKey(
+        Manuscript,
+        on_delete=models.CASCADE,
+        related_name="readers",
+        help_text="The manuscript chosen by the reader",
+    )
+    status = models.CharField(
+        max_length=50,
+        choices=[("in_progress", "In Progress"), ("completed", "Completed")],
+        default="in_progress",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.reader.username} - {self.manuscript.title}"
+
+
 class ManuscriptFeedbackPreference(models.Model):
     manuscript = models.ForeignKey(
         Manuscript, on_delete=models.CASCADE, related_name="feedback_preferences"
@@ -233,7 +258,7 @@ class FeedbackResponse(models.Model):
         on_delete=models.CASCADE,
         limit_choices_to={
             "groups__name": "beta_reader"
-        },  # Adjust group or role logic if necessary
+        },  # Adjust group or ser_type logic if necessary
         related_name="feedback_given",
         help_text="The beta reader providing the feedback",
     )
@@ -468,3 +493,17 @@ class Genre(models.Model):
 class ManuscriptKeywords(models.Model):
     manuscript = models.ForeignKey("Manuscript", on_delete=models.CASCADE)
     keyword = models.ForeignKey("Keyword", on_delete=models.CASCADE)
+
+
+class ExampleModel(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    # other fields...
+
+
+class AnotherModel(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    # other fields...
+
+
+# If you need to reference the user model directly in other parts of the code
+CustomUser = get_user_model()

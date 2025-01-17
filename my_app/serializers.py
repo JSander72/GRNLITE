@@ -1,11 +1,8 @@
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
-
-# from my_app.models import CustomUser
+from rest_framework import serializers
 from .models import (
-    Profile,
     Manuscript,
+    Profile,
     Keyword,
     FeedbackQuestion,
     FeedbackResponse,
@@ -16,10 +13,9 @@ from .models import (
     BetaReaderApplication,
     ManuscriptFeedbackPreference,
     Feedback,
-    CustomUser,
-    BetaReader,
-    User,
 )
+
+User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):

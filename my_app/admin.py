@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
+from django import forms
 
 from .models import (
     Manuscript,
@@ -15,11 +15,19 @@ from .models import (
     ResourceInteraction,
     MyModel,
     CustomUser,
+    CustomUserGroup,
+    CustomUserPermission,
 )
+
+
+class ProfileInline(admin.StackedInline):
+    model = Profile
+    can_delete = False
 
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
+    inlines = [ProfileInline]
     list_display = (
         "id",
         "username",
@@ -31,47 +39,43 @@ class CustomUserAdmin(UserAdmin):
     )
     search_fields = ("username", "email", "first_name", "last_name")
     ordering = ("id",)
+    fieldsets = UserAdmin.fieldsets + (
+        (None, {"fields": ("additional_field",)}),  # Add custom fields here
+    )
+
+
+# Unregister the Profile model if it is already registered
+try:
+    admin.site.unregister(Profile)
+except admin.sites.NotRegistered:
+    pass
 
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "user",
-        "user_type",
-        "get_name",
-        "get_genre",
-        "bio",
-        "created_at",
-    )
-    search_fields = (
-        "user__username",
-        "user__email",
-        "user_type",
-        "bio",
-        "genre",
-        "name",
-        "created_at",
-    )
-
-    def get_name(self, obj):
-        return obj.user.get_full_name()  # Assuming `user` is a OneToOneField to User
-
-    get_name.short_description = "Name"
-
-    def get_genre(self, obj):
-        if (
-            hasattr(obj, "beta_reader_profile")
-            and obj.beta_reader_profile.genres.exists()
-        ):
-            return ", ".join(
-                genre.name for genre in obj.beta_reader_profile.genres.all()
-            )
-        return "N/A"
-
-    get_genre.short_description = "Genres"
+    list_display = ("user", "user_type")
 
 
 admin.site.register(Profile, ProfileAdmin)
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = "__all__"
+
+    def clean_user_type(self):
+        user_type = self.cleaned_data.get("user_type")
+        if not user_type:
+            raise forms.ValidationError("User type is required.")
+        return user_type
+
+
+# Safely unregister and register CustomUser
+try:
+    admin.site.unregister(CustomUser)
+except admin.sites.NotRegistered:
+    pass
+
 admin.site.register(CustomUser, CustomUserAdmin)
 
 
@@ -125,3 +129,15 @@ class BetaReaderApplicationAdmin(admin.ModelAdmin):
     list_display = ("manuscript", "beta_reader", "status", "application_date")
     list_filter = ("status", "application_date")
     search_fields = ("manuscript__title", "beta_reader__username")
+
+
+class CustomUserGroupAdmin(admin.ModelAdmin):
+    list_display = ("custom_user", "group")
+
+
+class CustomUserPermissionAdmin(admin.ModelAdmin):
+    list_display = ("custom_user", "permission")
+
+
+admin.site.register(CustomUserGroup, CustomUserGroupAdmin)
+admin.site.register(CustomUserPermission, CustomUserPermissionAdmin)

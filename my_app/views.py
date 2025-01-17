@@ -456,6 +456,11 @@ def signup_page(request):
         return render(request, "signup.html")
 
 
+def register_user(username, email, password):
+    user = User.objects.create_user(username=username, email=email, password=password)
+    return user
+
+
 @csrf_exempt
 def signup(request):
     if request.method == "GET":
@@ -554,7 +559,16 @@ def logout_view(request):
 
 
 def signin_view(request):
-    return render(request, "signin.html")
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        user = authenticate(username=username, password=password)
+        if user:
+            if hasattr(user, "profile"):
+                return JsonResponse({"message": "Login successful"}, status=200)
+            else:
+                return JsonResponse({"error": "Profile not found"}, status=404)
+        return JsonResponse({"error": "Invalid credentials"}, status=401)
 
 
 # def login(request):

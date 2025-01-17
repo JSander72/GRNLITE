@@ -30,7 +30,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "my_app",
-    "my_custom_app",
 ]
 
 MIDDLEWARE = [
@@ -83,7 +82,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
-AUTH_USER_MODEL = "auth.User"  # Use the default User model
+AUTH_USER_MODEL = "my_app.CustomUser"  # Use the default User model
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
