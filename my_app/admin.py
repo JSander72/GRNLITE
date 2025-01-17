@@ -17,6 +17,7 @@ from .models import (
     CustomUser,
     CustomUserGroup,
     CustomUserPermission,
+    ExampleModel,
 )
 
 
@@ -39,8 +40,22 @@ class CustomUserAdmin(UserAdmin):
     )
     search_fields = ("username", "email", "first_name", "last_name")
     ordering = ("id",)
-    fieldsets = UserAdmin.fieldsets + (
-        (None, {"fields": ("additional_field",)}),  # Add custom fields here
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        ("Personal info", {"fields": ("first_name", "last_name", "email")}),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
+        ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
 
 
@@ -49,6 +64,15 @@ try:
     admin.site.unregister(Profile)
 except admin.sites.NotRegistered:
     pass
+
+
+class ExampleModelAdmin(admin.ModelAdmin):
+    list_display = ("name", "category", "is_active", "created_at", "updated_at")
+    list_filter = ("category", "is_active")
+    search_fields = ("name", "category")
+
+
+admin.site.register(ExampleModel, ExampleModelAdmin)
 
 
 class ProfileAdmin(admin.ModelAdmin):

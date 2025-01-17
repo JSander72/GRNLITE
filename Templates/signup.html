@@ -249,7 +249,7 @@
                     <input type="password" id="password" name="password" required autocomplete="current-password" />
                 </div>
                 <div class="bubble-choice-container">
-                    <div class="bubble-choice" id="readerChoice" onclick="setUserType('reader')">Reader</div>
+                    <div class="bubble-choice" id="readerChoice" onclick="setUserType('beta_reader')">Reader</div>
                     <div class="bubble-choice" id="authorChoice" onclick="setUserType('author')">Author</div>
                 </div>
                 <button class="form-group-lg form-button" type="submit">Sign Up</button>
@@ -281,8 +281,10 @@
                 }
 
                 document.getElementById("signupForm").addEventListener("submit", async (event) => {
-                    event.preventDefault();
-                    if (!isFormValid()) return;
+                    const userType = document.getElementById("user-type").value;
+                    if (!userType) {event.preventDefault(); alert("Please select a user type.");
+                        
+                    }
 
                     const form = event.target;
                     const formData = new FormData(form);

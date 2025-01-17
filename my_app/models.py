@@ -497,7 +497,15 @@ class ManuscriptKeywords(models.Model):
 
 class ExampleModel(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    category = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     # other fields...
+
+    def __str__(self):
+        return self.name
 
 
 class AnotherModel(models.Model):

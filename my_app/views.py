@@ -506,7 +506,7 @@ def signup(request):
 @csrf_exempt
 def signin(request):
     if request.method == "GET":
-        # Render the signup HTML form
+        # Render the signin HTML form
         return render(request, "signin.html")
 
     if request.method == "POST":
@@ -524,6 +524,14 @@ def signin(request):
         user = authenticate(username=username, password=password)
 
         if user is not None:
+            login(request, user)
+            profile = Profile.objects.get(user=user)
+            if profile.user_type == "beta_reader":
+                redirect_url = "/reader-dashboard/"
+            elif profile.user_type == "admin":
+                redirect_url = "/admin-dashboard/"
+            else:
+                redirect_url = "/author-dashboard/"
             logger.debug("User authenticated successfully: %s", username)
 
             # Check if the user has a profile
@@ -538,18 +546,14 @@ def signin(request):
                     user_type,
                     user.profile.user_type,
                 )
-                return JsonResponse({"error": "User type mismatch"}, status=401)
 
-            # Successful login and redirect
             return JsonResponse(
-                {"message": "Login successful", "redirect": f"/{user_type}-dashboard/"}
+                {"message": "Login successful", "redirect": redirect_url}
             )
         else:
-            # Invalid credentials
-            logger.error("Invalid credentials for username: %s", username)
-            return JsonResponse({"error": "Invalid credentials"}, status=401)
-
-    return JsonResponse({"error": "Invalid request method"}, status=405)
+            return JsonResponse({"message": "Invalid credentials"}, status=401)
+    else:
+        return JsonResponse({"message": "Invalid request method"}, status=400)
 
 
 @login_required

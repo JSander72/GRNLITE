@@ -183,7 +183,7 @@
                 <h1>Sign In</h1>
                 <p>Welcome back to Grn Lite</p>
             </div>
-            <form method="post" id="signinForm" action="api/signin/">
+            <form method="post" id="loginForm">
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="username">Username:</label>
@@ -206,11 +206,6 @@
     </div>
 
     <script>
-           // Define BASE_URL based on window location
-        const BASE_URL = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
-            ? "http://127.0.0.1:8000"
-            : "https://grnlite.onrender.com";
-        console.log("BASE_URL:", BASE_URL); // Verify this outputs the correct URL
         document.addEventListener('DOMContentLoaded', function() {
             function getCookie(name) {
                 let cookieValue = null;
@@ -227,15 +222,17 @@
                 return cookieValue;
             }
 
-            const csrfToken = getCookie('csrftoken');
-
             function authenticateUser(event) {
-                if (event) event.preventDefault();
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-                const userType = document.getElementById('user-type').value;
+                event.preventDefault();
+
+                const formData = new FormData(this);
+                const data = {
+                    username: formData.get('username'),
+                    password: formData.get('password'),
+                    user_type: formData.get('user_type')
+                };
+
                 const csrfToken = getCookie('csrftoken');
-                
 
                 fetch('/api/signin/', {
                     method: 'POST',
@@ -243,40 +240,31 @@
                         'Content-Type': 'application/json',
                         'X-CSRFToken': csrfToken
                     },
-                    body: JSON.stringify({
-                        username: username,
-                        password: password,
-                        user_type: userType
-                    })
+                    body: JSON.stringify(data),
                 })
-                .then(async (response) => {
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(errorText || 'Unknown error occurred.');
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        return response.text().then(errorText => {
+                            throw new Error(errorText || 'Unknown error occurred.');
+                        });
                     }
-                    return response.json();
                 })
                 .then(data => {
-                    if (data.success) {
-                        if (data.user_type === 'author') {
-                            window.location.href = '/author-dashboard/';
-                        } else {
-                            window.location.href = '/reader-dashboard/';
-                        }
+                    if (data.message === 'Login successful') {
+                        window.location.href = data.redirect;
                     } else {
-                        alert('Authentication failed: ' + (data.message || 'Invalid credentials.'));
+                        console.error('Login failed:', data.message);
                     }
                 })
                 .catch(error => {
-                    console.error('Error details:', error);
-                    alert('An error occurred. Please try again.');
+                    console.error('Error:', error);
                 });
             }
 
-            document.querySelector('form').addEventListener('submit', authenticateUser);
+            document.getElementById('loginForm').addEventListener('submit', authenticateUser);
         });
     </script>
-    
 </body>
-
 </html>
