@@ -649,6 +649,36 @@ def my_books(request):
     return render(request, "my-books.html")
 
 
+def find_beta_readers(request):
+    experience_query = request.GET.get("experience", "")
+    genres_query = request.GET.getlist("genres")
+    beta_readers = BetaReader.objects.all()
+
+    if experience_query:
+        beta_readers = beta_readers.filter(experience__icontains=experience_query)
+    if genres_query:
+        beta_readers = beta_readers.filter(genres__id__in=genres_query).distinct()
+
+    return render(request, "find-beta-readers.html", {"beta_readers": beta_readers})
+
+
+def beta_reader_list(request):
+    beta_readers = BetaReader.objects.all()
+    return render(request, "beta-reader-list.html", {"beta_readers": beta_readers})
+
+
+def manuscript_submission(request):
+    if request.method == "POST":
+        form = ManuscriptSubmissionForm(request.POST, request.FILES)
+        if form.is_valid():
+            manuscript = form.save(commit=False)
+            manuscript.author = request.user
+            manuscript.save()
+            form.save_m2m()
+
+            return redirect("manuscript-success")
+
+
 @login_required
 def create_manuscript(request):
     if request.method == "POST":
@@ -679,6 +709,31 @@ def feedback_form(request, manuscript_id):
         )
         return redirect("feedback-success")
     return render(request, "reader-feedback.html", {"manuscript": manuscript})
+
+
+def feedback_summary(request):
+    feedback = Feedback.objects.all()
+    return render(request, "feedback-summary.html", {"feedback": feedback})
+
+
+def author_resource_library(request):
+    return render(request, "author_resource_library.html")
+
+
+def author_community_groups(request):
+    return render(request, "author_community_groups.html")
+
+
+def author_profile(request):
+    return render(request, "Author_Dashboard/author-profile.html")
+
+
+def author_payment_page(request):
+    return render(request, "author_payment_page.html")
+
+
+def author_settings(request):
+    return render(request, "author_settings.html")
 
 
 @api_view(["GET"])
