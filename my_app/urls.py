@@ -6,6 +6,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
 import my_app
+from django.views.generic import TemplateView
 from .views import (
     UserProfileView,
     BetaReaderListCreateView,
@@ -55,6 +56,7 @@ urlpatterns = [
     path("signup_page/", views.signup_page, name="signup_page"),  # Form loading
     path("signin/", SignInView.as_view(), name="signin"),
     path("signin/", views.signin, name="signin"),
+    path("signin/", TemplateView.as_view(template_name="signin.html"), name="signin"),
     path("signin/api/authenticate/", my_view, name="signin_auth"),
     path("api/signup/", views.signup, name="signup"),
     path("api/signin/", views.signin, name="signin"),
