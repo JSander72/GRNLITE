@@ -54,6 +54,7 @@ urlpatterns = [
     path("signup/", SignUpView.as_view(), name="signup"),
     path("signup_page/", views.signup_page, name="signup_page"),  # Form loading
     path("signin/", SignInView.as_view(), name="signin"),
+    path("signin/", views.signin, name="signin"),
     path("signin/api/authenticate/", my_view, name="signin_auth"),
     path("api/signup/", views.signup, name="signup"),
     path("api/signin/", views.signin, name="signin"),
