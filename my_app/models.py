@@ -1,9 +1,7 @@
-# from django.contrib.auth.models import CustomUser
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.timezone import now
 from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.utils.timezone import now
 from django.conf import settings
 
 
@@ -498,6 +496,7 @@ class ManuscriptKeywords(models.Model):
 class ExampleModel(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
+    description = models.TextField(default="No Description provided")
     category = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

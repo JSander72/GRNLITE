@@ -32,39 +32,47 @@ logger = logging.getLogger(__name__)
 @receiver(post_save, sender=CustomUser)
 def create_user_dependencies(sender, instance, created, **kwargs):
     if created:
-        # Ensure that the profile is created only if it doesn't exist
-        transaction.on_commit(
-            lambda: Profile.objects.create(
-                user=instance, user_type="default"
-            )  # Adjust user_type as needed
-        )
-        logger.debug(f"Profile created for user: {instance.username}")
+        try:
+            # Ensure that the profile is created only if it doesn't exist
+            transaction.on_commit(
+                lambda: Profile.objects.create(
+                    user=instance, user_type=instance.user_type
+                )
+            )
+            logger.debug(f"Profile created for user: {instance.username}")
+        except Exception as e:
+            logger.error(f"Error creating profile for user {instance.username}: {e}")
     else:
-        # Optionally update the profile if it exists or if you want to perform some other action
-        if hasattr(instance, "profile"):
-            logger.debug(f"Profile already exists for user: {instance.username}")
-        else:
-            # In case there is no profile, you can create one here too
-            Profile.objects.create(user=instance)
+        try:
+            # Optionally update the profile if it exists or if you want to perform some other action
+            if hasattr(instance, "profile"):
+                logger.debug(f"Profile already exists for user: {instance.username}")
+            else:
+                # In case there is no profile, you can create one here too
+                Profile.objects.create(user=instance, user_type=instance.user_type)
+        except Exception as e:
+            logger.error(f"Error updating profile for user {instance.username}: {e}")
 
-    # Generate a JWT token
-    token = jwt.encode(
-        {
-            "user_id": instance.id,
-            "exp": datetime.now(timezone.utc) + timedelta(days=1),
-        },
-        settings.SECRET_KEY,
-        algorithm="HS256",
-    )
-
-    logger.debug(f"JWT Token for {instance.username}: {token}")
+    try:
+        # Generate a JWT token
+        token = jwt.encode(
+            {
+                "user_id": instance.id,
+                "exp": datetime.now(timezone.utc) + timedelta(days=1),
+            },
+            settings.SECRET_KEY,
+            algorithm="HS256",
+        )
+        logger.debug(f"JWT token generated for user: {instance.username}")
+    except Exception as e:
+        logger.error(f"Error generating JWT token for user {instance.username}: {e}")
 
 
 @receiver(post_save, sender=CustomUser)
 def create_or_update_profile(sender, instance, created, **kwargs):
     if created:
         # Create a Profile when a new CustomUser is created
-        Profile.objects.create(user=instance, user_type="default")
+        Profile.objects.create(user=instance, user_type=instance.user_type)
         logger.info(f"Profile created for user: {instance.username}")
     else:
         # Optionally update the profile if necessary
