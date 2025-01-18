@@ -119,6 +119,7 @@
             try {
                 const response = await fetch('https://grnlite.onrender.com/api/validate-token', {
                     headers: {
+                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${accessToken}`
                     }
                 });
