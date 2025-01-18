@@ -57,6 +57,11 @@ urlpatterns = [
     path("signin/", SignInView.as_view(), name="signin"),
     path("signin/", views.signin, name="signin"),
     path("signin/", TemplateView.as_view(template_name="signin.html"), name="signin"),
+    path(
+        "signin.html",
+        TemplateView.as_view(template_name="signin.html"),
+        name="signin_html",
+    ),
     path("signin/api/authenticate/", my_view, name="signin_auth"),
     path("api/signup/", views.signup, name="signup"),
     path("api/signin/", views.signin, name="signin"),
