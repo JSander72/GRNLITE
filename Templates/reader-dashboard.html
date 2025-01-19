@@ -110,12 +110,7 @@
         document.addEventListener("DOMContentLoaded", async () => {
             const accessToken = localStorage.getItem('accessToken');
 
-            if (!accessToken) {
-                // Redirect to login page if token is not available
-                window.location.href = 'https://grnlite.onrender.com/signin.html';
-                return;
-            }
-
+            
             try {
                 const response = await fetch('https://grnlite.onrender.com/api/validate-token', {
                     headers: {
@@ -124,15 +119,12 @@
                     }
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log(data);
-                    // Update the UI with the dashboard data
-                } else {
-                    console.error('Failed to fetch dashboard data:', response.statusText);
-                }
+                const dashboardData = await dashboardResponse.json();
+                // Add logic to handle and display dashboard data
+
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error fetching dashboard data:', error);
+                window.location.href = 'https://grnlite.onrender.com/signin.html';
             }
         });
     </script>

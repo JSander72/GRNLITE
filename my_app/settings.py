@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "rest_framework_swagger",
     "grnlite.apps.GrnliteAppConfig",
+    "manuscripts",
 ]
 
 MIDDLEWARE = [
@@ -96,6 +97,8 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "https://grnlite.onrender.com",
+    "http://localhost:3000",
+    "http://localhost:8000",
     # Add any other origins you need to allow
 ]
 
@@ -164,9 +167,11 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
-        # 'rest_framework.authentication.TokenAuthentication',  # Comment this out if it's causing issues
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.renderers.JSONRenderer",  # Comment this out if it's causing issues
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
 }
 
 
@@ -213,6 +218,10 @@ LOGGING = {
             "level": "DEBUG",
             "propagate": True,
         },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG",
     },
 }
 

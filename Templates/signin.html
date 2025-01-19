@@ -5,9 +5,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>Sign In</title>
     <link rel="stylesheet" href="{% static 'Front_End/CSS/styles.css' %}">
-    <!-- <a href="{{ BASE_URL }}/api/authenticate/">API Link</a> -->
 
     <style>
         :root {
@@ -20,7 +20,7 @@
 
         body {
             margin: 0;
-            font-family: 'Playwrite DE Grund Thin', sans-serif;
+            font-family: Arial, sans-serif;
             background-color: var(--background-color);
             color: var(--text-color);
         }
@@ -33,26 +33,11 @@
             padding: 1rem 2rem;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             z-index: 1000;
-            transition: all 0.3s ease;
         }
 
-        .navbar.scrolled {
-            padding: 0.5rem 2rem;
-            background-color: rgba(255, 255, 255, 0.85);
-        }
-
-        .nav-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            color: var(--primary-color);
-            text-decoration: none;
+        .navbar .logo img {
+            height: 80px;
+            width: auto;
         }
 
         .nav-links {
@@ -156,11 +141,6 @@
         .auth-footer a:hover {
             text-decoration: underline;
         }
-
-        .navbar .logo img {
-            height: 80px;
-            width: auto;
-        }
     </style>
 </head>
 
@@ -193,10 +173,8 @@
                     <label for="password">Password:</label>
                     <input type="password" id="password" name="password" required autocomplete="current-password">
                 </div>
-                <input type="hidden" id="user-type" name="user_type" value="beta_reader"> <!-- Hidden input for user type -->
-                <div class="form-group">
-                    <button type="submit" class="auth-button">Sign In</button>
-                </div>
+                <input type="hidden" id="user-type" name="user_type" value="">
+                <button type="submit" class="auth-button">Sign In</button>
             </form>
         </div>
     </div>
@@ -206,65 +184,62 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
-                }
-                return cookieValue;
-            }
+        const BASE_URL =
+            window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
+                ? "http://127.0.0.1:8000"
+                : "https://grnlite.onrender.com";
 
-            function authenticateUser(event) {
+        document.addEventListener('DOMContentLoaded', function () {
+            async function authenticateUser(event) {
                 event.preventDefault();
 
-                const formData = new FormData(this);
                 const data = {
-                    username: formData.get('username'),
-                    password: formData.get('password'),
-                    user_type: formData.get('user_type')
+                    username: document.getElementById('username').value,
+                    password: document.getElementById('password').value,
                 };
 
-                const csrfToken = getCookie('csrftoken');
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-                fetch('/api/signin/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    },
-                    body: JSON.stringify(data),
-                })
-                .then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    } else {
-                        return response.text().then(errorText => {
-                            throw new Error(errorText || 'Unknown error occurred.');
-                        });
+                try {
+                    const loginResponse = await fetch('/api/signin/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    if (!loginResponse.ok) {
+                        const errorText = await loginResponse.text();
+                        throw new Error(errorText || 'Unknown error occurred.');
                     }
-                })
-                .then(data => {
-                    if (data.message === 'Login successful') {
-                        window.location.href = data.redirect;
+
+                    const result = await loginResponse.json();
+
+                    localStorage.setItem('access_token', result.access);
+                    localStorage.setItem('refresh_token', result.refresh);
+
+                    alert('Login successful!');
+
+                    if (result.user_type === 'beta_reader') {
+                        window.location.href = '/reader-dashboard/';
+                    } else if (result.user_type === 'admin') {
+                        window.location.href = '/admin-dashboard/';
+                    } else if (result.user_type === 'author') {
+                        window.location.href = '/author-dashboard/';
                     } else {
-                        console.error('Login failed:', data.message);
+                        console.error('Unknown user type.');
                     }
-                })
-                .catch(error => {
+                } catch (error) {
                     console.error('Error:', error);
-                });
+                    alert('Authentication failed. Please check your credentials and try again.');
+                }
             }
 
             document.getElementById('loginForm').addEventListener('submit', authenticateUser);
         });
     </script>
 </body>
+
 </html>

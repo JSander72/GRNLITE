@@ -5,7 +5,6 @@ from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
-import my_app
 from django.views.generic import TemplateView
 from .views import (
     UserProfileView,
@@ -20,6 +19,7 @@ from .views import (
     UserViewSet,
     ProfileViewSet,
     ManuscriptViewSet,
+    protected_view,
     save_token,
     UserCreate,
     SignInView,
@@ -27,13 +27,6 @@ from .views import (
     reader_dashboard,
     author_dashboard,
 )
-
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .serializers import UserSerializer
-
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = DefaultRouter()
@@ -43,30 +36,25 @@ router.register(r"manuscripts", ManuscriptViewSet, basename="manuscript")
 
 app_name = "my_app"
 
-
-def my_view(request, base_url):
-    refresh = request.data.get("refresh")
-
-
 urlpatterns = [
     # Home Page
     path("", views.home, name="home"),
-    # User Authentication URLs
+    # Authentication URLs
     path("signup/", SignUpView.as_view(), name="signup"),
-    path("signup_page/", views.signup_page, name="signup_page"),  # Form loading
+    path("signup_page/", views.signup_page, name="signup_page"),
     path("signin/", SignInView.as_view(), name="signin"),
-    path("signin/", views.signin, name="signin"),
     path("signin/", TemplateView.as_view(template_name="signin.html"), name="signin"),
     path(
         "signin.html",
         TemplateView.as_view(template_name="signin.html"),
         name="signin_html",
     ),
-    path("signin/api/authenticate/", my_view, name="signin_auth"),
+    path("signin/api/authenticate/", views.authenticate_user, name="signin_auth"),
     path("api/signup/", views.signup, name="signup"),
     path("api/signin/", views.signin, name="signin"),
     path("login/", views.login, name="login"),
     path("logout/", views.logout, name="logout"),
+    path("api/protected/", protected_view, name="protected"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("auth/", include("djoser.urls")),
@@ -87,8 +75,6 @@ urlpatterns = [
     ),
     path("reader-dashboard/", views.reader_dashboard, name="reader-dashboard"),
     path("author-dashboard/", views.author_dashboard, name="author-dashboard"),
-    path("reader/dashboard/", views.reader_dashboard, name="reader-dashboard"),
-    path("author/dashboard/", views.author_dashboard, name="author-dashboard"),
     # Reader-Related URLs
     path("reader-feedback/", views.reader_feedback, name="reader-feedback-html"),
     path("reader-profile/", views.reader_profile, name="reader-profile-html"),
@@ -101,16 +87,6 @@ urlpatterns = [
         "beta-reader-training/",
         views.beta_reader_training,
         name="beta-reader-training-html",
-    ),
-    path(
-        "beta-reader-performance-metrics/",
-        views.beta_reader_performance_metrics,
-        name="beta-reader-performance-metrics-html",
-    ),
-    path(
-        "reader-payment-page/",
-        views.reader_payment_page,
-        name="reader-payment-page-html",
     ),
     path("reader-settings/", views.reader_settings, name="reader-settings-html"),
     # Profile Management URLs
@@ -147,11 +123,6 @@ urlpatterns = [
         views.manuscript_submission,
         name="manuscript-submission-html",
     ),
-    path(
-        "available-manuscripts/",
-        views.available_manuscripts,
-        name="available-manuscripts-html",
-    ),
     # Feedback Management URLs
     path(
         "manuscript-feedback-preferences/",
@@ -164,36 +135,12 @@ urlpatterns = [
         name="feedback-question-list",
     ),
     path("feedback-summary/", views.feedback_summary, name="feedback-summary-html"),
-    path("my-books/", views.my_books, name="my-books"),
-    path("find-beta-readers/", views.find_beta_readers, name="find-beta-readers-html"),
+    # Resource Management URLs
     path("resources/", ResourceListCreateView.as_view(), name="resource-list"),
     path("beta-readers/", BetaReaderListCreateView.as_view(), name="beta-reader-list"),
-    path("beta-reader-list/", views.beta_reader_list, name="beta-reader-list-html"),
-    path(
-        "author-resource-library/",
-        views.author_resource_library,
-        name="author-resource-library-html",
-    ),
-    path(
-        "author-community-groups/",
-        views.author_community_groups,
-        name="author-community-groups-html",
-    ),
-    path("author-profile/", views.author_profile, name="author-profile-html"),
-    path(
-        "author-payment-page/",
-        views.author_payment_page,
-        name="author-payment-page-html",
-    ),
-    path("author-settings/", views.author_settings, name="author-settings-html"),
-    # Token and Authentication URLs
-    path("save_token/", save_token, name="save_token"),
-    path("signup/", UserCreate.as_view(), name="user-create"),
-    path("api/authenticate/", views.authenticate_user, name="authenticate"),
     # API Router URLs
     path("api/", include(router.urls)),
 ]
-
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

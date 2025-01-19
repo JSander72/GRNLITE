@@ -92,6 +92,13 @@ class Keyword(models.Model):
 
 #     def __str__(self):
 #         return self.name
+class UserToken(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    token = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Token for {self.user.username}"
 
 
 class Feedback(models.Model):

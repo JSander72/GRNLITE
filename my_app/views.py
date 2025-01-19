@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.apps import apps
 from django.db import IntegrityError
@@ -53,6 +54,7 @@ from .models import (
     Notification,
     BetaReaderApplication,
     BetaReader,
+    UserToken,
 )
 
 
@@ -168,6 +170,13 @@ class UserProfileView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
+
+
+class ProtectedView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({"message": "Protected resource access granted."})
 
 
 class UserListCreateView(generics.ListCreateAPIView):
@@ -409,14 +418,36 @@ class SignUpView(APIView):
         return render(request, self.template_name, {"form": form})
 
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"success": True, "message": "User created successfully!"},
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
+        username = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
+        user_type = data.get("user_type")
+
+        if User.objects.filter(username=username).exists():
+            return Response({"error": "Username already exists"}, status=400)
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+        )
+        # Optional: Attach user type (if a profile or extended model exists)
+        user.save()
+
+        # Generate JWT token
+        refresh = RefreshToken.for_user(user)
+
+        # Store refresh token in the database
+        UserToken.objects.create(user=user, refresh_token=str(refresh))
+
+        return Response(
+            {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            },
+            status=201,
+        )
 
 
 class SignInView(APIView):
@@ -461,55 +492,91 @@ def register_user(username, email, password):
     return user
 
 
+class SignupView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            # Perform signup logic here
+            # Example: save user details or raise validation errors
+            return Response(
+                {"message": "Signup successful"}, status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            # Log the error for debugging
+            print(f"Error during signup: {str(e)}")
+            # Return a proper JSON response for errors
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+# @api_view(["POST"])
 @csrf_exempt
 def signup(request):
     if request.method == "GET":
-        # Render the signup HTML form
         return render(request, "signup.html")
 
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            # Log the incoming data for debugging
-            logger.debug("Received signup data: %s", data)
+    try:
+        data = request.data
+        required_fields = ["username", "email", "password", "user_type"]
 
-            username = data.get("username")
-            email = data.get("email")
-            password = data.get("password")
-            first_name = data.get("first_name")
-            last_name = data.get("last_name")
-            user_type = data.get("user_type")
-
-            # Ensure all required fields are provided
-            if not all([username, email, password, first_name, last_name, user_type]):
-                logger.error("Missing required fields.")
-                return JsonResponse({"message": "Missing required fields."}, status=400)
-
-            # Create the user and log it
-            user = User.objects.create_user(
-                username=username, email=email, password=password
+        if not all(field in data for field in required_fields):
+            return Response(
+                {"message": "All fields are required."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
-            logger.debug("User created successfully: %s", user)
 
-            return JsonResponse({"message": "User created successfully!"}, status=201)
+        user = User.objects.create_user(
+            username=data["username"],
+            email=data["email"],
+            password=data["password"],
+        )
 
-        except Exception as e:
-            logger.error("Error during user creation: %s", str(e))
-            return JsonResponse({"message": f"Error: {str(e)}"}, status=400)
+        if hasattr(user, "profile"):
+            user.profile.user_type = data["user_type"]
+            user.profile.save()
 
-    return JsonResponse({"message": "Invalid request method."}, status=405)
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        UserToken.objects.create(user=user, token=access_token)
+
+        return Response(
+            {
+                "message": "Account created successfully.",
+                "token": access_token,
+                "refresh_token": str(refresh),
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    except Exception as e:
+        return Response(
+            {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def protected_view(request):
+    user_profile = request.user.profile
+    if user_profile.user_type == "author":
+        return redirect("/author-dashboard/")
+    elif user_profile.user_type == "beta_reader":
+        return redirect("/reader-dashboard/")
+    else:
+        return redirect("/admin/")
+
+
+# @api_view(["POST"])
 @csrf_exempt
 def signin(request):
     if request.method == "GET":
         # Render the signin HTML form
         return render(request, "signin.html")
 
-    if request.method == "POST":
+    elif request.method == "POST":
+        # Parse the JSON body
         try:
             body = json.loads(request.body)
         except json.JSONDecodeError as e:
@@ -520,40 +587,35 @@ def signin(request):
         password = body.get("password")
         user_type = body.get("user_type")
 
-        # Authenticate user
-        user = authenticate(username=username, password=password)
-
-        if user is not None:
-            login(request, user)
-            profile = Profile.objects.get(user=user)
-            if profile.user_type == "beta_reader":
-                redirect_url = "/reader-dashboard/"
-            elif profile.user_type == "admin":
-                redirect_url = "/admin-dashboard/"
-            else:
-                redirect_url = "/author-dashboard/"
-            logger.debug("User authenticated successfully: %s", username)
-
-            # Check if the user has a profile
-            if not hasattr(user, "profile"):
-                logger.error("Profile missing for user: %s", username)
-                return JsonResponse({"error": "Profile not found"}, status=404)
-
-            # Verify the user type
-            if user.profile.user_type != user_type:
-                logger.warning(
-                    "User type mismatch. Expected: %s, Actual: %s",
-                    user_type,
-                    user.profile.user_type,
-                )
-
+        if not username or not password:
             return JsonResponse(
-                {"message": "Login successful", "redirect": redirect_url}
+                {"error": "Username and password are required"}, status=400
             )
-        else:
-            return JsonResponse({"message": "Invalid credentials"}, status=401)
+
+        try:
+            # Authenticate user
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+
+                # Determine the redirect URL based on user type
+                if user_type == "author":
+                    dashboard_url = "/author-dashboard/"
+                elif user_type == "reader":
+                    dashboard_url = "/reader-dashboard/"
+                else:
+                    dashboard_url = "/admin/"
+
+                return JsonResponse({"redirect_url": dashboard_url}, status=200)
+            else:
+                return JsonResponse({"error": "Invalid credentials"}, status=401)
+
+        except Exception as e:
+            logger.error("Error during signin: %s", str(e))
+            return JsonResponse({"error": f"Error: {str(e)}"}, status=500)
+
     else:
-        return JsonResponse({"message": "Invalid request method"}, status=400)
+        return JsonResponse({"message": "Invalid request method"}, status=405)
 
 
 @login_required
