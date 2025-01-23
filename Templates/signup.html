@@ -246,6 +246,17 @@
                 localStorage.setItem("accessToken", token);
                 localStorage.setItem("refreshToken", refresh_token);
 
+                // Save tokens to the database
+                await fetch(`${BASE_URL}/api/save_tokens/`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({ token, refresh_token }),
+                });
+
                 alert("Signup successful!");
                 window.location.href = `${BASE_URL}/signin/`;
             } catch (error) {

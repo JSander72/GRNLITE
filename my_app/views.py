@@ -14,6 +14,8 @@ from django.apps import apps
 from django.db import IntegrityError
 from rest_framework import generics, permissions, viewsets, serializers, status
 from rest_framework.response import Response
+from rest_framework.request import Request
+from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -80,6 +82,20 @@ def some_view(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
+
+
+def some_function(request):
+    data = {"message": "Hello, World!"}
+    renderer = JSONRenderer()
+    response = Response(data)
+    response.accepted_renderer = renderer
+    response.renderer_context = {
+        "request": Request(
+            request, authenticators=[], parsers=[], renderers=[], negotiator=None
+        )
+    }
+
+    return response
 
 
 def base_url(request):
