@@ -6,6 +6,7 @@ from django.conf import settings
 
 
 class CustomUser(AbstractUser):
+    user_type = models.CharField(max_length=50, default="regular")
     groups = models.ManyToManyField(Group, related_name="customuser_set", blank=True)
     user_permissions = models.ManyToManyField(
         Permission, related_name="customuser_set", blank=True

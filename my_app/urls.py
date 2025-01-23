@@ -26,6 +26,8 @@ from .views import (
     SignUpView,
     reader_dashboard,
     author_dashboard,
+    signup_page,
+    register_user,
 )
 
 # Routers provide an easy way of automatically determining the URL conf.
@@ -140,6 +142,9 @@ urlpatterns = [
     path("beta-readers/", BetaReaderListCreateView.as_view(), name="beta-reader-list"),
     # API Router URLs
     path("api/", include(router.urls)),
+    path("signup/", signup_page, name="signup_page"),
+    path("register/", register_user, name="register_user"),
+    path("protected/", protected_view, name="protected_view"),
 ]
 
 if settings.DEBUG:

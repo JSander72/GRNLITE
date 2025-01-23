@@ -526,62 +526,78 @@ class SignupView(APIView):
             )
 
 
-# @api_view(["POST"])
-@csrf_exempt
+@api_view(["GET", "POST"])
+def api_signup(request):
+    try:
+        if request.method == "GET":
+            # Render the signup HTML page for browser-based requests
+            return render(request, "signup.html", {"form": SignUpForm()})
+
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            if hasattr(user, "profile"):
+                user.profile.user_type = form.cleaned_data["user_type"]
+                user.profile.save()
+
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            UserToken.objects.create(user=user, token=access_token)
+
+            if request.accepted_renderer.format == "html":
+                if user.profile.user_type == "author":
+                    return redirect("author_dashboard")
+                else:
+                    return redirect("reader_dashboard")
+            else:
+                return Response(
+                    {
+                        "message": "Account created successfully.",
+                        "token": access_token,
+                        "refresh_token": str(refresh),
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+        if request.accepted_renderer.format == "html":
+            return render(request, "signup.html", {"form": form})
+        else:
+            return Response({"errors": form.errors}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 def signup(request):
     if request.method == "GET":
+        # Render the signup HTML page for browser-based requests
         return render(request, "signup.html")
+    elif request.method == "POST":
+        data = json.loads(request.body)
+        username = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
 
-    try:
-        data = request.data
-        required_fields = ["username", "email", "password", "user_type"]
+        if not username or not email or not password:
+            return JsonResponse({"error": "All fields are required."}, status=400)
 
-        if not all(field in data for field in required_fields):
-            return Response(
-                {"message": "All fields are required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({"error": "Username already exists."}, status=400)
 
         user = User.objects.create_user(
-            username=data["username"],
-            email=data["email"],
-            password=data["password"],
+            username=username, email=email, password=password
         )
-
-        if hasattr(user, "profile"):
-            user.profile.user_type = data["user_type"]
-            user.profile.save()
-
         refresh = RefreshToken.for_user(user)
-        access_token = str(refresh.access_token)
 
-        UserToken.objects.create(user=user, token=access_token)
-
-        return Response(
+        return JsonResponse(
             {
-                "message": "Account created successfully.",
-                "token": access_token,
-                "refresh_token": str(refresh),
+                "message": "Signup successful.",
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
             },
-            status=status.HTTP_201_CREATED,
+            status=201,
         )
-
-    except Exception as e:
-        return Response(
-            {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def protected_view(request):
-    user_profile = request.user.profile
-    if user_profile.user_type == "author":
-        return redirect("/author-dashboard/")
-    elif user_profile.user_type == "beta_reader":
-        return redirect("/reader-dashboard/")
     else:
-        return redirect("/admin/")
+        return JsonResponse({"error": "Invalid HTTP method."}, status=405)
 
 
 # @api_view(["POST"])
@@ -632,6 +648,22 @@ def signin(request):
 
     else:
         return JsonResponse({"message": "Invalid request method"}, status=405)
+
+
+@api_view(["GET"])
+def api_dashboard_data(request):
+    """
+    API endpoint to fetch dashboard data.
+    """
+    return JsonResponse({"data": "Some data for the dashboard"}, safe=False)
+
+
+@api_view(["GET"])
+def api_reader_data(request):
+    """
+    API endpoint to fetch reader dashboard data.
+    """
+    return JsonResponse({"data": "Some reader-specific data"}, safe=False)
 
 
 @login_required
@@ -960,3 +992,12 @@ class LogoutView(View):
     def get(self, request):
         logout(request)
         return redirect("signin")
+
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
+
+@login_required
+def protected_view(request):
+    return render(request, "protected.html")
