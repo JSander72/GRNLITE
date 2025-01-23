@@ -979,10 +979,20 @@ class SignUpView(View):
     def post(self, request):
         form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            if user.is_author:
+            user = form.save(commit=False)  # Do not save immediately
+            logger.info(f"User type passed: {form.cleaned_data['user_type']}")
+            user_type = request.POST.get(
+                "user_type", "regular"
+            )  # Get `user_type` from the form
+
+            if user_type:
+                user.user_type = user_type  # Assign the user_type to the user
+            user.save()  # Save the user instance
+
+            # Redirect based on the `user_type`
+            if user_type == "author":
                 return redirect("author_dashboard")
-            else:
+            elif user_type == "beta_reader":
                 return redirect("reader_dashboard")
         return render(request, "signup.html", {"form": form})
 

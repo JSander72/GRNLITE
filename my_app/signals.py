@@ -73,9 +73,14 @@ def create_or_update_profile(sender, instance, created, **kwargs):
     if created:
         # Create a Profile when a new CustomUser is created
         Profile.objects.create(user=instance, user_type=instance.user_type)
-        logger.info(f"Profile created for user: {instance.username}")
+
+        logger.info(
+            f"Profile created for user: {instance.username} with user_type: {instance.user_type}"
+        )
     else:
         # Optionally update the profile if necessary
         if hasattr(instance, "profile"):
             instance.profile.save()
-            logger.info(f"Profile updated for user: {instance.username}")
+            logger.info(
+                f"Profile updated for user: {instance.username} with user_type: {instance.user_type}"
+            )

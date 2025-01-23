@@ -187,6 +187,10 @@
                 : "https://grnlite.onrender.com";
 
                 function setUserType(userType) {
+                    const userTypeInput = document.getElementById("user-type");
+                    userTypeInput.value = userType;
+
+
                     const readerChoice = document.getElementById("readerChoice");
                     const authorChoice = document.getElementById("authorChoice");
 
@@ -203,12 +207,7 @@
                         console.error("Elements with IDs 'readerChoice' or 'authorChoice' not found.");
                     }
 
-                    const userTypeInput = document.getElementById("user-type");
-                    if (userTypeInput) {
-                        userTypeInput.value = userType;
-                    } else {
-                        console.error("Element with ID 'user-type' not found.");
-                    }
+                    
                 }
 
         document.getElementById("signupForm").addEventListener("submit", async (event) => {
