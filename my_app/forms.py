@@ -45,7 +45,9 @@ class ManuscriptSubmissionForm(forms.ModelForm):
 
 
 class SignUpForm(forms.ModelForm):
-    user_type = forms.ChoiceField(choices=[("author", "Author"), ("reader", "Reader")])
+    user_type = forms.ChoiceField(
+        choices=[("author", "Author"), ("reader", "Reader")], required=True
+    )
 
     class Meta:
         model = CustomUser

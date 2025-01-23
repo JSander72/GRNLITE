@@ -526,6 +526,7 @@ class SignupView(APIView):
             )
 
 
+@csrf_exempt
 @api_view(["GET", "POST"])
 def api_signup(request):
     try:
@@ -535,14 +536,18 @@ def api_signup(request):
 
         form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user_type = request.POST.get("user_type", "regular")  # Fetch the user type
+            user.user_type = user_type  # Assign it to the user instance
+            user.save()
+
+            # Additional profile setup if necessary
             if hasattr(user, "profile"):
-                user.profile.user_type = form.cleaned_data["user_type"]
+                user.profile.user_type = user_type
                 user.profile.save()
 
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
-
             UserToken.objects.create(user=user, token=access_token)
 
             if request.accepted_renderer.format == "html":
@@ -576,6 +581,7 @@ def signup(request):
         username = data.get("username")
         email = data.get("email")
         password = data.get("password")
+        user_type = data.get("user_type", "regular")  # Get user_type from JSON payload
 
         if not username or not email or not password:
             return JsonResponse({"error": "All fields are required."}, status=400)
@@ -583,9 +589,14 @@ def signup(request):
         if User.objects.filter(username=username).exists():
             return JsonResponse({"error": "Username already exists."}, status=400)
 
+        # Create user and set user_type
         user = User.objects.create_user(
             username=username, email=email, password=password
         )
+        user.user_type = user_type
+        user.save()
+
+        # Generate tokens
         refresh = RefreshToken.for_user(user)
 
         return JsonResponse(
@@ -979,20 +990,25 @@ class SignUpView(View):
     def post(self, request):
         form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)  # Do not save immediately
-            logger.info(f"User type passed: {form.cleaned_data['user_type']}")
+            user = form.save(commit=False)  # Don't save to the database yet
             user_type = request.POST.get(
                 "user_type", "regular"
-            )  # Get `user_type` from the form
+            )  # Fetch `user_type` from the form
 
             if user_type:
-                user.user_type = user_type  # Assign the user_type to the user
-            user.save()  # Save the user instance
+                user.user_type = user_type  # Assign the user_type value
+            else:
+                print("user_type not found in request.POST")  # Debugging output
 
-            # Redirect based on the `user_type`
-            if user_type == "author":
+            user.save()  # Save the user to the database
+            print(
+                f"User {user.username} created with user_type {user.user_type}"
+            )  # Debugging output
+
+            # Redirect based on user_type
+            if user.user_type == "author":
                 return redirect("author_dashboard")
-            elif user_type == "beta_reader":
+            elif user.user_type == "reader":
                 return redirect("reader_dashboard")
         return render(request, "signup.html", {"form": form})
 
