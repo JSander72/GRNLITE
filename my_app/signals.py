@@ -15,16 +15,17 @@ logger = logging.getLogger(__name__)
 
 
 # Send verification email after user is created
-@receiver(post_save, sender=CustomUser)
 def send_verification_email(sender, instance, created, **kwargs):
     if created:
-        send_mail(
-            "Verify your account",
-            "Click the link to verify your account: http://example.com/verify",
-            "from@example.com",
-            [instance.email],
-            fail_silently=False,
-        )
+        # Bypass email sending for now
+        # send_mail(
+        #     "Verify your account",
+        #     "Click the link to verify your account: http://example.com/verify",
+        #     "from@example.com",
+        #     [instance.email],
+        #     fail_silently=False,
+        # )
+        print(f"Verification email would have been sent to {instance.email}")
 
 
 # Create a profile and JWT token after user creation
