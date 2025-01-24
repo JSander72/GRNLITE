@@ -9,6 +9,7 @@ import logging
 from django.db import transaction
 from django.contrib.auth import get_user_model
 
+
 User = get_user_model()
 
 
@@ -30,26 +31,22 @@ logger = logging.getLogger(__name__)
 
 # Create a profile and JWT token after user creation
 @receiver(post_save, sender=CustomUser)
-def create_user_dependencies(sender, instance, created, **kwargs):
+def create_or_update_profile(sender, instance, created, **kwargs):
     if created:
         try:
-            # Ensure that the profile is created only if it doesn't exist
-            transaction.on_commit(
-                lambda: Profile.objects.create(
-                    user=instance, user_type=instance.user_type
-                )
-            )
-            logger.debug(f"Profile created for user: {instance.username}")
+            if not Profile.objects.filter(user=instance).exists():
+                Profile.objects.create(user=instance, user_type=instance.user_type)
+                logger.debug(f"Profile created for user: {instance.username}")
         except Exception as e:
             logger.error(f"Error creating profile for user {instance.username}: {e}")
     else:
         try:
-            # Optionally update the profile if it exists or if you want to perform some other action
             if hasattr(instance, "profile"):
                 logger.debug(f"Profile already exists for user: {instance.username}")
+                instance.profile.save()
             else:
-                # In case there is no profile, you can create one here too
                 Profile.objects.create(user=instance, user_type=instance.user_type)
+                logger.debug(f"Profile created for user: {instance.username}")
         except Exception as e:
             logger.error(f"Error updating profile for user {instance.username}: {e}")
 
@@ -71,6 +68,7 @@ def create_user_dependencies(sender, instance, created, **kwargs):
 @receiver(post_save, sender=CustomUser)
 def create_or_update_profile(sender, instance, created, **kwargs):
     if created:
-        Profile.objects.create(user=instance, user_type=instance.user_type)
+        if not Profile.objects.filter(user=instance).exists():
+            Profile.objects.create(user=instance, user_type=instance.user_type)
     else:
         instance.profile.save()

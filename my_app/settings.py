@@ -202,37 +202,47 @@ SIMPLE_JWT = {
 
 AUTH_USER_MODEL = "my_app.CustomUser"
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "level": "DEBUG",
-            "class": "logging.StreamHandler",
+LOGGING = (
+    {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "handlers": {
+            "console": {
+                "level": "DEBUG",
+                "class": "logging.StreamHandler",
+            },
         },
-    },
-    "loggers": {
-        "django": {
+        "loggers": {
+            "django": {
+                "handlers": ["console"],
+                "level": "DEBUG",
+            },
+            "my_app": {
+                "handlers": ["console"],
+                "level": "DEBUG",
+                "propagate": True,
+            },
+        },
+        "root": {
             "handlers": ["console"],
             "level": "DEBUG",
         },
         "my_app": {
             "handlers": ["console"],
             "level": "DEBUG",
-            "propagate": True,
         },
     },
-    "root": {
-        "handlers": ["console"],
-        "level": "DEBUG",
-    },
-}
+)
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 
-CSRF_TRUSTED_ORIGINS = ["https://grnlite.onrender.com"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://grnlite.onrender.com",
+    "http://localhost",
+    "http://127.0.0.1",
+]
 
 # Ensure secure cookies
 SESSION_COOKIE_SECURE = True
