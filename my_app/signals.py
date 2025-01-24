@@ -9,8 +9,9 @@ import logging
 from django.db import transaction
 from django.contrib.auth import get_user_model
 
-
 User = get_user_model()
+
+logger = logging.getLogger(__name__)
 
 
 # Send verification email after user is created
@@ -24,9 +25,6 @@ def send_verification_email(sender, instance, created, **kwargs):
             [instance.email],
             fail_silently=False,
         )
-
-
-logger = logging.getLogger(__name__)
 
 
 # Create a profile and JWT token after user creation
@@ -63,12 +61,3 @@ def create_or_update_profile(sender, instance, created, **kwargs):
         logger.debug(f"JWT token generated for user: {instance.username}")
     except Exception as e:
         logger.error(f"Error generating JWT token for user {instance.username}: {e}")
-
-
-@receiver(post_save, sender=CustomUser)
-def create_or_update_profile(sender, instance, created, **kwargs):
-    if created:
-        if not Profile.objects.filter(user=instance).exists():
-            Profile.objects.create(user=instance, user_type=instance.user_type)
-    else:
-        instance.profile.save()
