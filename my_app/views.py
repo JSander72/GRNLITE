@@ -576,25 +576,32 @@ def api_signup(request):
 # Function-based API view for JSON requests
 def signup(request):
     if request.method == "GET":
-        # Provide a CSRF token for frontend frameworks
-        csrf_token = get_token(request)
-        return JsonResponse({"csrf_token": csrf_token}, status=200)
+        if request.headers.get("Accept") == "application/json":
+            # If the request expects JSON, return the CSRF token
+            csrf_token = get_token(request)
+            return JsonResponse({"csrf_token": csrf_token}, status=200)
+        else:
+            # Render the signup HTML page for browser-based requests
+            return render(request, "signup.html")
 
     elif request.method == "POST":
         try:
-            data = json.loads(request.body)  # Parse JSON payload
+            # Parse JSON payload
+            data = json.loads(request.body)
             username = data.get("username")
             email = data.get("email")
             password = data.get("password")
             user_type = data.get("user_type", "regular")  # Default to "regular"
 
+            # Validate required fields
             if not username or not email or not password:
                 return JsonResponse({"error": "All fields are required."}, status=400)
 
+            # Check if the username already exists
             if User.objects.filter(username=username).exists():
                 return JsonResponse({"error": "Username already exists."}, status=400)
 
-            # Create user and set user_type
+            # Create user and assign user_type
             user = User.objects.create_user(
                 username=username, email=email, password=password
             )
