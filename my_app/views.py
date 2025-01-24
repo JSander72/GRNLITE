@@ -26,6 +26,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
 from .forms import ManuscriptSubmissionForm, SignUpForm, SignInForm
 from django.conf import settings
+from django.middleware.csrf import get_token
 import jwt
 from datetime import datetime, timedelta, timezone
 from .serializers import (
@@ -572,43 +573,51 @@ def api_signup(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+# Function-based API view for JSON requests
 def signup(request):
     if request.method == "GET":
-        # Render the signup HTML page for browser-based requests
-        return render(request, "signup.html")
+        # Provide a CSRF token for frontend frameworks
+        csrf_token = get_token(request)
+        return JsonResponse({"csrf_token": csrf_token}, status=200)
+
     elif request.method == "POST":
-        data = json.loads(request.body)
-        username = data.get("username")
-        email = data.get("email")
-        password = data.get("password")
-        user_type = data.get("user_type", "regular")  # Get user_type from JSON payload
+        try:
+            data = json.loads(request.body)  # Parse JSON payload
+            username = data.get("username")
+            email = data.get("email")
+            password = data.get("password")
+            user_type = data.get("user_type", "regular")  # Default to "regular"
 
-        if not username or not email or not password:
-            return JsonResponse({"error": "All fields are required."}, status=400)
+            if not username or not email or not password:
+                return JsonResponse({"error": "All fields are required."}, status=400)
 
-        if User.objects.filter(username=username).exists():
-            return JsonResponse({"error": "Username already exists."}, status=400)
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({"error": "Username already exists."}, status=400)
 
-        # Create user and set user_type
-        user = User.objects.create_user(
-            username=username, email=email, password=password
-        )
-        user.user_type = user_type
-        user.save()
+            # Create user and set user_type
+            user = User.objects.create_user(
+                username=username, email=email, password=password
+            )
+            user.user_type = user_type
+            user.save()
 
-        # Generate tokens
-        refresh = RefreshToken.for_user(user)
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
 
-        return JsonResponse(
-            {
-                "message": "Signup successful.",
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            },
-            status=201,
-        )
-    else:
-        return JsonResponse({"error": "Invalid HTTP method."}, status=405)
+            return JsonResponse(
+                {
+                    "message": "Signup successful.",
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                },
+                status=201,
+            )
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON payload."}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid HTTP method."}, status=405)
 
 
 # @api_view(["POST"])
@@ -957,13 +966,14 @@ class UserCreate(generics.CreateAPIView):
     serializer_class = UserSerializer
 
 
+# Class-based views for browser-based user interactions
 class SignInView(View):
     def get(self, request):
         return render(request, "signin.html")
 
     def post(self, request):
-        username = request.POST["username"]
-        password = request.POST["password"]
+        username = request.POST.get("username")
+        password = request.POST.get("password")
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
@@ -991,9 +1001,7 @@ class SignUpView(View):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)  # Don't save to the database yet
-            user_type = request.POST.get(
-                "user_type", "regular"
-            )  # Fetch `user_type` from the form
+            user_type = request.POST.get("user_type", "regular")  # Fetch `user_type`
 
             if user_type:
                 user.user_type = user_type  # Assign the user_type value
