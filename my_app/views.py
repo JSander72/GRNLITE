@@ -400,8 +400,8 @@ class FeedbackResponseListCreateView(generics.ListCreateAPIView):
         serializer.save(reader=self.request.user)
 
 
-class InvalidKeyError(Exception):
-    pass
+# class InvalidKeyError(Exception):
+#     pass
 
 
 class ManuscriptViewSet(viewsets.ModelViewSet):

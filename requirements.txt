@@ -120,7 +120,7 @@ pycodestyle==2.12.1
 pycparser==2.22
 pyflakes==3.2.0
 Pygments==2.18.0
-PyJWT==2.7.0
+PyJWT==2.10.1
 pylint==3.3.3
 PyMySQL==1.1.1
 pyparsing==3.2.0
