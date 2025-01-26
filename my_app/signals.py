@@ -62,5 +62,5 @@ def create_or_update_profile(sender, instance, created, **kwargs):
             algorithm="HS256",
         )
         logger.debug(f"JWT token generated for user: {instance.username}")
-    except Exception as e:
+    except jwt.PyJWTError as e:
         logger.error(f"Error generating JWT token for user {instance.username}: {e}")

@@ -46,7 +46,7 @@ class ManuscriptSubmissionForm(forms.ModelForm):
 
 class SignUpForm(forms.ModelForm):
     user_type = forms.ChoiceField(
-        choices=[("author", "Author"), ("reader", "Reader")], required=True
+        choices=[("author", "Author"), ("beta_reader", "Reader")], required=True
     )
 
     class Meta:
@@ -56,6 +56,7 @@ class SignUpForm(forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
+        user.user_type = self.cleaned_data["user_type"]  # Ensure user_type is set
         if commit:
             user.save()
         return user
