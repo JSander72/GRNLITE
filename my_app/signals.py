@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from django.conf import settings
 import logging
 from django.contrib.auth import get_user_model
-from jwt.exceptions import InvalidKeyError
+from jwt.exceptions import InvalidTokenError
 
 User = get_user_model()
 
@@ -47,5 +47,5 @@ def create_or_update_profile(sender, instance, created, **kwargs):
             algorithm="HS256",
         )
         logger.debug(f"JWT token generated for user: {instance.username}")
-    except InvalidKeyError as e:  # Invalid key error handling
+    except InvalidTokenError as e:  # Invalid key error handling
         logger.error(f"Invalid key error: {e}")
