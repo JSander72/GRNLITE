@@ -1,14 +1,11 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
-# from django.core.mail import send_mail
 from my_app.models import Profile, CustomUser
 import jwt
+from jwt.exceptions import PyJWTError  # Correct base exception for PyJWT
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
 import logging
-
-# from django.db import transaction
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -16,25 +13,12 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-# Send verification email after user is created
-# def send_verification_email(sender, instance, created, **kwargs):
-# if created:
-# Bypass email sending for now
-# send_mail(
-#     "Verify your account",
-#     "Click the link to verify your account: http://example.com/verify",
-#     "from@example.com",
-#     [instance.email],
-#     fail_silently=False,
-# )
-# print(f"Verification email would have been sent to {instance.email}")
-
-
 # Create a profile and JWT token after user creation
 @receiver(post_save, sender=CustomUser)
 def create_or_update_profile(sender, instance, created, **kwargs):
     if created:
         try:
+            # Ensure the profile is created for the user
             if not Profile.objects.filter(user=instance).exists():
                 Profile.objects.create(user=instance, user_type=instance.user_type)
                 logger.debug(f"Profile created for user: {instance.username}")
@@ -42,17 +26,18 @@ def create_or_update_profile(sender, instance, created, **kwargs):
             logger.error(f"Error creating profile for user {instance.username}: {e}")
     else:
         try:
+            # Ensure profile exists and is updated if needed
             if hasattr(instance, "profile"):
-                logger.debug(f"Profile already exists for user: {instance.username}")
                 instance.profile.save()
+                logger.debug(f"Profile updated for user: {instance.username}")
             else:
                 Profile.objects.create(user=instance, user_type=instance.user_type)
                 logger.debug(f"Profile created for user: {instance.username}")
         except Exception as e:
             logger.error(f"Error updating profile for user {instance.username}: {e}")
 
+    # JWT token generation
     try:
-        # Generate a JWT token
         token = jwt.encode(
             {
                 "user_id": instance.id,
@@ -62,5 +47,5 @@ def create_or_update_profile(sender, instance, created, **kwargs):
             algorithm="HS256",
         )
         logger.debug(f"JWT token generated for user: {instance.username}")
-    except jwt.PyJWTError as e:
+    except PyJWTError as e:  # Correctly handle PyJWT exceptions
         logger.error(f"Error generating JWT token for user {instance.username}: {e}")
