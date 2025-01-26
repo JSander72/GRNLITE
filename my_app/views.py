@@ -500,6 +500,7 @@ def signup_page(request):
         return render(request, "signup.html")
 
 
+@csrf_exempt
 def signup_view(request):
     if request.method == "POST":
         form = SignUpForm(request.POST, request.FILES)
