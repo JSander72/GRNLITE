@@ -2,7 +2,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from my_app.models import Profile, CustomUser
 import jwt
-from jwt.exceptions import PyJWTError  # Correct exception for PyJWT 2.10.1
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
 import logging
@@ -47,5 +46,5 @@ def create_or_update_profile(sender, instance, created, **kwargs):
             algorithm="HS256",
         )
         logger.debug(f"JWT token generated for user: {instance.username}")
-    except PyJWTError as e:  # Use the correct exception for PyJWT 2.10.1
+    except Exception as e:  # Catch all exceptions during JWT generation
         logger.error(f"Error generating JWT token for user {instance.username}: {e}")
