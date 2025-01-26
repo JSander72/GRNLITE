@@ -250,7 +250,7 @@
                 localStorage.setItem("refreshToken", refresh_token);
 
                 // Save tokens to the database
-                await fetch(`${BASE_URL}/api/save_tokens/`, {
+                await fetch(`${BASE_URL}/api/save_token/`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
