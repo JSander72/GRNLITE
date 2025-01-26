@@ -1,19 +1,15 @@
+import jwt
+from jwt.exceptions import PyJWTError
+from datetime import datetime, timedelta, timezone
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from my_app.models import Profile, CustomUser
-import jwt
-from datetime import datetime, timedelta, timezone
 from django.conf import settings
+from .models import Profile, CustomUser
 import logging
-from django.contrib.auth import get_user_model
-from jwt.exceptions import InvalidTokenError
-
-User = get_user_model()
 
 logger = logging.getLogger(__name__)
 
 
-# Create a profile and JWT token after user creation
 @receiver(post_save, sender=CustomUser)
 def create_or_update_profile(sender, instance, created, **kwargs):
     if created:
@@ -46,6 +42,8 @@ def create_or_update_profile(sender, instance, created, **kwargs):
             settings.SECRET_KEY,
             algorithm="HS256",
         )
-        logger.debug(f"JWT token generated for user: {instance.username}")
-    except InvalidTokenError as e:  # Invalid key error handling
-        logger.error(f"Invalid key error: {e}")
+        logger.debug(f"JWT token generated for user: {instance.username} -> {token}")
+    except PyJWTError as e:  # Generic JWT error handling
+        logger.error(f"Error generating JWT token for user {instance.username}: {e}")
+    except Exception as e:  # Fallback for other unexpected errors
+        logger.error(f"Unexpected error during token generation: {e}")
