@@ -925,7 +925,7 @@ def error_404_view(request, exception):
 
 
 @csrf_exempt
-def save_token(request):
+def save_tokens(request):
     if request.method == "POST":
         data = json.loads(request.body)
         token = data.get("token")
