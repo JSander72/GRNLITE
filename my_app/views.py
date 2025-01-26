@@ -927,17 +927,22 @@ def error_404_view(request, exception):
 @csrf_exempt
 def save_token(request):
     if request.method == "POST":
-        data = json.loads(request.body)
-        token = data.get("token")
-        user_id = data.get("user_id")
-        if not token or not user_id:
-            return JsonResponse({"error": "Token and user_id are required"}, status=400)
         try:
+            data = json.loads(request.body)
+            user_id = data.get("user_id")
+            token = data.get("token")
+
+            if not user_id or not token:
+                return JsonResponse({"error": "Missing user_id or token"}, status=400)
+
             user = User.objects.get(id=user_id)
-            Token.objects.create(token=token, user=user)
-            return JsonResponse({"message": "Token saved successfully"}, status=200)
+            UserToken.objects.create(user=user, token=token)
+
+            return JsonResponse({"message": "Token saved successfully"}, status=201)
         except User.DoesNotExist:
             return JsonResponse({"error": "User not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
