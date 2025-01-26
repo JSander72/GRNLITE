@@ -4,7 +4,7 @@ from django.dispatch import receiver
 # from django.core.mail import send_mail
 from my_app.models import Profile, CustomUser
 import jwt
-from jwt.exceptions import PyJWTError
+from jwt import JWTError
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
 import logging
