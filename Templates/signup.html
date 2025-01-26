@@ -147,6 +147,7 @@
             </div>
             <form id="signupForm" method="POST">
                 {% csrf_token %}
+                {{ form.as_p }}
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required minlength="3" autocomplete="username" />

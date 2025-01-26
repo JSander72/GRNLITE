@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth import get_user_model, login, authenticate, logout
 from django.urls import reverse_lazy, reverse
 from django.http import JsonResponse, HttpResponse
-from django.views.generic import TemplateView, FormView, View
+from django.views.generic import TemplateView, View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
@@ -400,10 +400,6 @@ class FeedbackResponseListCreateView(generics.ListCreateAPIView):
         serializer.save(reader=self.request.user)
 
 
-# class InvalidKeyError(Exception):
-#     pass
-
-
 class ManuscriptViewSet(viewsets.ModelViewSet):
     queryset = Manuscript.objects.all()
     serializer_class = ManuscriptSerializer
@@ -502,6 +498,19 @@ class ReaderDashboardView(TemplateView):
 def signup_page(request):
     if request.method == "GET":
         return render(request, "signup.html")
+
+
+def signup_view(request):
+    if request.method == "POST":
+        form = SignUpForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save()
+            # Profile creation is handled in the form's save method
+            login(request, user)
+            return redirect("home")  # Redirect to a success page
+    else:
+        form = SignUpForm()
+    return render(request, "signup.html", {"form": form})
 
 
 def register_user(username, email, password):

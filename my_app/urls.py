@@ -64,6 +64,8 @@ urlpatterns = [
     # Admin URLs
     path("admin/", admin.site.urls),
     path("", include("django.contrib.auth.urls")),
+    path("users/", include("djoser.urls")),
+    path("jwt/", include("djoser.urls.jwt")),
     # Dashboard URLs
     path(
         "author-dashboard/",

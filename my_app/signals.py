@@ -1,12 +1,14 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.core.mail import send_mail
+
+# from django.core.mail import send_mail
 from my_app.models import Profile, CustomUser
 import jwt
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
 import logging
-from django.db import transaction
+
+# from django.db import transaction
 from django.contrib.auth import get_user_model
 
 User = get_user_model()

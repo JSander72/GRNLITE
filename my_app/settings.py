@@ -22,7 +22,8 @@ def str_to_bool(value):
 
 
 ENVIRONMENT = os.getenv("DJANGO_ENV", "development")
-DEBUG = os.getenv("DEBUG", "False") == "True"
+# DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = True
 BASE_URL = "http://127.0.0.1:8000" if DEBUG else "https://grnlite.onrender.com"
 
 
@@ -69,6 +70,7 @@ INSTALLED_APPS = [
     "django.extensions",
     "rest_framework",
     "my_app",
+    "grnlite",
     "my_custom_app",
     "corsheaders",
     "rest_framework",

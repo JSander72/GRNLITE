@@ -1,7 +1,8 @@
-from django.contrib.auth import get_user_model
 from django.db import models
-from django.utils.timezone import now
+from django.apps import apps
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.auth import get_user_model
+from django.utils.timezone import now
 from django.conf import settings
 
 
@@ -85,14 +86,21 @@ class Keyword(models.Model):
         return f"{self.name} ({self.get_category_display()})"
 
 
-# class FeedbackCategory(models.Model):
-#     name = models.CharField(max_length=100, unique=True, help_text="Feedback category name")
-#     description = models.TextField(null=True, blank=True, help_text="Description of the category")
-#     is_active = models.BooleanField(default=True, help_text="Is this category active and selectable?")
+class FeedbackCategory(models.Model):
+    name = models.CharField(
+        max_length=100, unique=True, help_text="Feedback category name"
+    )
+    description = models.TextField(
+        null=True, blank=True, help_text="Description of the category"
+    )
+    is_active = models.BooleanField(
+        default=True, help_text="Is this category active and selectable?"
+    )
+
+    def __str__(self):
+        return self.name
 
 
-#     def __str__(self):
-#         return self.name
 class UserToken(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     token = models.TextField()
@@ -185,18 +193,19 @@ class Manuscript(models.Model):
     updated_at = models.DateTimeField(default=now, help_text="Timestamp of last update")
 
     # New fields for feedback categories and questions
-    # feedback_categories = models.ManyToManyField(
-    #     FeedbackCategory,
-    #     related_name="manuscripts",
-    #     blank=True,
-    #     help_text="Selected feedback categories for this manuscript",
-    # )
-    # feedback_questions = models.ManyToManyField(
-    #     FeedbackQuestion,
-    #     related_name="manuscripts",
-    #     blank=True,
-    #     help_text="Selected feedback questions for this manuscript",
-    # )
+    feedback_categories = models.ManyToManyField(
+        FeedbackCategory,
+        related_name="manuscripts",
+        blank=True,
+        help_text="Selected feedback categories for this manuscript",
+    )
+    feedback_questions = models.ManyToManyField(
+        FeedbackQuestion,
+        related_name="manuscripts",
+        blank=True,
+        help_text="Selected feedback questions for this manuscript",
+    )
+
     @classmethod
     def count_drafts(cls, user):
         """Count the number of manuscripts with 'draft' status for a specific user."""
@@ -521,4 +530,4 @@ class AnotherModel(models.Model):
 
 
 # If you need to reference the user model directly in other parts of the code
-CustomUser = get_user_model()
+# CustomUser = get_user_model()
