@@ -93,7 +93,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
+    # "corsheaders.middleware.CorsMiddleware",
     # ... other middleware ...
 ]
 CORS_ALLOWED_ORIGINS = [
@@ -133,8 +133,9 @@ SITE_ID = 1
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_EMAIL_REQUIRED = True
 
-LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "/signin/"
+LOGOUT_REDIRECT_URL = "/reader_dashboard/", "author_dashboard/"
+
 
 TEMPLATES = [
     {
@@ -168,9 +169,9 @@ DJOSER = {
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.BasicAuthentication",
+        # "rest_framework.authentication.BasicAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-        "rest_framework.renderers.JSONRenderer",  # Comment this out if it's causing issues
+        # "rest_framework.renderers.JSONRenderer",  # Comment this out if it's causing issues
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
     "DEFAULT_RENDERER_CLASSES": (
@@ -245,6 +246,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost",
     "http://127.0.0.1",
 ]
+SESSION_ENGINE = "django.contrib.sessions.backends.db"  # Default setting
 
 # Ensure secure cookies
 SESSION_COOKIE_SECURE = True

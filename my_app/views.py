@@ -756,6 +756,10 @@ def logout(request):
 
 # Reader Dashboard Views
 def reader_dashboard(request):
+    if request.user.is_authenticated:
+        print(f"User authenticated: {request.user.username}")
+    else:
+        print("User not authenticated")
     return render(request, "reader-dashboard.html")
 
 
