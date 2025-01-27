@@ -16,7 +16,11 @@ def create_or_update_profile(sender, instance, created, **kwargs):
         try:
             # Ensure the profile is created for the user
             if not Profile.objects.filter(user=instance).exists():
-                Profile.objects.create(user=instance, user_type=instance.user_type)
+                Profile.objects.create(
+                    user=instance,
+                    user_type=instance.user_type,
+                    bio="This is your default bio.",
+                )
                 logger.debug(f"Profile created for user: {instance.username}")
         except Exception as e:
             logger.error(f"Error creating profile for user {instance.username}: {e}")

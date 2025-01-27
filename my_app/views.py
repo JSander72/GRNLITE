@@ -506,7 +506,8 @@ def signup_view(request):
         form = SignUpForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
-            # Profile creation is handled in the form's save method
+            # Profile creation is handled in the form's save method back up handled explicityly here
+            Profile.object.create(user=user, user_type=form.clearned_data["user_type"])
             login(request, user)
             return redirect("home")  # Redirect to a success page
     else:
@@ -670,7 +671,7 @@ def signin(request):
                 # Determine the redirect URL based on user type
                 if user_type == "author":
                     dashboard_url = "/author-dashboard/"
-                elif user_type == "reader":
+                elif user_type == "beta_reader":
                     dashboard_url = "/reader-dashboard/"
                 else:
                     dashboard_url = "/admin/"
