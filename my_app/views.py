@@ -503,15 +503,15 @@ def signup_page(request):
 @csrf_exempt
 def signup_view(request):
     if request.method == "POST":
-        if request.content_type == "application/json":  # Handle JSON requests
+        if request.content_type == "application/json":
             try:
                 data = json.loads(request.body)
                 username = data.get("username")
                 password = data.get("password")
                 email = data.get("email")
-                user_type = data.get("user_type")
+                user_type = data.get("user_type", "regular")
 
-                if not username or not password or not email or not user_type:
+                if not username or not password or not email:
                     return JsonResponse(
                         {"error": "Missing required fields"}, status=400
                     )
@@ -524,43 +524,19 @@ def signup_view(request):
                     user_type=user_type,
                 )
 
-                # Generate JWT token
-                token = create_jwt_token(user)
-
-                # Save token in the database
-                UserToken.objects.create(user=user, token=token)
-
-                return JsonResponse(
-                    {"message": "Signup successful", "token": token}, status=201
-                )
+                # Signal will automatically create the Profile and Token
+                return JsonResponse({"message": "Signup successful"}, status=201)
             except Exception as e:
                 return JsonResponse({"error": str(e)}, status=500)
-        else:  # Handle form-based POST requests
+        else:
+            # Handle form-based POST requests
             form = SignUpForm(request.POST)
             if form.is_valid():
-                user = form.save(commit=False)
-                user.user_type = form.cleaned_data.get(
-                    "user_type", "regular"
-                )  # Set user_type
-                user.save()
-
-                # Create Profile
-                Profile.objects.create(user=user, user_type=user.user_type)
-
-                # Generate JWT token
-                token = create_jwt_token(user)
-
-                # Save token in the database
-                UserToken.objects.create(user=user, token=token)
-
+                user = form.save()
                 login(request, user)
                 return redirect("home")
-            else:
-                return JsonResponse({"error": "Invalid form data"}, status=400)
-    else:
-        # Handle GET requests to render the signup form
-        form = SignUpForm()
-        return render(request, "signup.html", {"form": form})
+            return JsonResponse({"error": "Invalid form data"}, status=400)
+    return JsonResponse({"error": "Invalid HTTP method"}, status=405)
 
 
 def register_user(username, email, password):
