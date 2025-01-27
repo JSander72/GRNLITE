@@ -26,13 +26,10 @@ def create_or_update_profile(sender, instance, created, **kwargs):
             logger.error(f"Error creating profile for user {instance.username}: {e}")
     else:
         try:
-            # Ensure profile exists and is updated if needed
             if hasattr(instance, "profile"):
+                instance.profile.user_type = instance.user_type
                 instance.profile.save()
                 logger.debug(f"Profile updated for user: {instance.username}")
-            else:
-                Profile.objects.create(user=instance, user_type=instance.user_type)
-                logger.debug(f"Profile created for user: {instance.username}")
         except Exception as e:
             logger.error(f"Error updating profile for user {instance.username}: {e}")
 

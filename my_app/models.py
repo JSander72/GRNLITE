@@ -25,36 +25,27 @@ class CustomUserPermission(models.Model):
 
 
 class Profile(models.Model):
-    USER_TYPE_CHOICES = [
-        ("author", "Author"),
-        ("beta_reader", "Beta Reader"),
-        ("editor", "Editor"),
-    ]
-
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,  # Dynamically references your custom user model
+        on_delete=models.CASCADE,
+        unique=True,
+    )
     user_type = models.CharField(
-        max_length=20,
-        choices=USER_TYPE_CHOICES,
-        default="author",
+        max_length=50,
+        default="regular",
         help_text="User Type of the user",
     )
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    user_type = models.CharField(max_length=50)
     profile_img = models.ImageField(
         upload_to="profile_images/",
         null=True,
         blank=True,
         help_text="User's profile picture",
     )
-
     bio = models.TextField(
         null=True, blank=True, help_text="Short biography for the user"
     )
-    created_at = models.DateTimeField(
-        auto_now_add=True, help_text="When the user account was created"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True, help_text="When the user account was last updated"
-    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.user.username
