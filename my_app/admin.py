@@ -18,6 +18,7 @@ from .models import (
     CustomUserGroup,
     CustomUserPermission,
     ExampleModel,
+    UserToken,
 )
 
 
@@ -161,6 +162,11 @@ class CustomUserGroupAdmin(admin.ModelAdmin):
 
 class CustomUserPermissionAdmin(admin.ModelAdmin):
     list_display = ("custom_user", "permission")
+
+
+@admin.register(UserToken)
+class UserTokenAdmin(admin.ModelAdmin):
+    list_display = ("user", "token", "created_at")
 
 
 admin.site.register(CustomUserGroup, CustomUserGroupAdmin)
