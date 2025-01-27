@@ -941,7 +941,7 @@ def save_token(request):
             if not user_id or not token:
                 return JsonResponse({"error": "Missing user_id or token"}, status=400)
 
-            user = User.objects.get(id=user_id)
+            user = get_user_model().objects.get(id=user_id)
             UserToken.objects.create(user=user, token=token)
 
             return JsonResponse({"message": "Token saved successfully"}, status=201)

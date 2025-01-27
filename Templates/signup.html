@@ -190,44 +190,20 @@
             window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
                 ? "http://127.0.0.1:8000"
                 : "https://grnlite.onrender.com";
-
-                function setUserType(userType) {
-                    const userTypeInput = document.getElementById("user-type");
-                    userTypeInput.value = userType;
-
-
-                    const readerChoice = document.getElementById("readerChoice");
-                    const authorChoice = document.getElementById("authorChoice");
-
-                    if (readerChoice && authorChoice) {
-                        readerChoice.classList.remove("selected");
-                        authorChoice.classList.remove("selected");
-
-                        if (userType === "beta_reader") {
-                            readerChoice.classList.add("selected");
-                        } else if (userType === "author") {
-                            authorChoice.classList.add("selected");
-                        }
-                    } else {
-                        console.error("Elements with IDs 'readerChoice' or 'authorChoice' not found.");
-                    }
-
-                    
-                }
-
+    
         document.getElementById("signupForm").addEventListener("submit", async (event) => {
             event.preventDefault();
-
+    
             const form = event.target;
             const formData = new FormData(form);
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
+    
             const jsonData = Object.fromEntries(formData.entries());
             if (!jsonData.user_type) {
                 alert("Please select a user type.");
                 return;
             }
-
+    
             try {
                 const response = await fetch(`${BASE_URL}/api/signup/`, {
                     method: "POST",
@@ -238,18 +214,18 @@
                     },
                     body: JSON.stringify(jsonData),
                 });
-
+    
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.message || "Signup failed.");
                 }
-
+    
                 const { token, refresh_token } = await response.json();
-
+    
                 // Save tokens locally
                 localStorage.setItem("accessToken", token);
                 localStorage.setItem("refreshToken", refresh_token);
-
+    
                 // Save tokens to the database
                 await fetch(`${BASE_URL}/api/save_token/`, {
                     method: "POST",
@@ -260,7 +236,7 @@
                     },
                     body: JSON.stringify({ token, refresh_token }),
                 });
-
+    
                 alert("Signup successful!");
                 window.location.href = `${BASE_URL}/signin/`;
             } catch (error) {
