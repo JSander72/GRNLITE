@@ -503,13 +503,18 @@ def signup_page(request):
 @csrf_exempt
 def signup_view(request):
     if request.method == "POST":
-        form = SignUpForm(request.POST, request.FILES)
+        form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            # Profile creation is handled in the form's save method back up handled explicityly here
-            Profile.object.create(user=user, user_type=form.clearned_data["user_type"])
+            user = form.save(commit=False)
+            user.user_type = form.cleaned_data.get(
+                "user_type", "regular"
+            )  # Set user_type
+            user.save()
+            Profile.objects.create(
+                user=user, user_type=user.user_type  # Pass user_type to Profile
+            )
             login(request, user)
-            return redirect("home")  # Redirect to a success page
+            return redirect("home")
     else:
         form = SignUpForm()
     return render(request, "signup.html", {"form": form})
