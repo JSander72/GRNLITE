@@ -105,6 +105,11 @@ urlpatterns = [
             ]
         ),
     ),
+    path(
+        "available-manuscripts/",
+        views.available_manuscripts,
+        name="available-manuscripts-html",
+    ),
     # Manuscript Management URLs
     path(
         "manuscripts/",
