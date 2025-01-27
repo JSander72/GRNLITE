@@ -84,6 +84,11 @@ urlpatterns = [
     path("reader-feedback/", views.reader_feedback, name="reader-feedback-html"),
     path("reader-profile/", views.reader_profile, name="reader-profile-html"),
     path(
+        "reader-payment-page/",
+        views.reader_payment_page,
+        name="reader-payment-page-html",
+    ),
+    path(
         "reader-resource-library/",
         views.reader_resource_library,
         name="reader-resource-library-html",
@@ -92,6 +97,11 @@ urlpatterns = [
         "beta-reader-training/",
         views.beta_reader_training,
         name="beta-reader-training-html",
+    ),
+    path(
+        "beta-reader-performance-metrics/",
+        views.beta_reader_performance_metrics,
+        name="beta-reader-performance-metrics-html",
     ),
     path("reader-settings/", views.reader_settings, name="reader-settings-html"),
     # Profile Management URLs
