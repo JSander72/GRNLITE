@@ -163,6 +163,7 @@ urlpatterns = [
     path("signup/", signup_page, name="signup_page"),
     path("register/", register_user, name="register_user"),
     path("protected/", protected_view, name="protected_view"),
+    path("api/validate-token/", views.validate_token, name="validate-token"),
 ]
 
 if settings.DEBUG:

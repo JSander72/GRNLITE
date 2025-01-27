@@ -711,6 +711,28 @@ def signin(request):
     return JsonResponse({"error": "Invalid HTTP method"}, status=405)
 
 
+@csrf_exempt
+def validate_token(request):
+    if request.method == "GET":
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return JsonResponse(
+                {"error": "Missing or invalid Authorization header"}, status=401
+            )
+
+        token = auth_header.split(" ")[1]  # Extract token
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            return JsonResponse(
+                {"message": "Token is valid", "user_id": payload["user_id"]}
+            )
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({"error": "Token has expired"}, status=401)
+        except jwt.InvalidTokenError:
+            return JsonResponse({"error": "Invalid token"}, status=401)
+    return JsonResponse({"error": "Invalid HTTP method"}, status=405)
+
+
 @api_view(["GET"])
 def api_dashboard_data(request):
     """
