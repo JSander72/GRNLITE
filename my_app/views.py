@@ -503,21 +503,64 @@ def signup_page(request):
 @csrf_exempt
 def signup_view(request):
     if request.method == "POST":
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.user_type = form.cleaned_data.get(
-                "user_type", "regular"
-            )  # Set user_type
-            user.save()
-            Profile.objects.create(
-                user=user, user_type=user.user_type  # Pass user_type to Profile
-            )
-            login(request, user)
-            return redirect("home")
+        if request.content_type == "application/json":  # Handle JSON requests
+            try:
+                data = json.loads(request.body)
+                username = data.get("username")
+                password = data.get("password")
+                email = data.get("email")
+                user_type = data.get("user_type")
+
+                if not username or not password or not email or not user_type:
+                    return JsonResponse(
+                        {"error": "Missing required fields"}, status=400
+                    )
+
+                # Create the user
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    user_type=user_type,
+                )
+
+                # Generate JWT token
+                token = create_jwt_token(user)
+
+                # Save token in the database
+                UserToken.objects.create(user=user, token=token)
+
+                return JsonResponse(
+                    {"message": "Signup successful", "token": token}, status=201
+                )
+            except Exception as e:
+                return JsonResponse({"error": str(e)}, status=500)
+        else:  # Handle form-based POST requests
+            form = SignUpForm(request.POST)
+            if form.is_valid():
+                user = form.save(commit=False)
+                user.user_type = form.cleaned_data.get(
+                    "user_type", "regular"
+                )  # Set user_type
+                user.save()
+
+                # Create Profile
+                Profile.objects.create(user=user, user_type=user.user_type)
+
+                # Generate JWT token
+                token = create_jwt_token(user)
+
+                # Save token in the database
+                UserToken.objects.create(user=user, token=token)
+
+                login(request, user)
+                return redirect("home")
+            else:
+                return JsonResponse({"error": "Invalid form data"}, status=400)
     else:
+        # Handle GET requests to render the signup form
         form = SignUpForm()
-    return render(request, "signup.html", {"form": form})
+        return render(request, "signup.html", {"form": form})
 
 
 def register_user(username, email, password):
@@ -935,6 +978,8 @@ def save_token(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
+            print("Data received in save_token:", data)
+
             user_id = data.get("user_id")
             token = data.get("token")
 
@@ -943,13 +988,23 @@ def save_token(request):
 
             user = get_user_model().objects.get(id=user_id)
             UserToken.objects.create(user=user, token=token)
+            print(f"Token saved for user {user_id}: {token}")
 
             return JsonResponse({"message": "Token saved successfully"}, status=201)
-        except User.DoesNotExist:
-            return JsonResponse({"error": "User not found"}, status=404)
         except Exception as e:
+            print("Error saving token:", e)
             return JsonResponse({"error": str(e)}, status=500)
-    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+def create_jwt_token(user):
+    payload = {
+        "user_id": user.id,
+        "username": user.username,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1),  # Token expiry
+        "iat": datetime.now(timezone.utc),  # Issued at
+    }
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+    return token
 
 
 import logging
