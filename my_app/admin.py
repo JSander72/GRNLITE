@@ -167,6 +167,8 @@ class CustomUserPermissionAdmin(admin.ModelAdmin):
 @admin.register(UserToken)
 class UserTokenAdmin(admin.ModelAdmin):
     list_display = ("user", "token", "created_at")
+    search_fields = ("user__username", "token")
+    list_filter = ("created_at",)
 
 
 admin.site.register(CustomUserGroup, CustomUserGroupAdmin)

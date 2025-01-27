@@ -189,56 +189,37 @@
                 ? "http://127.0.0.1:8000"
                 : "https://grnlite.onrender.com";
 
-        document.addEventListener('DOMContentLoaded', function () {
-            async function authenticateUser(event) {
-                event.preventDefault();
+                document.getElementById("loginForm").addEventListener("submit", async (event) => {
+                    event.preventDefault();
 
-                const data = {
-                    username: document.getElementById('username').value,
-                    password: document.getElementById('password').value,
-                };
+                    const data = {
+                        username: document.getElementById("username").value,
+                        password: document.getElementById("password").value,
+                    };
 
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    try {
+                        const response = await fetch(`${BASE_URL}/api/signin/`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(data),
+                        });
 
-                try {
-                    const loginResponse = await fetch('/api/signin/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': csrfToken
-                        },
-                        body: JSON.stringify(data),
-                    });
-
-                    if (!loginResponse.ok) {
-                        const errorText = await loginResponse.text();
-                        throw new Error(errorText || 'Unknown error occurred.');
+                        const result = await response.json();
+                        if (response.ok) {
+                            alert("Login successful!");
+                            localStorage.setItem("token", result.token); // Store token in local storage
+                            window.location.href = result.redirect_url; // Redirect to the appropriate dashboard
+                        } else {
+                            alert(`Error: ${result.error}`);
+                        }
+                    } catch (error) {
+                        console.error("Error during signin:", error);
+                        alert("An unexpected error occurred.");
                     }
+                });
 
-                    const result = await loginResponse.json();
-
-                    localStorage.setItem('access_token', result.access);
-                    localStorage.setItem('refresh_token', result.refresh);
-
-                    alert('Login successful!');
-
-                    if (result.user_type === 'beta_reader') {
-                        window.location.href = '/reader-dashboard/';
-                    } else if (result.user_type === 'admin') {
-                        window.location.href = '/admin-dashboard/';
-                    } else if (result.user_type === 'author') {
-                        window.location.href = '/author-dashboard/';
-                    } else {
-                        console.error('Unknown user type.');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Authentication failed. Please check your credentials and try again.');
-                }
-            }
-
-            document.getElementById('loginForm').addEventListener('submit', authenticateUser);
-        });
     </script>
 </body>
 

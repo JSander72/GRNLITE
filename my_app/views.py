@@ -656,21 +656,14 @@ def signup(request):
 # @api_view(["POST"])
 @csrf_exempt
 def signin(request):
-    if request.method == "GET":
-        # Render the signin HTML form
-        return render(request, "signin.html")
-
-    elif request.method == "POST":
-        # Parse the JSON body
+    if request.method == "POST":
         try:
             body = json.loads(request.body)
         except json.JSONDecodeError as e:
-            logger.error("JSON decode error: %s", e)
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+            return JsonResponse({"error": "Invalid JSON payload"}, status=400)
 
         username = body.get("username")
         password = body.get("password")
-        user_type = body.get("user_type")
 
         if not username or not password:
             return JsonResponse(
@@ -678,29 +671,44 @@ def signin(request):
             )
 
         try:
-            # Authenticate user
+            # Authenticate the user
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
 
+                # Generate JWT token
+                token = jwt.encode(
+                    {
+                        "user_id": user.id,
+                        "username": user.username,
+                        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+                    },
+                    settings.SECRET_KEY,
+                    algorithm="HS256",
+                )
+
                 # Determine the redirect URL based on user type
-                if user_type == "author":
+                if user.user_type == "author":
                     dashboard_url = "/author-dashboard/"
-                elif user_type == "beta_reader":
+                elif user.user_type == "beta_reader":
                     dashboard_url = "/reader-dashboard/"
                 else:
                     dashboard_url = "/admin/"
 
-                return JsonResponse({"redirect_url": dashboard_url}, status=200)
+                # Save token in the database if it doesn't exist
+                UserToken.objects.update_or_create(user=user, defaults={"token": token})
+
+                return JsonResponse(
+                    {"redirect_url": dashboard_url, "token": token},
+                    status=200,
+                )
             else:
                 return JsonResponse({"error": "Invalid credentials"}, status=401)
 
         except Exception as e:
-            logger.error("Error during signin: %s", str(e))
-            return JsonResponse({"error": f"Error: {str(e)}"}, status=500)
+            return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
 
-    else:
-        return JsonResponse({"message": "Invalid request method"}, status=405)
+    return JsonResponse({"error": "Invalid HTTP method"}, status=405)
 
 
 @api_view(["GET"])
