@@ -57,7 +57,7 @@ urlpatterns = [
     path("login/", views.login, name="login"),
     path("logout/", views.logout, name="logout"),
     path("api/protected/", protected_view, name="protected"),
-    path("api/save-token/", save_token, name="save_token"),
+    path("api/save_token/", save_token, name="save_token"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("auth/", include("djoser.urls")),
