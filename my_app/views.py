@@ -503,39 +503,30 @@ def signup_page(request):
 @csrf_exempt
 def signup_view(request):
     if request.method == "POST":
-        if request.content_type == "application/json":
-            try:
-                data = json.loads(request.body)
-                username = data.get("username")
-                password = data.get("password")
-                email = data.get("email")
-                user_type = data.get("user_type", "regular")
+        try:
+            data = json.loads(request.body)
+            username = data.get("username")
+            password = data.get("password")
+            email = data.get("email")
+            user_type = data.get("user_type", "regular")
 
-                if not username or not password or not email:
-                    return JsonResponse(
-                        {"error": "Missing required fields"}, status=400
-                    )
+            if not username or not password or not email:
+                return JsonResponse({"error": "Missing required fields"}, status=400)
 
-                # Create the user
-                user = User.objects.create_user(
-                    username=username,
-                    email=email,
-                    password=password,
-                    user_type=user_type,
-                )
+            # Create the user
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                user_type=user_type,
+            )
 
-                # Signal will automatically create the Profile and Token
-                return JsonResponse({"message": "Signup successful"}, status=201)
-            except Exception as e:
-                return JsonResponse({"error": str(e)}, status=500)
-        else:
-            # Handle form-based POST requests
-            form = SignUpForm(request.POST)
-            if form.is_valid():
-                user = form.save()
-                login(request, user)
-                return redirect("home")
-            return JsonResponse({"error": "Invalid form data"}, status=400)
+            print(f"User Type received during signup: {user_type}")
+
+            # Let the signal handle Profile and Token creation
+            return JsonResponse({"message": "Signup successful"}, status=201)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid HTTP method"}, status=405)
 
 

@@ -53,19 +53,27 @@ def create_or_update_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=CustomUser)
 def create_or_update_profile_and_token(sender, instance, created, **kwargs):
     if created:
-        # Create the Profile for the user
-        Profile.objects.create(user=instance, user_type=instance.user_type)
+        try:
+            # Ensure the profile is created only once
+            Profile.objects.get_or_create(
+                user=instance, defaults={"user_type": instance.user_type}
+            )
 
-        # Generate JWT token
-        token = jwt.encode(
-            {
-                "user_id": instance.id,
-                "username": instance.username,
-                "exp": datetime.now(timezone.utc) + timedelta(days=1),
-            },
-            settings.SECRET_KEY,
-            algorithm="HS256",
-        )
+            # Generate and save JWT token
+            token = jwt.encode(
+                {
+                    "user_id": instance.id,
+                    "username": instance.username,
+                    "exp": datetime.now(timezone.utc) + timedelta(days=1),
+                },
+                settings.SECRET_KEY,
+                algorithm="HS256",
+            )
+            print(f"User Type for created Profile: {instance.user_type}")
 
-        # Save the token in UserToken table
-        UserToken.objects.create(user=instance, token=token)
+            # Save the token in UserToken table
+            UserToken.objects.create(user=instance, token=token)
+        except Exception as e:
+            logger.error(
+                f"Error during profile or token creation for user {instance.username}: {e}"
+            )
