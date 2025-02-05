@@ -656,7 +656,10 @@ def signup(request):
 # @api_view(["POST"])
 @csrf_exempt
 def signin(request):
-    if request.method == "POST":
+    if request.method == "GET":
+        return render(request, "signin.html")
+
+    elif request.method == "POST":
         try:
             body = json.loads(request.body)
         except json.JSONDecodeError as e:
