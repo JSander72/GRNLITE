@@ -63,7 +63,6 @@ def create_or_update_profile_and_token(sender, instance, created, **kwargs):
             token = jwt.encode(
                 {
                     "user_id": instance.id,
-                    "username": instance.username,
                     "exp": datetime.now(timezone.utc) + timedelta(days=1),
                 },
                 settings.SECRET_KEY,
