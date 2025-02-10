@@ -718,21 +718,34 @@ def signin(request):
 def validate_token(request):
     if request.method == "GET":
         auth_header = request.headers.get("Authorization", "")
+
         if not auth_header.startswith("Bearer "):
             return JsonResponse(
                 {"error": "Missing or invalid Authorization header"}, status=401
             )
 
         token = auth_header.split(" ")[1]  # Extract token
+
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            return JsonResponse(
-                {"message": "Token is valid", "user_id": payload["user_id"]}
-            )
+            user_id = payload.get("user_id")
+
+            # Fetch the user and check if the token is stored
+            user = CustomUser.objects.filter(id=user_id).first()
+            if user and hasattr(user, "usertoken"):
+                saved_token = user.usertoken.token
+                if saved_token != token:
+                    return JsonResponse({"error": "Token mismatch"}, status=401)
+
+                return JsonResponse({"message": "Token is valid", "user_id": user_id})
+
+            return JsonResponse({"error": "Token not found"}, status=401)
+
         except jwt.ExpiredSignatureError:
             return JsonResponse({"error": "Token has expired"}, status=401)
         except jwt.InvalidTokenError:
             return JsonResponse({"error": "Invalid token"}, status=401)
+
     return JsonResponse({"error": "Invalid HTTP method"}, status=405)
 
 

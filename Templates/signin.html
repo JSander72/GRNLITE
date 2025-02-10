@@ -184,42 +184,81 @@
     </div>
 
     <script>
-        const BASE_URL =
-            window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
-                ? "http://127.0.0.1:8000"
-                : "https://grnlite.onrender.com";
-
-                document.getElementById("loginForm").addEventListener("submit", async (event) => {
-                    event.preventDefault();
-
-                    const data = {
-                        username: document.getElementById("username").value,
-                        password: document.getElementById("password").value,
-                    };
-
-                    try {
-                        const response = await fetch(`${BASE_URL}/api/signin/`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify(data),
-                        });
-
-                        const result = await response.json();
-                        if (response.ok) {
-                            alert("Login successful!");
-                            localStorage.setItem("token", result.token); // Store token in local storage
-                            window.location.href = result.redirect_url; // Redirect to the appropriate dashboard
-                        } else {
-                            alert(`Error: ${result.error}`);
-                        }
-                    } catch (error) {
-                        console.error("Error during signin:", error);
-                        alert("An unexpected error occurred.");
+        const BASE_URL = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
+            ? "http://127.0.0.1:8000"
+            : "https://grnlite.onrender.com";
+    
+        // Function to validate token
+        async function validateToken() {
+            const token = localStorage.getItem("token");
+    
+            if (!token) {
+                console.log("No token found. Redirecting to sign-in.");
+                window.location.href = "/signin/";
+                return;
+            }
+    
+            try {
+                const response = await fetch(`${BASE_URL}/validate-token/`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
                     }
                 });
-
+    
+                const result = await response.json();
+    
+                if (response.ok) {
+                    console.log("Token is valid:", result);
+                    return; // Allow the user to proceed
+                } else {
+                    console.log("Invalid token. Redirecting to sign-in.");
+                    localStorage.removeItem("token"); // Remove invalid token
+                    window.location.href = "/signin/";
+                }
+            } catch (error) {
+                console.error("Error validating token:", error);
+                localStorage.removeItem("token");
+                window.location.href = "/signin/";
+            }
+        }
+    
+        // Validate token when the page loads
+        document.addEventListener("DOMContentLoaded", validateToken);
+    
+        // Handle sign-in form submission
+        document.getElementById("loginForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+    
+            const data = {
+                username: document.getElementById("username").value,
+                password: document.getElementById("password").value,
+            };
+    
+            try {
+                const response = await fetch(`${BASE_URL}/api/signin/`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data),
+                });
+    
+                const result = await response.json();
+    
+                if (response.ok) {
+                    alert("Login successful!");
+                    localStorage.setItem("token", result.token); // Store token in local storage
+                    window.location.href = result.redirect_url; // Redirect to the dashboard
+                } else {
+                    alert(`Error: ${result.error}`);
+                }
+            } catch (error) {
+                console.error("Error during signin:", error);
+                alert("An unexpected error occurred.");
+            }
+        });
     </script>
 </body>
 
