@@ -28,6 +28,7 @@ from .views import (
     author_dashboard,
     signup_page,
     register_user,
+    ValidateTokenView,
 )
 
 # Routers provide an easy way of automatically determining the URL conf.
