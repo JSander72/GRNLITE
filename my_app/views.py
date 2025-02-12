@@ -738,7 +738,7 @@ def validate_token(request):
             user_id = payload.get("user_id")
 
             # Fetch the user and check if the token is stored
-            user = CustomUser.objects.filter(id=user_id).first()
+            user = User.objects.filter(id=user_id).first()
             if user and hasattr(user, "usertoken"):
                 saved_token = user.usertoken.token
                 if saved_token != token:
