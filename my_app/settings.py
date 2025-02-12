@@ -55,7 +55,9 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "your-secret-key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False if ENVIRONMENT == "production" else True
 
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
+ALLOWED_HOSTS = os.getenv(
+    "DJANGO_ALLOWED_HOSTS", "localhost", "127.0.0.1", "grnlite.onrender.com"
+).split(",")
 
 USE_TZ = True  # Ensure this is set
 
@@ -133,8 +135,8 @@ SITE_ID = 1
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_EMAIL_REQUIRED = True
 
-LOGIN_REDIRECT_URL = "/signin/"
-LOGOUT_REDIRECT_URL = "/reader_dashboard/", "author_dashboard/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
 
 
 TEMPLATES = [

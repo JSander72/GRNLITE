@@ -789,6 +789,12 @@ def signin_view(request):
             else:
                 return JsonResponse({"error": "Profile not found"}, status=404)
         return JsonResponse({"error": "Invalid credentials"}, status=401)
+    if user.profile.user_type == "author":
+        redirect_url = "author_dashboard"
+    else:
+        redirect_url = "reader_dashboard"
+    logger.debug(f"User {request.user} signed in, redirecting to {redirect_url}")
+    return redirect(redirect_url)
 
 
 # def login(request):
