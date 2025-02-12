@@ -134,6 +134,13 @@ class MyTokenObtainPairView(TokenObtainPairView):
         return response
 
 
+class ValidateTokenView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({"message": "Token is valid"}, status=200)
+
+
 class ReaderDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 

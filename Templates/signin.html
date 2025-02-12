@@ -204,13 +204,16 @@
             }
 
             try {
-                const response = await fetch(`${BASE_URL}/validate-token/`, {
+                const response = await fetch(`${BASE_URL}/api/validate-token/`, {
                     method: "GET",
                     headers: {
-                        "Authorization": `Bearer ${token}`,
+                        "Authorization": "Token" + localStorage.getItem("token"),
                         "Content-Type": "application/json"
                     }
-                });
+                })
+                .then(response => response.json())
+                .then(data => console.log(data))
+                .catch(error => console.error("Error:", error));
 
                 const result = await response.json();
 
