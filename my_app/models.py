@@ -44,7 +44,7 @@ class Profile(models.Model):
     bio = models.TextField(
         null=True, blank=True, help_text="Short biography for the user"
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
