@@ -192,10 +192,8 @@
         let tokenValidated = false; // Add a flag to track validation status
 
         async function validateToken() {
-            if (tokenValidated) return; // Prevent duplicate execution
-            tokenValidated = true;
-
             const token = localStorage.getItem("token");
+
             if (!token) {
                 console.log("No token found. Redirecting to sign-in.");
                 window.location.href = "/signin/";
@@ -206,12 +204,14 @@
                 const response = await fetch(`${BASE_URL}/api/validate-token/`, {
                     method: "GET",
                     headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json"
+                        "Authorization": `Bearer ${token}`,  // Ensure correct format
+                        "Content-Type": "application/json",
                     }
                 });
 
-                if (!response.ok) {
+                if (response.ok) {
+                    console.log("Token is valid.");
+                } else {
                     console.log("Invalid token. Redirecting to sign-in.");
                     localStorage.removeItem("token");
                     window.location.href = "/signin/";

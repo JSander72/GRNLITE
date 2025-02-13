@@ -138,7 +138,31 @@ class ValidateTokenView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response({"message": "Token is valid"}, status=200)
+        auth_header = request.headers.get("Authorization", "")
+
+        if not auth_header.startswith("Bearer "):
+            return Response(
+                {"error": "Missing or invalid Authorization header"}, status=401
+            )
+
+        token = auth_header.split(" ")[1]  # Extract token
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user_id = payload.get("user_id")
+
+            # Check token in UserToken model, not Profile
+            user_token = UserToken.objects.filter(user_id=user_id, token=token).first()
+
+            if not user_token:
+                return Response({"error": "Token not found"}, status=401)
+
+            return Response({"message": "Token is valid", "user_id": user_id})
+
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Token has expired"}, status=401)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid token"}, status=401)
 
 
 class ReaderDashboardView(APIView):
