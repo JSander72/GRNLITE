@@ -189,14 +189,13 @@
             : "https://grnlite.onrender.com";
 
         // Function to validate token
+        let tokenValidated = false; // Add a flag to track validation status
+
         async function validateToken() {
+            if (tokenValidated) return; // Prevent duplicate execution
+            tokenValidated = true;
+
             const token = localStorage.getItem("token");
-
-            // Prevent infinite loop: Only validate if NOT on the sign-in page
-            if (window.location.pathname === "/signin/") {
-                return;
-            }
-
             if (!token) {
                 console.log("No token found. Redirecting to sign-in.");
                 window.location.href = "/signin/";
@@ -207,22 +206,14 @@
                 const response = await fetch(`${BASE_URL}/api/validate-token/`, {
                     method: "GET",
                     headers: {
-                        "Authorization": "Token" + localStorage.getItem("token"),
+                        "Authorization": `Bearer ${token}`,
                         "Content-Type": "application/json"
                     }
-                })
-                .then(response => response.json())
-                .then(data => console.log(data))
-                .catch(error => console.error("Error:", error));
+                });
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    console.log("Token is valid:", result);
-                    return; // Allow the user to proceed
-                } else {
+                if (!response.ok) {
                     console.log("Invalid token. Redirecting to sign-in.");
-                    localStorage.removeItem("token"); // Remove invalid token
+                    localStorage.removeItem("token");
                     window.location.href = "/signin/";
                 }
             } catch (error) {
@@ -230,11 +221,6 @@
                 localStorage.removeItem("token");
                 window.location.href = "/signin/";
             }
-        }
-
-        // Validate token when the page loads (but NOT on the sign-in page)
-        if (window.location.pathname !== "/signin/") {
-            document.addEventListener("DOMContentLoaded", validateToken);
         }
 
         // Handle sign-in form submission

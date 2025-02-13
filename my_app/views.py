@@ -1092,17 +1092,26 @@ class SignInView(View):
         if user is not None:
             if user.is_active:
                 login(request, user)
-                if user.profile.user_type == "author":
-                    return redirect("my_app:author_dashboard")
+
+                # Determine user type and set the correct redirect URL
+                if hasattr(user, "profile") and user.profile.user_type == "author":
+                    dashboard_url = "/author-dashboard/"
+                elif (
+                    hasattr(user, "profile") and user.profile.user_type == "beta_reader"
+                ):
+                    dashboard_url = "/reader-dashboard/"
                 else:
-                    return redirect("my_app:reader_dashboard")
+                    dashboard_url = "/"
+
+                response_data = {
+                    "message": "Login successful",
+                    "redirect_url": dashboard_url,  # Redirects to correct dashboard
+                }
+                return JsonResponse(response_data)  # Return JSON response for AJAX
             else:
-                messages.error(
-                    request, "Your account is inactive. Please contact support."
-                )
+                return JsonResponse({"error": "Your account is inactive."}, status=400)
         else:
-            messages.error(request, "Invalid username or password.")
-        return render(request, "signin.html")
+            return JsonResponse({"error": "Invalid username or password."}, status=401)
 
 
 class SignUpView(View):

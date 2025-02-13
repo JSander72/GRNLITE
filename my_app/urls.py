@@ -46,12 +46,7 @@ urlpatterns = [
     path("signup/", SignUpView.as_view(), name="signup"),
     path("signup_page/", views.signup_page, name="signup_page"),
     path("signin/", SignInView.as_view(), name="signin"),
-    path("signin/", TemplateView.as_view(template_name="signin.html"), name="signin"),
-    path(
-        "signin.html",
-        TemplateView.as_view(template_name="signin.html"),
-        name="signin_html",
-    ),
+    # path("signin/", TemplateView.as_view(template_name="signin.html"), name="signin"),
     path("signin/api/authenticate/", views.authenticate_user, name="signin_auth"),
     path("api/signup/", views.signup, name="signup"),
     path("api/signin/", views.signin, name="signin"),
