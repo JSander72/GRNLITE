@@ -196,7 +196,7 @@
 
             if (!token) {
                 console.log("No token found. Redirecting to sign-in.");
-                window.location.href = "{% url 'signin' %}";
+                window.location.href = "/signin/";
                 return;
             }
 
@@ -214,12 +214,12 @@
                 } else {
                     console.log("Invalid token. Redirecting to sign-in.");
                     localStorage.removeItem("token");
-                    window.location.href = "{% url 'signin' %}";
+                    window.location.href = "/signin/";
                 }
             } catch (error) {
                 console.error("Error validating token:", error);
                 localStorage.removeItem("token");
-                window.location.href = "{% url 'signin' %}";
+                window.location.href = "/signin/";
             }
         }
 
