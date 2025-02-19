@@ -678,8 +678,21 @@ def signup(request):
             user.user_type = user_type
             user.save()
 
+            # Ensure profile is created
+            profile, created = Profile.objects.get_or_create(
+                user=user, defaults={"user_type": user_type}
+            )
+
             # Generate JWT tokens
             refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            # Save token in userToken model
+            UserToken.objects.updte_or_create(
+                user=user, defaults={"token": access_token}
+            )
+            # Return JSON response with tokens
+
             return JsonResponse(
                 {
                     "message": "Signup successful.",

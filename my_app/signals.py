@@ -6,6 +6,7 @@ from django.dispatch import receiver
 from django.conf import settings
 from .models import Profile, CustomUser, UserToken
 import logging
+from rest_framework_simplejwt.tokens import RefreshToken
 
 logger = logging.getLogger(__name__)
 
@@ -54,25 +55,20 @@ def create_or_update_profile(sender, instance, created, **kwargs):
 def create_or_update_profile_and_token(sender, instance, created, **kwargs):
     if created:
         try:
-            # Ensure the profile is created only once
-            Profile.objects.get_or_create(
+            # Ensure the profile is created
+            profile, created = Profile.objects.get_or_create(
                 user=instance, defaults={"user_type": instance.user_type}
             )
 
             # Generate and save JWT token
-            token = jwt.encode(
-                {
-                    "user_id": instance.id,
-                    "exp": datetime.now(timezone.utc) + timedelta(days=1),
-                },
-                settings.SECRET_KEY,
-                algorithm="HS256",
-            )
-            print(f"User Type for created Profile: {instance.user_type}")
+            refresh = RefreshToken.for_user(instance)
+            access_token = str(refresh.access_token)
 
-            # Save the token in UserToken table
-            UserToken.objects.create(user=instance, token=token)
-        except Exception as e:
-            logger.error(
-                f"Error during profile or token creation for user {instance.username}: {e}"
+            # Store the token in UserToken model
+            UserToken.objects.update_or_create(
+                user=instance, defaults={"token": access_token}
             )
+
+            print(f"Profile and Token created for {instance.username}")
+        except Exception as e:
+            logger.error(f"Error during profile or token creation: {e}")
