@@ -22,7 +22,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.exceptions import ValidationError
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
 from .forms import ManuscriptSubmissionForm, SignUpForm, SignInForm
@@ -150,21 +150,20 @@ class ValidateTokenView(APIView):
         token = auth_header.split(" ")[1]  # Extract token
 
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            user_id = payload.get("user_id")
+            # Decode using Django's AccessToken (not manual jwt.decode)
+            access_token = AccessToken(token)
 
-            # Check token in UserToken model, not Profile
-            user_token = UserToken.objects.filter(user_id=user_id, token=token).first()
+            # Ensure user exists
+            user = get_user_model().objects.filter(id=access_token["user_id"]).first()
+            if not user:
+                return Response({"error": "User not found"}, status=401)
 
-            if not user_token:
-                return Response({"error": "Token not found"}, status=401)
+            return Response(
+                {"message": "Token is valid", "user_id": access_token["user_id"]}
+            )
 
-            return Response({"message": "Token is valid", "user_id": user_id})
-
-        except jwt.ExpiredSignatureError:
-            return Response({"error": "Token has expired"}, status=401)
-        except jwt.InvalidTokenError:
-            return Response({"error": "Invalid token"}, status=401)
+        except Exception as e:
+            return Response({"error": f"Invalid token: {str(e)}"}, status=401)
 
 
 class TestHeaderView(APIView):
@@ -706,54 +705,51 @@ def signin(request):
     elif request.method == "POST":
         try:
             body = json.loads(request.body)
-        except json.JSONDecodeError as e:
-            return JsonResponse({"error": "Invalid JSON payload"}, status=400)
+            username = body.get("username")
+            password = body.get("password")
 
-        username = body.get("username")
-        password = body.get("password")
+            if not username or not password:
+                return JsonResponse(
+                    {"error": "Username and password are required"}, status=400
+                )
 
-        if not username or not password:
-            return JsonResponse(
-                {"error": "Username and password are required"}, status=400
-            )
-
-        try:
             # Authenticate the user
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
 
-                # Generate JWT token
-                token = jwt.encode(
-                    {
-                        "user_id": user.id,
-                        "username": user.username,
-                        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
-                    },
-                    settings.SECRET_KEY,
-                    algorithm="HS256",
-                )
+                # Generate JWT tokens using Simple JWT
+                refresh = RefreshToken.for_user(user)
+                access_token = str(refresh.access_token)
 
                 # Save token in UserToken model
-                UserToken.objects.update_or_create(user=user, defaults={"token": token})
+                UserToken.objects.update_or_create(
+                    user=user, defaults={"token": access_token}
+                )
 
                 # Determine the redirect URL based on user type
-                if user.user_type == "author":
-                    dashboard_url = "/author-dashboard/"
-                elif user.user_type == "beta_reader":
-                    dashboard_url = "/reader-dashboard/"
-                else:
-                    dashboard_url = "/admin/"
+                dashboard_url = (
+                    "/author-dashboard/"
+                    if user.user_type == "author"
+                    else "/reader-dashboard/"
+                )
 
-                # Return token and redirect URL
                 return JsonResponse(
-                    {"redirect_url": dashboard_url, "token": token},
+                    {
+                        "redirect_url": dashboard_url,
+                        "token": access_token,
+                        "refresh_token": str(
+                            refresh
+                        ),  # Include refresh token if needed
+                    },
                     status=200,
                 )
 
             else:
                 return JsonResponse({"error": "Invalid credentials"}, status=401)
 
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON payload"}, status=400)
         except Exception as e:
             return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
 

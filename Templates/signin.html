@@ -192,7 +192,7 @@
         let tokenValidated = false; // Add a flag to track validation status
 
         async function validateToken() {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("access_token");
 
             if (!token) {
                 console.log("No token found. Redirecting to sign-in.");
@@ -213,12 +213,12 @@
                     console.log("Token is valid.");
                 } else {
                     console.log("Invalid token. Redirecting to sign-in.");
-                    localStorage.removeItem("token");
+                    localStorage.removeItem("access_token");
                     window.location.href = "/signin/";
                 }
             } catch (error) {
                 console.error("Error validating token:", error);
-                localStorage.removeItem("token");
+                localStorage.removeItem("access_token");
                 window.location.href = "/signin/";
             }
         }
@@ -245,8 +245,8 @@
                 console.log("API Response:", result); // Log API response
 
                 if (response.ok) {
-                    localStorage.setItem("token", result.token); // Store token
-                    console.log("Stored Token:", localStorage.getItem("token")); // Verify storage
+                    localStorage.setItem("access_token", result.token); // Store token
+                    console.log("Stored Token:", localStorage.getItem("access_token")); // Verify storage
                     window.location.href = result.redirect_url; // Redirect to dashboard
                 } else {
                     alert(`Error: ${result.error}`);
