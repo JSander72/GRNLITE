@@ -108,7 +108,9 @@
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
-            const token = localStorage.getItem("token");  // Make sure this matches the signin.js script
+            const token = localStorage.getItem("token");  // Ensure the correct key is used
+
+            console.log("Retrieved Token:", token); // Debugging step
 
             if (!token) {
                 console.log("No access token found. Redirecting to sign-in.");
@@ -126,10 +128,10 @@
                 });
 
                 if (response.ok) {
-                    console.log("Token is valid. Loading dashboard...");
+                    console.log("Token is valid.");
                 } else {
                     console.log("Invalid token. Redirecting to sign-in.");
-                    localStorage.removeItem("token");  // Remove invalid token
+                    localStorage.removeItem("token");
                     window.location.href = "/signin/";
                 }
             } catch (error) {
