@@ -734,6 +734,9 @@ def signin(request):
                     algorithm="HS256",
                 )
 
+                # Save token in UserToken model
+                UserToken.objects.update_or_create(user=user, defaults={"token": token})
+
                 # Determine the redirect URL based on user type
                 if user.user_type == "author":
                     dashboard_url = "/author-dashboard/"
@@ -742,13 +745,12 @@ def signin(request):
                 else:
                     dashboard_url = "/admin/"
 
-                # Save token in the database if it doesn't exist
-                UserToken.objects.update_or_create(user=user, defaults={"token": token})
-
+                # Return token and redirect URL
                 return JsonResponse(
                     {"redirect_url": dashboard_url, "token": token},
                     status=200,
                 )
+
             else:
                 return JsonResponse({"error": "Invalid credentials"}, status=401)
 

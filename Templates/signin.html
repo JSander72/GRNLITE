@@ -243,9 +243,12 @@
 
                 const result = await response.json();
 
+                console.log("API Response:", result); // Debugging line to check what the API returns
+
                 if (response.ok) {
                     alert("Login successful!");
                     localStorage.setItem("token", result.token); // Store token in local storage
+                    console.log("Stored Token:", localStorage.getItem("token")); // Debugging
                     window.location.href = result.redirect_url; // Redirect to the dashboard
                 } else {
                     alert(`Error: ${result.error}`);
