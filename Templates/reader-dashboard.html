@@ -109,24 +109,38 @@
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
             const accessToken = localStorage.getItem('accessToken');
-
-            
+    
+            if (!accessToken) {
+                console.error("No access token found. Redirecting to sign-in.");
+                window.location.href = '/signin/';
+                return;
+            }
+    
             try {
-                const response = await fetch('https://grnlite.onrender.com/api/validate-token', {
+                const response = await fetch('https://grnlite.onrender.com/api/validate-token/', {  // Ensure trailing slash
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${accessToken}`
                     }
                 });
-
-                const dashboardData = await dashboardResponse.json();
-                // Add logic to handle and display dashboard data
-
+    
+                if (!response.ok) {
+                    console.error("Token validation failed, redirecting to sign-in.");
+                    localStorage.removeItem('accessToken');  // Clear invalid token
+                    window.location.href = '/signin/';
+                    return;
+                }
+    
+                const dashboardData = await response.json();
+                console.log("Dashboard data:", dashboardData);
+                // Add logic to display dashboard data here
+    
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
-                window.location.href = 'https://grnlite.onrender.com/signin.html';
+                window.location.href = '/signin/';
             }
         });
     </script>
+    
 </body>
 </html>
