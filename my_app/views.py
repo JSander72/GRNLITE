@@ -643,6 +643,7 @@ def api_signup(request):
 
 
 # Function-based API view for JSON requests
+@csrf_exempt
 def signup(request):
     if request.method == "GET":
         if request.headers.get("Accept") == "application/json":
@@ -679,12 +680,11 @@ def signup(request):
 
             # Generate JWT tokens
             refresh = RefreshToken.for_user(user)
-
             return JsonResponse(
                 {
                     "message": "Signup successful.",
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token),
+                    "token": str(refresh.access_token),
+                    "refresh_token": str(refresh),
                 },
                 status=201,
             )

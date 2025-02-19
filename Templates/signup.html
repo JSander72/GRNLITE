@@ -223,8 +223,8 @@
                 const { token, refresh_token } = await response.json();
     
                 // Save tokens locally
-                localStorage.setItem("accessToken", token);
-                localStorage.setItem("refreshToken", refresh_token);
+                localStorage.setItem("access_token", token);
+                localStorage.setItem("refresh_token", refresh_token);
     
                 // Save tokens to the database
                 await fetch(`${BASE_URL}/api/save_token/`, {
