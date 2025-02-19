@@ -136,7 +136,7 @@ class Manuscript(models.Model):
     )
     title = models.CharField(max_length=200)
     description = models.TextField()
-    cover = models.ImageField(upload_to="covers/")
+    cover = models.ImageField(upload_to="manuscripts/covers/")
     STATUS_CHOICES = [
         ("draft", "Draft"),
         ("submitted", "Submitted"),
