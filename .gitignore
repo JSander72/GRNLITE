@@ -5,6 +5,10 @@ Yes, the `.gitignore` file you provided looks correct. It will ignore the follow
 - `.vscode`
 - `.venv`
 - `__pycache__/`
+- 'pytest_cache__/'
+- `*.pyc` (any file with a `.pyc` extension)
+- `*.pyo` (any file with a `.pyo` extension)
+- `*.pyd` (any file with a `.pyd` extension)
 - Any file with the `.pyc` extension
 
 This should help keep your repository clean from environment-specific files and compiled Python files.

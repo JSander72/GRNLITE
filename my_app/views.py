@@ -19,6 +19,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -135,6 +136,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 
 class ValidateTokenView(APIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -163,6 +165,17 @@ class ValidateTokenView(APIView):
             return Response({"error": "Token has expired"}, status=401)
         except jwt.InvalidTokenError:
             return Response({"error": "Invalid token"}, status=401)
+
+
+class TestHeaderView(APIView):
+    def get(self, request):
+        auth_header = request.META.get(
+            "HTTP_AUTHORIZATION"
+        )  # Access the header directly
+        if auth_header:
+            return Response({"header": auth_header})
+        else:
+            return Response({"message": "Header not found"})
 
 
 class ReaderDashboardView(APIView):
