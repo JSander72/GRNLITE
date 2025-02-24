@@ -864,7 +864,7 @@ def reader_dashboard(request):
 
 def available_manuscripts(request):
     # Your view logic here
-    return render(request, "available_manuscripts.html")
+    return render(request, "available-manuscripts.html")
 
 
 def reader_feedback(request):
