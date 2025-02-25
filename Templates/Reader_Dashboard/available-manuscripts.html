@@ -9,116 +9,144 @@
     <script>
         // Function to fetch and display manuscripts with filters applied
         function applyFilters(event) {
-            if (event) {
-                    event.preventDefault(); // Prevent form submission
-            }
+            if (event) event.preventDefault(); // Prevent default form submission behavior
     
-            const keywords = document.getElementById("filter-keywords").value.trim(); // Get and trim keywords input
-            const author = document.getElementById("filter-author").value.trim(); // Get and trim author input
+            // Safely get form elements, preventing "Cannot read properties of null" errors
+            const keywordInput = document.getElementById("filter-keywords");
+            const authorInput = document.getElementById("filter-author");
+            const genreInput = document.getElementById("filter-genre");
+            const lengthInput = document.getElementById("filter-length");
+            const chaptersInput = document.getElementById("filter-chapters");
     
+            // Ensure input elements exist before accessing their values
+            const keywords = keywordInput ? keywordInput.value.trim() : "";
+            const author = authorInput ? authorInput.value.trim() : "";
+            const genre = genreInput ? genreInput.value : "";
+            const length = lengthInput ? lengthInput.value : "";
+            const chapters = chaptersInput ? chaptersInput.value : "";
+    
+            // Construct URL query parameters dynamically
             const queryParams = new URLSearchParams();
-            if (keywords) queryParams.append("keywords", keywords); // Add keywords to query
-            if (author) queryParams.append("author", author); // Add author to query
+            if (keywords) queryParams.append("keywords", keywords);
+            if (author) queryParams.append("author", author);
+            if (genre) queryParams.append("genre", genre);
+            if (length) queryParams.append("length", length);
+            if (chapters) queryParams.append("chapters", chapters);
     
-            console.log(`Query Params: ${queryParams.toString()}`); // Log query string
+            // Append multiple statuses to ensure manuscripts with various statuses are included
+            ["draft", "submitted", "in_review"].forEach(status => queryParams.append("status", status));
     
-            // Fetch filtered manuscripts
-            fetch(`/api/manuscripts/?status=draft,submitted,in_review&${queryParams.toString()}`)
-                    .then((response) => {
-                            console.log("Response Status:", response.status);
-                            if (!response.ok) {
-                                    throw new Error("Failed to fetch manuscripts");
-                            }
-                            return response.json();
-                    })
-                    .then((data) => {
-                            console.log("Filtered Data:", data); // Log the filtered response
+            console.log(`Fetching manuscripts with params: ${queryParams.toString()}`);
     
-                            const manuscriptList = document.getElementById("available-manuscripts");
-                            manuscriptList.innerHTML = ""; // Clear the list
+            // Fetch filtered manuscripts from API
+            fetch(`/api/manuscripts/?${queryParams.toString()}`)
+                .then((response) => {
+                    if (!response.ok) throw new Error("Failed to fetch manuscripts");
+                    return response.json();
+                })
+                .then((data) => {
+                    console.log("Filtered Manuscripts:", data);
     
-                            if (data.manuscripts.length === 0) {
-                                    manuscriptList.innerHTML = "<p>No manuscripts match the filters.</p>";
-                                    return;
-                            }
+                    // Ensure manuscript list container exists before modifying it
+                    const manuscriptList = document.getElementById("manuscript-list");
+                    if (!manuscriptList) {
+                        console.error("Manuscript list container not found!");
+                        return;
+                    }
     
-                            data.manuscripts.forEach((manuscript) => {
-                                const manuscriptDiv = document.createElement("div");
-                                manuscriptDiv.classList.add("manuscript-item");
-                        
-                                // Check for cover art, and set a placeholder if not available
-                                const coverArt = manuscript.cover_art
-                                        ? manuscript.cover_art
-                                        : "/static/Front_End/Images/book-cover-placeholder.png";
-                        
-                                manuscriptDiv.innerHTML = `
-                                        <img src="${coverArt}" alt="${manuscript.title} Cover Art" style="width: 120px; height: 180px; object-fit: cover;" />
-                                        <h3>${manuscript.title}</h3>
-                                        <p><strong>Author:</strong> ${manuscript.author || "Unknown"}</p>
-                                        <p><strong>Keywords:</strong> ${manuscript.keywords ? manuscript.keywords.join(", ") : "None"}</p>
-                                        <a href="/feedback-form/${manuscript.id}/" class="btn feedback-btn">Feedback Form</a>
-                                `;
-                                manuscriptList.appendChild(manuscriptDiv);
-                        });
-                    })
-                    .catch((error) => console.error("Error fetching manuscripts:", error));
-    }
+                    manuscriptList.innerHTML = ""; // Clear the list before updating
     
-    // Trigger initial fetch on page load
-    document.addEventListener("DOMContentLoaded", () => {
-    console.log("DOM Loaded! Checking elements...");
-
-    const form = document.getElementById("filter-form");
-    const keywordInput = document.getElementById("filter-keywords");
-    const authorInput = document.getElementById("filter-author");
-    const filterButton = document.querySelector("button.btn-primary");
-
-    console.log("Form:", form);
-    console.log("Keyword Input:", keywordInput);
-    console.log("Author Input:", authorInput);
-    console.log("Filter Button:", filterButton);
-
-    if (form) {
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
-            applyFilters(event);
-        });
-    } else {
-        console.error("Filter form not found!");
-    }
-
-    if (keywordInput) {
-        keywordInput.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                applyFilters(event);
+                    if (!data.manuscripts || data.manuscripts.length === 0) {
+                        manuscriptList.innerHTML = "<p>No manuscripts match the filters.</p>";
+                        return;
+                    }
+    
+                    // Loop through each manuscript and display it on the page
+                    data.manuscripts.forEach((manuscript) => {
+                        const manuscriptDiv = document.createElement("div");
+                        manuscriptDiv.classList.add("manuscript-item");
+    
+                        // Use default placeholder image if cover_art is missing
+                        const coverArt = manuscript.cover_art
+                            ? manuscript.cover_art
+                            : "/static/Front_End/Images/book-cover-placeholder.png";
+    
+                        // Create manuscript card
+                        manuscriptDiv.innerHTML = `
+                            <img src="${coverArt}" alt="${manuscript.title} Cover Art"
+                                style="width: 120px; height: 180px; object-fit: cover;" />
+                            <h3>${manuscript.title}</h3>
+                            <p><strong>Author:</strong> ${manuscript.author || "Unknown"}</p>
+                            <p><strong>Keywords:</strong> ${manuscript.keywords ? manuscript.keywords.join(", ") : "None"}</p>
+                            <a href="/feedback-form/${manuscript.id}/" class="btn feedback-btn">Feedback Form</a>
+                        `;
+                        manuscriptList.appendChild(manuscriptDiv);
+                    });
+                })
+                .catch((error) => console.error("Error fetching manuscripts:", error));
+        }
+    
+        // Initialize event listeners once the page content is fully loaded
+        document.addEventListener("DOMContentLoaded", () => {
+            console.log("DOM Loaded! Checking elements...");
+    
+            // Get references to form elements safely
+            const form = document.getElementById("filter-form");
+            const keywordInput = document.getElementById("filter-keywords");
+            const authorInput = document.getElementById("filter-author");
+            const filterGenre = document.getElementById("filter-genre");
+            const filterLength = document.getElementById("filter-length");
+            const filterChapters = document.getElementById("filter-chapters");
+            const filterButton = document.querySelector("button.btn-primary");
+    
+            // Debugging logs to confirm elements exist
+            console.log("Form:", form);
+            console.log("Keyword Input:", keywordInput);
+            console.log("Author Input:", authorInput);
+            console.log("Genre Input:", filterGenre);
+            console.log("Length Input:", filterLength);
+            console.log("Chapters Input:", filterChapters);
+            console.log("Filter Button:", filterButton);
+    
+            // Attach event listener to form submit button (if available)
+            if (form) {
+                form.addEventListener("submit", (event) => {
+                    event.preventDefault();
+                    applyFilters(event);
+                });
+            } else {
+                console.error("Filter form not found!");
             }
-        });
-    } else {
-        console.error("Keyword input field not found!");
-    }
-
-    if (authorInput) {
-        authorInput.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                applyFilters(event);
+    
+            // Attach event listeners to handle "Enter" key in input fields
+            if (keywordInput) {
+                keywordInput.addEventListener("keydown", (event) => {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        applyFilters(event);
+                    }
+                });
             }
+    
+            if (authorInput) {
+                authorInput.addEventListener("keydown", (event) => {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        applyFilters(event);
+                    }
+                });
+            }
+    
+            // Ensure the filter button triggers `applyFilters()`
+            if (filterButton) {
+                filterButton.addEventListener("click", () => applyFilters());
+            }
+    
+            // Initial fetch to load manuscripts when page loads
+            applyFilters();
         });
-    } else {
-        console.error("Author input field not found!");
-    }
-
-    if (filterButton) {
-        filterButton.addEventListener("click", () => applyFilters());
-    } else {
-        console.error("Filter button not found!");
-    }
-
-    // Initial fetch to load manuscripts
-    applyFilters();
-});
     </script>
+    
 </head>
 <body>
     <div class="dashboard-container">
@@ -175,6 +203,10 @@
                     <div class="form-group">
                         <label for="filter-chapters">Chapters:</label>
                         <input type="number" id="filter-chapters" name="chapters" placeholder="Enter max chapters">
+                    </div>
+                    <div class="form-group">
+                        <label for="filter-author">Author:</label>
+                        <input type="text" id="filter-author" name="author" placeholder="Enter author name">
                     </div>
                     <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
                 </form>
