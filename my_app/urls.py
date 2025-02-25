@@ -117,6 +117,7 @@ urlpatterns = [
         name="available-manuscripts-html",
     ),
     # Manuscript Management URLs
+    path("my-books/", views.my_books, name="my-books-html"),
     path(
         "manuscripts/",
         include(
@@ -160,6 +161,25 @@ urlpatterns = [
     path("register/", register_user, name="register_user"),
     path("protected/", protected_view, name="protected_view"),
     path("api/validate-token/", ValidateTokenView.as_view(), name="validate-token"),
+    # Author Dashboard URLS
+    path("beta-reader-list/", views.beta_reader_list, name="beta-reader-list-html"),
+    path(
+        "author-resource-library/",
+        views.author_resource_library,
+        name="author-resource-library-html",
+    ),
+    path(
+        "author-community-groups/",
+        views.author_community_groups,
+        name="author-community-groups-html",
+    ),
+    path("author-profile/", views.author_profile, name="author-profile-html"),
+    path(
+        "author-payment-page/",
+        views.author_payment_page,
+        name="author-payment-page-html",
+    ),
+    path("author-settings/", views.author_settings, name="author-settings-html"),
 ]
 
 if settings.DEBUG:
