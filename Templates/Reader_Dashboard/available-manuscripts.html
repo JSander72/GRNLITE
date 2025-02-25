@@ -23,7 +23,7 @@
             console.log(`Query Params: ${queryParams.toString()}`); // Log query string
     
             // Fetch filtered manuscripts
-            fetch(`/api/manuscripts/?${queryParams.toString()}`)
+            fetch(`/api/manuscripts/?status=draft,submitted,in_review&${queryParams.toString()}`)
                     .then((response) => {
                             console.log("Response Status:", response.status);
                             if (!response.ok) {
@@ -66,34 +66,57 @@
     
     // Trigger initial fetch on page load
     document.addEventListener("DOMContentLoaded", () => {
-        // Attach event listener to the form for Enter key and button clicks
-        const form = document.getElementById("filter-form");
+    console.log("DOM Loaded! Checking elements...");
 
+    const form = document.getElementById("filter-form");
+    const keywordInput = document.getElementById("filter-keywords");
+    const authorInput = document.getElementById("filter-author");
+    const filterButton = document.querySelector("button.btn-primary");
+
+    console.log("Form:", form);
+    console.log("Keyword Input:", keywordInput);
+    console.log("Author Input:", authorInput);
+    console.log("Filter Button:", filterButton);
+
+    if (form) {
         form.addEventListener("submit", (event) => {
-                event.preventDefault(); // Prevent default form submission
-                applyFilters(event); // Call the filter function
+            event.preventDefault();
+            applyFilters(event);
         });
+    } else {
+        console.error("Filter form not found!");
+    }
 
-        // Optional: Handle Enter key for specific input fields
-        const keywordInput = document.getElementById("filter-keywords");
-        const authorInput = document.getElementById("filter-author");
-
+    if (keywordInput) {
         keywordInput.addEventListener("keydown", (event) => {
-                if (event.key === "Enter") {
-                        event.preventDefault();
-                        applyFilters(event);
-                }
+            if (event.key === "Enter") {
+                event.preventDefault();
+                applyFilters(event);
+            }
         });
+    } else {
+        console.error("Keyword input field not found!");
+    }
 
+    if (authorInput) {
         authorInput.addEventListener("keydown", (event) => {
-                if (event.key === "Enter") {
-                        event.preventDefault();
-                        applyFilters(event);
-                }
+            if (event.key === "Enter") {
+                event.preventDefault();
+                applyFilters(event);
+            }
         });
+    } else {
+        console.error("Author input field not found!");
+    }
 
-        // Initial fetch to load manuscripts
-        applyFilters();
+    if (filterButton) {
+        filterButton.addEventListener("click", () => applyFilters());
+    } else {
+        console.error("Filter button not found!");
+    }
+
+    // Initial fetch to load manuscripts
+    applyFilters();
 });
     </script>
 </head>
