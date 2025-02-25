@@ -7,41 +7,94 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'Front_End/CSS/styles.css' %}">
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            fetch('/api/manuscripts/')
-                .then(response => response.json())
-                .then(manuscripts => {
-                    renderManuscripts(manuscripts);
-                });
+        // Function to fetch and display manuscripts with filters applied
+        function applyFilters(event) {
+            if (event) {
+                    event.preventDefault(); // Prevent form submission
+            }
+    
+            const keywords = document.getElementById("filter-keywords").value.trim(); // Get and trim keywords input
+            const author = document.getElementById("filter-author").value.trim(); // Get and trim author input
+    
+            const queryParams = new URLSearchParams();
+            if (keywords) queryParams.append("keywords", keywords); // Add keywords to query
+            if (author) queryParams.append("author", author); // Add author to query
+    
+            console.log(`Query Params: ${queryParams.toString()}`); // Log query string
+    
+            // Fetch filtered manuscripts
+            fetch(`/api/manuscripts/?${queryParams.toString()}`)
+                    .then((response) => {
+                            console.log("Response Status:", response.status);
+                            if (!response.ok) {
+                                    throw new Error("Failed to fetch manuscripts");
+                            }
+                            return response.json();
+                    })
+                    .then((data) => {
+                            console.log("Filtered Data:", data); // Log the filtered response
+    
+                            const manuscriptList = document.getElementById("available-manuscripts");
+                            manuscriptList.innerHTML = ""; // Clear the list
+    
+                            if (data.manuscripts.length === 0) {
+                                    manuscriptList.innerHTML = "<p>No manuscripts match the filters.</p>";
+                                    return;
+                            }
+    
+                            data.manuscripts.forEach((manuscript) => {
+                                const manuscriptDiv = document.createElement("div");
+                                manuscriptDiv.classList.add("manuscript-item");
+                        
+                                // Check for cover art, and set a placeholder if not available
+                                const coverArt = manuscript.cover_art
+                                        ? manuscript.cover_art
+                                        : "/static/Front_End/Images/book-cover-placeholder.png";
+                        
+                                manuscriptDiv.innerHTML = `
+                                        <img src="${coverArt}" alt="${manuscript.title} Cover Art" style="width: 120px; height: 180px; object-fit: cover;" />
+                                        <h3>${manuscript.title}</h3>
+                                        <p><strong>Author:</strong> ${manuscript.author || "Unknown"}</p>
+                                        <p><strong>Keywords:</strong> ${manuscript.keywords ? manuscript.keywords.join(", ") : "None"}</p>
+                                        <a href="/feedback-form/${manuscript.id}/" class="btn feedback-btn">Feedback Form</a>
+                                `;
+                                manuscriptList.appendChild(manuscriptDiv);
+                        });
+                    })
+                    .catch((error) => console.error("Error fetching manuscripts:", error));
+    }
+    
+    // Trigger initial fetch on page load
+    document.addEventListener("DOMContentLoaded", () => {
+        // Attach event listener to the form for Enter key and button clicks
+        const form = document.getElementById("filter-form");
 
-            const renderManuscripts = (manuscripts) => {
-                const manuscriptList = document.getElementById("manuscript-list");
-                manuscriptList.innerHTML = "";
-                if (manuscripts.length === 0) {
-                    manuscriptList.innerHTML = "<p>No manuscripts available. Adjust your filters or check back later.</p>";
-                    return;
-                }
-
-                manuscripts.forEach((manuscript) => {
-                    const manuscriptItem = document.createElement("div");
-                    manuscriptItem.classList.add("manuscript-item");
-                    manuscriptItem.innerHTML = `
-                        <img src="${manuscript.cover}" alt="${manuscript.title} Cover">
-                        <h4>${manuscript.title}</h4>
-                        <p><strong>Genre:</strong> ${manuscript.genre}</p>
-                        <p><strong>Length:</strong> ${manuscript.length} pages</p>
-                        <p><strong>Chapters:</strong> ${manuscript.chapters}</p>
-                        <p>${manuscript.description}</p>
-                        <button class="btn btn-secondary" onclick="provideFeedback(${manuscript.id})">Provide Feedback</button>
-                    `;
-                    manuscriptList.appendChild(manuscriptItem);
-                });
-            };
-
-            const provideFeedback = (manuscriptId) => {
-                window.location.href = `/feedback/${manuscriptId}/`;
-            };
+        form.addEventListener("submit", (event) => {
+                event.preventDefault(); // Prevent default form submission
+                applyFilters(event); // Call the filter function
         });
+
+        // Optional: Handle Enter key for specific input fields
+        const keywordInput = document.getElementById("filter-keywords");
+        const authorInput = document.getElementById("filter-author");
+
+        keywordInput.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                        event.preventDefault();
+                        applyFilters(event);
+                }
+        });
+
+        authorInput.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                        event.preventDefault();
+                        applyFilters(event);
+                }
+        });
+
+        // Initial fetch to load manuscripts
+        applyFilters();
+});
     </script>
 </head>
 <body>
