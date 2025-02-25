@@ -869,7 +869,7 @@ def available_manuscripts(request):
 
 def reader_feedback(request):
     # Your view logic here
-    return render(request, "reader_feedback.html")
+    return render(request, "Reader_Dashboard/reader-feedback.html")
 
 
 def beta_reader_training(request):
