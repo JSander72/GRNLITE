@@ -67,26 +67,27 @@
                     }
 
                     // Loop through each manuscript and display it on the page
-                    data.manuscripts.forEach((manuscript) => {
-                        const manuscriptDiv = document.createElement("div");
-                        manuscriptDiv.classList.add("manuscript-item");
+                    data.manuscripts.forEach((manuscript, index) => {
+                    console.log(`📖 Rendering Manuscript ${index + 1}:`, manuscript);
 
-                        // Use default placeholder image if cover_art is missing
-                        const coverArt = manuscript.cover_art
-                            ? manuscript.cover_art
-                            : "/static/Front_End/Images/book-cover-placeholder.png";
+                    const manuscriptDiv = document.createElement("div");
+                    manuscriptDiv.classList.add("manuscript-item");
 
-                        // Create manuscript card
-                        manuscriptDiv.innerHTML = `
-                            <img src="${coverArt}" alt="${manuscript.title} Cover Art"
-                                style="width: 120px; height: 180px; object-fit: cover;" />
-                            <h3>${manuscript.title}</h3>
-                            <p><strong>Author:</strong> ${manuscript.author || "Unknown"}</p>
-                            <p><strong>Keywords:</strong> ${manuscript.keywords ? manuscript.keywords.join(", ") : "None"}</p>
-                            <a href="/feedback-form/${manuscript.id}/" class="btn feedback-btn">Feedback Form</a>
-                        `;
-                        manuscriptList.appendChild(manuscriptDiv);
-                    });
+                    // Use default placeholder image if cover_art is missing
+                    const coverArt = manuscript.cover_art
+                        ? manuscript.cover_art
+                        : "/static/Front_End/Images/book-cover-placeholder.png";
+
+                    manuscriptDiv.innerHTML = `
+                        <img src="${coverArt}" alt="${manuscript.title} Cover Art"
+                            style="width: 120px; height: 180px; object-fit: cover;" />
+                        <h3>${manuscript.title}</h3>
+                        <p><strong>Author:</strong> ${manuscript.author || "Unknown"}</p>
+                        <p><strong>Keywords:</strong> ${manuscript.keywords ? manuscript.keywords.join(", ") : "None"}</p>
+                        <a href="/feedback-form/${manuscript.id}/" class="btn feedback-btn">Feedback Form</a>
+                    `;
+                    manuscriptList.appendChild(manuscriptDiv);
+                });
                 })
                 .catch((error) => console.error("Error fetching manuscripts:", error));
         }
