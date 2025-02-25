@@ -874,32 +874,32 @@ def reader_feedback(request):
 
 def beta_reader_training(request):
     # Your view logic here
-    return render(request, "beta_reader_training.html")
+    return render(request, "Reader_Dashboard/beta-reader-training.html")
 
 
 def beta_reader_performance_metrics(request):
     # Your view logic here
-    return render(request, "beta_reader_performance_metrics.html")
+    return render(request, "Reader_Dashboard/beta-reader-performance-metrics.html")
 
 
 def reader_profile(request):
     # Your view logic here
-    return render(request, "reader_profile.html")
+    return render(request, "Reader_Dashboard/reader-profile.html")
 
 
 def reader_resource_library(request):
     # Your view logic here
-    return render(request, "reader_resource_library.html")
+    return render(request, "Reader_Dashboard/reader-resource-library.html")
 
 
 def reader_payment_page(request):
     # Your view logic here
-    return render(request, "reader_payment_page.html")
+    return render(request, "Reader_Dashboard/reader-payment-page.html")
 
 
 def reader_settings(request):
     # Your view logic here
-    return render(request, "reader_settings.html")
+    return render(request, "Reader_Dashboard/reader-settings.html")
 
 
 # Author Dashboard Views
