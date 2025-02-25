@@ -77,6 +77,7 @@ urlpatterns = [
     path("reader-dashboard/", views.reader_dashboard, name="reader-dashboard"),
     path("author-dashboard/", views.author_dashboard, name="author-dashboard"),
     # Reader-Related URLs
+    path("find-beta-readers/", views.find_beta_readers, name="find-beta-readers-html"),
     path("reader-feedback/", views.reader_feedback, name="reader-feedback-html"),
     path("reader-profile/", views.reader_profile, name="reader-profile-html"),
     path(
