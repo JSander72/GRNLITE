@@ -50,134 +50,61 @@
                     return response.json();
                 })
                 .then((data) => {
-                    console.log("Filtered Manuscripts:", data);
+                    console.log("✅ Fetched Manuscripts:", data);
 
                     // Ensure manuscript list container exists before modifying it
                     const manuscriptList = document.getElementById("manuscript-list");
                     if (!manuscriptList) {
-                        console.error("Manuscript list container not found!");
+                        console.error("❌ Manuscript list container not found!");
                         return;
                     }
 
                     manuscriptList.innerHTML = ""; // Clear the list before updating
 
-                    if (!data.manuscripts || data.manuscripts.length === 0) {
+                    if (!Array.isArray(data) || data.length === 0) {
                         manuscriptList.innerHTML = "<p>No manuscripts found.</p>";
+                        console.warn("⚠️ No manuscripts found.");
                         return;
                     }
 
                     // Loop through each manuscript and display it on the page
-                    data.manuscripts.forEach((manuscript, index) => {
-                    console.log(`📖 Rendering Manuscript ${index + 1}:`, manuscript);
+                    data.forEach((manuscript, index) => {
+                        console.log(`📖 Rendering Manuscript ${index + 1}:`, manuscript);
 
-                    const manuscriptDiv = document.createElement("div");
-                    manuscriptDiv.classList.add("manuscript-item");
+                        const manuscriptDiv = document.createElement("div");
+                        manuscriptDiv.classList.add("manuscript-item");
 
-                    // Use default placeholder image if cover_art is missing
-                    const coverArt = manuscript.cover_art
-                        ? manuscript.cover_art
-                        : "/static/Front_End/Images/book-cover-placeholder.png";
+                        // Use default placeholder image if cover is missing
+                        const coverArt = manuscript.cover
+                            ? manuscript.cover
+                            : "/static/Front_End/Images/book-cover-placeholder.png";
 
-                    manuscriptDiv.innerHTML = `
-                        <img src="${coverArt}" alt="${manuscript.title} Cover Art"
-                            style="width: 120px; height: 180px; object-fit: cover;" />
-                        <h3>${manuscript.title}</h3>
-                        <p><strong>Author:</strong> ${manuscript.author || "Unknown"}</p>
-                        <p><strong>Keywords:</strong> ${manuscript.keywords ? manuscript.keywords.join(", ") : "None"}</p>
-                        <a href="/feedback-form/${manuscript.id}/" class="btn feedback-btn">Feedback Form</a>
-                    `;
-                    manuscriptList.appendChild(manuscriptDiv);
-                });
+                        manuscriptDiv.innerHTML = `
+                            <img src="${coverArt}" alt="${manuscript.title} Cover Art"
+                                style="width: 120px; height: 180px; object-fit: cover;" />
+                            <h3>${manuscript.title}</h3>
+                            <p><strong>Author ID:</strong> ${manuscript.author || "Unknown"}</p>
+                            <p><strong>Description:</strong> ${manuscript.description || "No description available"}</p>
+                            <p><strong>Plot Summary:</strong> ${manuscript.plot_summary || "No plot summary available"}</p>
+                            <p><strong>Status:</strong> ${manuscript.status}</p>
+                            <a href="/feedback-form/${manuscript.id}/" class="btn feedback-btn">Feedback Form</a>
+                        `;
+
+                        manuscriptList.appendChild(manuscriptDiv);
+                    });
                 })
-                .catch((error) => console.error("Error fetching manuscripts:", error));
+                .catch((error) => console.error("❌ Error fetching manuscripts:", error));
         }
 
         // Initialize event listeners once the page content is fully loaded
         document.addEventListener("DOMContentLoaded", () => {
             console.log("DOM Loaded! Checking elements...");
-
-            // Get references to form elements safely
-            const form = document.getElementById("filter-form");
-            const keywordInput = document.getElementById("filter-keywords");
-            const authorInput = document.getElementById("filter-author");
-            const filterGenre = document.getElementById("filter-genre");
-            const filterLength = document.getElementById("filter-length");
-            const filterChapters = document.getElementById("filter-chapters");
-            const filterButton = document.querySelector("button.btn-primary");
-
-            // Debugging logs to confirm elements exist
-            console.log("Form:", form);
-            console.log("Keyword Input:", keywordInput);
-            console.log("Author Input:", authorInput);
-            console.log("Genre Input:", filterGenre);
-            console.log("Length Input:", filterLength);
-            console.log("Chapters Input:", filterChapters);
-            console.log("Filter Button:", filterButton);
-
-            // Attach event listener to form submit button (if available)
-            if (form) {
-                form.addEventListener("submit", (event) => {
-                    event.preventDefault();
-                    applyFilters(event);
-                });
-            } else {
-                console.error("Filter form not found!");
-            }
-
-            // Attach event listeners to handle "Enter" key in input fields
-            if (keywordInput) {
-                keywordInput.addEventListener("keydown", (event) => {
-                    if (event.key === "Enter") {
-                        event.preventDefault();
-                        applyFilters(event);
-                    }
-                });
-            }
-
-            if (authorInput) {
-                authorInput.addEventListener("keydown", (event) => {
-                    if (event.key === "Enter") {
-                        event.preventDefault();
-                        applyFilters(event);
-                    }
-                });
-            }
-
-            // Ensure the filter button triggers `applyFilters()`
-            if (filterButton) {
-                filterButton.addEventListener("click", () => applyFilters());
-            }
-
-            // ✅ Load all manuscripts when the page loads
             applyFilters();
         });
-
     </script>
-    
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <img src="{% static 'Front_End/Images/Grn_Lite_Logo.png' %}" alt="Grn Lite Logo">
-            </div>
-            <nav class="sidebar-nav">
-                <a href="{% url 'my_app:home' %}" class="nav-item">Home</a>
-                <a href="{% url 'my_app:reader-dashboard' %}" class="nav-item active">Dashboard</a>
-                <a href="{% url 'my_app:available-manuscripts-html' %}" class="nav-item">Available Manuscripts</a>
-                <a href="{% url 'my_app:reader-feedback-html' %}" class="nav-item">Feedback</a>
-                <a href="{% url 'my_app:reader-profile-html' %}" class="nav-item">Profile</a>
-                <a href="{% url 'my_app:reader-resource-library-html' %}" class="nav-item">Resource Library</a>
-                <a href="{% url 'my_app:beta-reader-training-html' %}" class="nav-item">Training Module</a>
-                <a href="{% url 'my_app:beta-reader-performance-metrics-html' %}" class="nav-item active">Performance Metrics</a>
-                <a href="{% url 'my_app:reader-payment-page-html' %}" class="nav-item">Payments</a>
-                <a href="{% url 'my_app:reader-settings-html' %}" class="nav-item">Settings</a>
-                <a href="{% url 'my_app:logout' %}" class="nav-item">Logout</a>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
         <main class="main-content">
             <div class="content-header">
                 <h1>Available Manuscripts</h1>
@@ -188,33 +115,10 @@
             <div class="filters">
                 <h3>Filter Manuscripts</h3>
                 <form id="filter-form" class="form-group">
-                    <div class="form-group">
-                        <label for="filter-genre">Genre:</label>
-                        <select id="filter-genre" name="genre">
-                            <option value="">All Genres</option>
-                            <option value="Fiction">Fiction</option>
-                            <option value="Non-Fiction">Non-Fiction</option>
-                            <option value="Mystery">Mystery</option>
-                            <option value="Sci-Fi">Sci-Fi</option>
-                            <option value="Fantasy">Fantasy</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="filter-keywords">Keywords:</label>
-                        <input type="text" id="filter-keywords" name="keywords" placeholder="Enter keywords">
-                    </div>
-                    <div class="form-group">
-                        <label for="filter-length">Length (pages):</label>
-                        <input type="number" id="filter-length" name="length" placeholder="Enter max length">
-                    </div>
-                    <div class="form-group">
-                        <label for="filter-chapters">Chapters:</label>
-                        <input type="number" id="filter-chapters" name="chapters" placeholder="Enter max chapters">
-                    </div>
-                    <div class="form-group">
-                        <label for="filter-author">Author:</label>
-                        <input type="text" id="filter-author" name="author" placeholder="Enter author name">
-                    </div>
+                    <label for="filter-keywords">Keywords:</label>
+                    <input type="text" id="filter-keywords" name="keywords" placeholder="Enter keywords">
+                    <label for="filter-author">Author:</label>
+                    <input type="text" id="filter-author" name="author" placeholder="Enter author name">
                     <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
                 </form>
             </div>
