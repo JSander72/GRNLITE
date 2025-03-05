@@ -935,12 +935,14 @@ def find_beta_readers(request):
         beta_readers = beta_readers.filter(genres__id__in=genres_query).distinct()
 
     return render(
-        request, "find-beta-readers.html", {"beta_readers": beta_readers or []}
+        request,
+        "find-beta-readers.html",
+        {"beta_readers": beta_readers or ["beta_reader_list"]},
     )
 
 
 def beta_reader_list(request):
-    beta_readers = BetaReader.objects.all() or []
+    beta_readers = BetaReader.objects.all() or ["beta_readers"]
     return render(request, "beta-reader-list.html", {"beta_readers": beta_readers})
 
 
