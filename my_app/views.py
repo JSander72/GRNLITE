@@ -909,19 +909,19 @@ def author_dashboard(request):
 
 
 def my_manuscripts(request):
-    return render(request, "my-manuscripts.html")
+    return render(request, "Author_Dashboard/my-manuscripts.html")
 
 
 def manuscript_submission(request):
-    return render(request, "manuscript-submission.html")
+    return render(request, "Author_Dashboard/manuscript-submission.html")
 
 
 def manuscript_success(request):
-    return render(request, "manuscript-success.html")
+    return render(request, "Author_Dashboard/manuscript-success.html")
 
 
 def my_books(request):
-    return render(request, "my-books.html")
+    return render(request, "Author_Dashboard/my-books.html")
 
 
 def find_beta_readers(request):
@@ -934,16 +934,17 @@ def find_beta_readers(request):
     if genres_query:
         beta_readers = beta_readers.filter(genres__id__in=genres_query).distinct()
 
-    return render(
-        request,
-        "find-beta-readers.html",
-        {"beta_readers": beta_readers or ["beta_reader_list"]},
-    )
+    serializer = BetaReaderSerializer(beta_readers, many=True)
+    return JsonResponse(serializer.data, safe=False)
 
 
 def beta_reader_list(request):
     beta_readers = BetaReader.objects.all() or ["beta_readers"]
-    return render(request, "beta-reader-list.html", {"beta_readers": beta_readers})
+    return render(
+        request,
+        "Author_Dashboard/beta-reader-list.html",
+        {"beta_readers": beta_readers},
+    )
 
 
 def manuscript_submission(request):
@@ -958,7 +959,9 @@ def manuscript_submission(request):
     else:
         form = ManuscriptSubmissionForm()
 
-    return render(request, "manuscript-submission.html", {"form": form})
+    return render(
+        request, "Author_Dashboard/manuscript-submission.html", {"form": form}
+    )
 
 
 @login_required
@@ -973,7 +976,9 @@ def create_manuscript(request):
             return redirect("manuscript-success")
     else:
         form = ManuscriptSubmissionForm()
-    return render(request, "manuscript-submission2.html", {"form": form})
+    return render(
+        request, "Author_Dashboard/manuscript-submission2.html", {"form": form}
+    )
 
 
 def feedback_form(request, manuscript_id):
@@ -989,20 +994,24 @@ def feedback_form(request, manuscript_id):
         )
         return redirect("feedback-summary")
 
-    return render(request, "feedback-form.html", {"manuscript": manuscript})
+    return render(
+        request, "Author_Dashboard/feedback-form.html", {"manuscript": manuscript}
+    )
 
 
 def feedback_summary(request):
     feedback = Feedback.objects.all()
-    return render(request, "feedback-summary.html", {"feedback": feedback})
+    return render(
+        request, "Author_Dashboard/feedback-summary.html", {"feedback": feedback}
+    )
 
 
 def author_resource_library(request):
-    return render(request, "author_resource_library.html")
+    return render(request, "Author_Dashboard/author_resource_library.html")
 
 
 def author_community_groups(request):
-    return render(request, "author_community_groups.html")
+    return render(request, "Author_Dashboard/author_community_groups.html")
 
 
 def author_profile(request):
@@ -1010,11 +1019,11 @@ def author_profile(request):
 
 
 def author_payment_page(request):
-    return render(request, "author_payment_page.html")
+    return render(request, "Author_Dashboard/author_payment_page.html")
 
 
 def author_settings(request):
-    return render(request, "author_settings.html")
+    return render(request, "Author_Dashboard/author_settings.html")
 
 
 @api_view(["GET"])
