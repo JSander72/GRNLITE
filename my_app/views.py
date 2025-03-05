@@ -859,6 +859,7 @@ def reader_dashboard(request):
         print(f"User authenticated: {request.user.username}")
     else:
         print("User not authenticated")
+
     return render(request, "reader-dashboard.html")
 
 
@@ -907,7 +908,7 @@ def author_dashboard(request):
     return render(request, "author-dashboard.html")
 
 
-def author_dashboard(request):
+def my_manuscripts(request):
     return render(request, "my-manuscripts.html")
 
 
@@ -933,11 +934,13 @@ def find_beta_readers(request):
     if genres_query:
         beta_readers = beta_readers.filter(genres__id__in=genres_query).distinct()
 
-    return render(request, "find-beta-readers.html", {"beta_readers": beta_readers})
+    return render(
+        request, "find-beta-readers.html", {"beta_readers": beta_readers or []}
+    )
 
 
 def beta_reader_list(request):
-    beta_readers = BetaReader.objects.all()
+    beta_readers = BetaReader.objects.all() or []
     return render(request, "beta-reader-list.html", {"beta_readers": beta_readers})
 
 
@@ -949,8 +952,11 @@ def manuscript_submission(request):
             manuscript.author = request.user
             manuscript.save()
             form.save_m2m()
-
             return redirect("manuscript-success")
+    else:
+        form = ManuscriptSubmissionForm()
+
+    return render(request, "manuscript-submission.html", {"form": form})
 
 
 @login_required
@@ -970,6 +976,7 @@ def create_manuscript(request):
 
 def feedback_form(request, manuscript_id):
     manuscript = get_object_or_404(Manuscript, id=manuscript_id)
+
     if request.method == "POST":
         feedback_data = request.POST
         Feedback.objects.create(
@@ -977,12 +984,10 @@ def feedback_form(request, manuscript_id):
             user=request.user,
             plot=feedback_data.get("plot"),
             characters=feedback_data.get("characters"),
-            pacing=feedback_data.get("pacing"),
-            worldbuilding=feedback_data.get("worldbuilding"),
-            comments=feedback_data.get("comments"),
         )
-        return redirect("feedback-success")
-    return render(request, "reader-feedback.html", {"manuscript": manuscript})
+        return redirect("feedback-summary")
+
+    return render(request, "feedback-form.html", {"manuscript": manuscript})
 
 
 def feedback_summary(request):
