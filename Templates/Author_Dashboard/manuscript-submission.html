@@ -149,8 +149,8 @@
 					<h1>Manuscript Submission</h1>
 					<p>Submit and configure your manuscript for beta readers.</p>
 				</div>
-				<form class="submission-form">
-					<!-- Existing form fields remain the same -->
+				<form class="submission-form" actions="/api/manuscripts" method="POST" encrtype="multipart/form-data">
+					
 					<div class="form-group">
 						<label for="manuscript-upload">Upload Manuscript:</label>
 						<input
