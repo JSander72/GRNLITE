@@ -149,9 +149,9 @@
 					<h1>Manuscript Submission</h1>
 					<p>Submit and configure your manuscript for beta readers.</p>
 				</div>
-				<form class="submission-form" actions="/api/manuscripts" method="POST" encrtype="multipart/form-data">
+				<form class="submission-form" actions="/api/manuscript" method="POST" encrtype="multipart/form-data">
 					{% csrf_token %}
-					
+
 					
 					<div class="form-group">
 						<label for="manuscript-upload">Upload Manuscript:</label>
