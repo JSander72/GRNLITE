@@ -1011,7 +1011,7 @@ def author_resource_library(request):
 
 
 def author_community_groups(request):
-    return render(request, "Author_Dashboard/author_community_groups.html")
+    return render(request, "Author_Dashboard/author-community-groups.html")
 
 
 def author_profile(request):
