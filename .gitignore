@@ -3,7 +3,7 @@ Yes, the `.gitignore` file you provided looks correct. It will ignore the follow
 - `dotenv`
 - `.env`
 - `.vscode`
-- `.venv`
+
 - `__pycache__/`
 - 'pytest_cache__/'
 - `*.pyc` (any file with a `.pyc` extension)
