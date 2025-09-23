@@ -46,7 +46,8 @@ def send_verification_email(user, email=None):
 
         # Create and send email
         subject = "Verify your email address - Grn Lite"
-        from_email = settings.DEFAULT_FROM_EMAIL
+        # Send from configured default (typically the Gmail auth user)
+        from_email = settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER
         to_email = [email_address]
 
         email_message = EmailMultiAlternatives(
