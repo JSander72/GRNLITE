@@ -1026,16 +1026,20 @@ def author_settings(request):
     return render(request, "Author_Dashboard/author_settings.html")
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def reader_dashboard(request):
-    return HttpResponse("Reader Dashboard Content", content_type="text/html")
+# Additional API endpoints can be added here as needed
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def author_dashboard(request):
-    return HttpResponse("Author Dashboard Content", content_type="text/html")
+@permission_classes([AllowAny])
+def health_check(request):
+    """Simple health check endpoint"""
+    return Response(
+        {
+            "status": "healthy",
+            "message": "GRNLITE API is running",
+            "timestamp": now().isoformat(),
+        }
+    )
 
 
 @api_view(["GET"])

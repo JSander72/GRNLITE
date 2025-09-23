@@ -1,7 +1,8 @@
+# This app's admin has been consolidated into my_app.admin
+# to avoid conflicts and maintain consistency.
+# The Manuscript admin is now in my_app.admin.py
+
 from django.contrib import admin
-from .models import Manuscript
 
-
-@admin.register(Manuscript)
-class ManuscriptAdmin(admin.ModelAdmin):
-    list_display = ("title", "author", "status", "created_at", "updated_at")
+# Placeholder to keep the app structure intact
+# All manuscript-related admin is in my_app.admin.py

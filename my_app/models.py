@@ -130,13 +130,6 @@ class FeedbackQuestion(models.Model):
 
 
 class Manuscript(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(
-        auto_now=True, help_text="The last time the manuscript was updated"
-    )
-    title = models.CharField(max_length=200)
-    description = models.TextField()
-    cover = models.ImageField(upload_to="manuscripts/covers/")
     STATUS_CHOICES = [
         ("draft", "Draft"),
         ("submitted", "Submitted"),
@@ -151,7 +144,8 @@ class Manuscript(models.Model):
         help_text="The author of the manuscript",
     )
     title = models.CharField(max_length=200)
-    file_path = models.FileField(upload_to="uploads/manuscript/% Y/% m/% d/")
+    description = models.TextField()
+    file_path = models.FileField(upload_to="uploads/manuscript/%Y/%m/%d/")
     status = models.CharField(
         max_length=30,
         choices=STATUS_CHOICES,
@@ -161,7 +155,7 @@ class Manuscript(models.Model):
         help_text="Status of the manuscript",
     )
     nda_required = models.BooleanField(
-        default=False,  # Default value to avoid NOT NULL constraint errors
+        default=False,
         help_text="Indicates if an NDA is required for this manuscript",
     )
     keywords = models.ManyToManyField(
@@ -173,13 +167,14 @@ class Manuscript(models.Model):
     )
     budget = models.IntegerField(null=False, default=0)
     beta_readers_needed = models.IntegerField(null=False, default=0)
+    cover = models.ImageField(upload_to="manuscripts/covers/", null=True, blank=True)
     cover_art = models.FileField(
-        null=True, blank=True, upload_to="uploads/cover_art/% Y/% m/% d/"
+        null=True, blank=True, upload_to="uploads/cover_art/%Y/%m/%d/"
     )
     nda_file = models.FileField(
-        null=True, blank=True, upload_to="uploads/nda/% Y/% m/% d/"
+        null=True, blank=True, upload_to="uploads/nda/%Y/%m/%d/"
     )
-    plot_summary = models.TextField(max_length=1000, null=True)
+    plot_summary = models.TextField(max_length=1000, null=True, blank=True)
     created_at = models.DateTimeField(default=now, help_text="Timestamp of creation")
     updated_at = models.DateTimeField(default=now, help_text="Timestamp of last update")
 
@@ -401,6 +396,33 @@ class Notification(models.Model):
     )
 
 
+class BetaReader(models.Model):
+    user = models.OneToOneField(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="beta_reader_profile",
+        help_text="The user who is a beta reader",
+    )
+    experience = models.TextField(
+        null=True, blank=True, help_text="Summary of the beta reader's experience"
+    )
+    genres = models.ManyToManyField(
+        "Genre",
+        related_name="beta_readers",
+        blank=True,
+        help_text="Genres the beta reader is interested in",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, help_text="When the beta reader profile was created"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, help_text="When the beta reader profile was last updated"
+    )
+
+    def __str__(self):
+        return self.user.username
+
+
 class BetaReaderApplication(models.Model):
     APPLICATION_STATUS_CHOICES = [
         ("applied", "Applied"),  # Application submitted but not yet reviewed
@@ -454,36 +476,8 @@ class BetaReaderApplication(models.Model):
         help_text="Optional message from the beta reader to the author",
     )
 
-
-class BetaReader(models.Model):
-    user = models.OneToOneField(
-        get_user_model(),
-        on_delete=models.CASCADE,
-        related_name="beta_reader_profile",
-        help_text="The user who is a beta reader",
-    )
-    experience = models.TextField(
-        null=True, blank=True, help_text="Summary of the beta reader's experience"
-    )
-    genres = models.ManyToManyField(
-        "Genre",
-        related_name="beta_readers",
-        blank=True,
-        help_text="Genres the beta reader is interested in",
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True, help_text="When the beta reader profile was created"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True, help_text="When the beta reader profile was last updated"
-    )
-
     def __str__(self):
-        return self.user.username
-
-
-def __str__(self):
-    return f"{self.beta_reader.username} applied for {self.manuscript.title}"
+        return f"{self.beta_reader.username} applied for {self.manuscript.title}"
 
 
 class Genre(models.Model):

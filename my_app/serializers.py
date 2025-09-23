@@ -13,6 +13,9 @@ from .models import (
     BetaReaderApplication,
     ManuscriptFeedbackPreference,
     Feedback,
+    BetaReader,
+    Genre,
+    FeedbackCategory,
 )
 
 User = get_user_model()
@@ -169,6 +172,24 @@ class NotificationSerializer(serializers.ModelSerializer):
 #         fields = ["id", "user", "experience", "genres", "created_at", "updated_at"]
 
 
+class BetaReaderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BetaReader
+        fields = ["id", "user", "experience", "genres", "created_at", "updated_at"]
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Genre
+        fields = ["id", "name", "description"]
+
+
+class FeedbackCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FeedbackCategory
+        fields = ["id", "name", "description", "is_active"]
+
+
 class BetaReaderApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = BetaReaderApplication
@@ -185,10 +206,3 @@ class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
         fields = "__all__"
-
-
-# Serializers define the API representation.
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ["url", "username", "email", "is_staff"]

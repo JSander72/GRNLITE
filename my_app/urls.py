@@ -158,10 +158,13 @@ urlpatterns = [
     path("beta-readers/", BetaReaderListCreateView.as_view(), name="beta-reader-list"),
     # API Router URLs
     path("api/", include(router.urls)),
+    # Enhanced URLs temporarily disabled for testing
+    # path("api/v2/", include("my_app.enhanced_urls")),
     path("signup/", signup_page, name="signup_page"),
     path("register/", register_user, name="register_user"),
     path("protected/", protected_view, name="protected_view"),
     path("api/validate-token/", ValidateTokenView.as_view(), name="validate-token"),
+    path("api/health/", views.health_check, name="health-check"),
     # Author Dashboard URLS
     path("beta-reader-list/", views.beta_reader_list, name="beta-reader-list-html"),
     path(
