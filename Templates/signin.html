@@ -248,6 +248,10 @@
                     localStorage.setItem("access_token", result.token); // Store token
                     console.log("Stored Token:", localStorage.getItem("access_token")); // Verify storage
                     window.location.href = result.redirect_url; // Redirect to dashboard
+                } else if (response.status === 403 && result.requires_verification) {
+                    // User needs to verify email
+                    alert(result.message || "Please verify your email address to continue.");
+                    window.location.href = `${BASE_URL}/verify-email/`;
                 } else {
                     alert(`Error: ${result.error}`);
                 }

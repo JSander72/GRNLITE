@@ -217,17 +217,37 @@
     
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.message || "Signup failed.");
+                    throw new Error(errorData.error || errorData.message || "Signup failed.");
                 }
     
-                const { token, refresh_token } = await response.json();
+                const result = await response.json();
     
-                // Save tokens locally
-                localStorage.setItem("access_token", token);
-                localStorage.setItem("refresh_token", refresh_token);
-    
-                // Save tokens to the database
-                await fetch(`${BASE_URL}/api/save_token/`, {
+                if (result.requires_verification) {
+                    // Redirect to email verification page
+                    alert(result.message);
+                    window.location.href = `${BASE_URL}/verify-email/`;
+                } else {
+                    // Old flow for backward compatibility (shouldn't happen with new system)
+                    const { token, refresh_token } = result;
+                    
+                    // Save tokens locally
+                    localStorage.setItem("access_token", token);
+                    localStorage.setItem("refresh_token", refresh_token);
+        
+                    // Save tokens to the database
+                    await fetch(`${BASE_URL}/api/save_token/`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json",
+                            "X-CSRFToken": csrfToken,
+                        },
+                        body: JSON.stringify({ token, refresh_token }),
+                    });
+        
+                    alert("Signup successful!");
+                    window.location.href = `${BASE_URL}/signin/`;
+                }
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

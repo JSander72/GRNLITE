@@ -50,6 +50,18 @@ urlpatterns = [
     path("signin/api/authenticate/", views.authenticate_user, name="signin_auth"),
     path("api/signup/", views.signup, name="signup"),
     path("api/signin/", views.signin, name="signin"),
+    # Email Verification URLs
+    path("verify-email/", views.EmailVerificationView.as_view(), name="verify_email"),
+    path(
+        "api/resend-verification/",
+        views.resend_verification_email,
+        name="resend_verification",
+    ),
+    path(
+        "api/verification-status/",
+        views.verification_status,
+        name="verification_status",
+    ),
     path("login/", views.login, name="login"),
     path("logout/", views.logout, name="logout"),
     path("api/protected/", protected_view, name="protected"),

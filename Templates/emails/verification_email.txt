@@ -1,0 +1,22 @@
+Email Verification - Grn Lite
+
+Hello {{ user.first_name|default:user.username }},
+
+Welcome to Grn Lite! To complete your account setup and ensure the security of your account, please verify your email address.
+
+Your verification code is: {{ verification_code }}
+
+How to verify:
+1. Go back to the Grn Lite verification page
+2. Enter the 6-digit code above
+3. Click "Verify Email" to complete your registration
+
+IMPORTANT: This verification code will expire in {{ expiry_minutes }} minutes for security reasons. If you don't verify within this time, you'll need to request a new code.
+
+If you didn't create an account with Grn Lite, you can safely ignore this email.
+
+---
+This is an automated message from Grn Lite.
+Please do not reply to this email.
+
+© 2025 Grn Lite. All rights reserved.

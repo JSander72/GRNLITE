@@ -39,6 +39,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "my_app.middleware.EmailVerificationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -112,9 +113,10 @@ SIMPLE_JWT = {
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-if os.getenv("DATABASE_URL"):
+database_url = os.getenv("DATABASE_URL")
+if database_url:
     # Production database from DATABASE_URL
-    DATABASES = {"default": dj_database_url.parse(os.getenv("DATABASE_URL"))}
+    DATABASES = {"default": dj_database_url.parse(database_url)}
 elif all([os.getenv("DB_NAME"), os.getenv("DB_USER"), os.getenv("DB_HOST")]):
     # PostgreSQL configuration
     DATABASES = {
@@ -181,3 +183,16 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Email Configuration
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@grnlite.com")
+
+# Email verification settings
+EMAIL_VERIFICATION_CODE_LENGTH = 6
+EMAIL_VERIFICATION_CODE_EXPIRY_MINUTES = 15

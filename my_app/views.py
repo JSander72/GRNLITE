@@ -59,6 +59,13 @@ from .models import (
     BetaReaderApplication,
     BetaReader,
     UserToken,
+    EmailVerification,
+)
+from .email_verification import (
+    send_verification_email,
+    verify_email_code,
+    resend_verification_code,
+    get_verification_status,
 )
 
 
@@ -676,6 +683,7 @@ def signup(request):
                 username=username, email=email, password=password
             )
             user.user_type = user_type
+            user.is_active = False  # User is inactive until email is verified
             user.save()
 
             # Ensure profile is created
@@ -683,21 +691,20 @@ def signup(request):
                 user=user, defaults={"user_type": user_type}
             )
 
-            # Generate JWT tokens
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
+            # Send verification email
+            verification = send_verification_email(user)
+            if not verification:
+                return JsonResponse(
+                    {"error": "Failed to send verification email. Please try again."},
+                    status=500,
+                )
 
-            # Save token in userToken model
-            UserToken.objects.updte_or_create(
-                user=user, defaults={"token": access_token}
-            )
-            # Return JSON response with tokens
-
+            # Return JSON response without tokens (user needs to verify email first)
             return JsonResponse(
                 {
-                    "message": "Signup successful.",
-                    "token": str(refresh.access_token),
-                    "refresh_token": str(refresh),
+                    "message": "Account created successfully! Please check your email for a verification code.",
+                    "email_sent": True,
+                    "requires_verification": True,
                 },
                 status=201,
             )
@@ -729,6 +736,18 @@ def signin(request):
             # Authenticate the user
             user = authenticate(request, username=username, password=password)
             if user is not None:
+                # Check if email is verified
+                if not user.is_email_verified:
+                    return JsonResponse(
+                        {
+                            "error": "Email not verified",
+                            "message": "Please verify your email address before signing in.",
+                            "requires_verification": True,
+                            "user_id": user.id,
+                        },
+                        status=403,
+                    )
+
                 login(request, user)
 
                 # Generate JWT tokens using Simple JWT
@@ -1216,6 +1235,101 @@ class LogoutView(View):
     def get(self, request):
         logout(request)
         return redirect("signin")
+
+
+# Email Verification Views
+class EmailVerificationView(View):
+    """Handle email verification form display and code submission"""
+
+    def get(self, request):
+        """Display the email verification form"""
+        if request.user.is_authenticated and request.user.is_email_verified:
+            # User is already verified, redirect to appropriate dashboard
+            if request.user.user_type == "author":
+                return redirect("author_dashboard")
+            else:
+                return redirect("reader_dashboard")
+
+        return render(request, "email_verification.html")
+
+    def post(self, request):
+        """Handle verification code submission"""
+        if not request.user.is_authenticated:
+            return JsonResponse({"error": "User not authenticated"}, status=401)
+
+        try:
+            data = json.loads(request.body)
+            verification_code = data.get("verification_code", "").strip()
+
+            if not verification_code:
+                return JsonResponse(
+                    {"error": "Verification code is required"}, status=400
+                )
+
+            # Verify the code
+            result = verify_email_code(request.user, verification_code)
+
+            if result["success"]:
+                # Determine redirect URL based on user type
+                redirect_url = (
+                    "/author-dashboard/"
+                    if request.user.user_type == "author"
+                    else "/reader-dashboard/"
+                )
+                return JsonResponse(
+                    {
+                        "success": True,
+                        "message": result["message"],
+                        "redirect_url": redirect_url,
+                    }
+                )
+            else:
+                return JsonResponse(
+                    {"success": False, "error": result["message"]}, status=400
+                )
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON data"}, status=400)
+        except Exception as e:
+            logger.error(f"Error during email verification: {str(e)}")
+            return JsonResponse({"error": "An unexpected error occurred"}, status=500)
+
+
+@csrf_exempt
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def resend_verification_email(request):
+    """Resend verification email to the authenticated user"""
+    try:
+        result = resend_verification_code(request.user)
+
+        if result["success"]:
+            return JsonResponse({"success": True, "message": result["message"]})
+        else:
+            return JsonResponse(
+                {"success": False, "error": result["message"]}, status=400
+            )
+
+    except Exception as e:
+        logger.error(f"Error resending verification email: {str(e)}")
+        return JsonResponse(
+            {"success": False, "error": "Failed to resend verification email"},
+            status=500,
+        )
+
+
+@csrf_exempt
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def verification_status(request):
+    """Get the current verification status for the authenticated user"""
+    try:
+        status_info = get_verification_status(request.user)
+        return JsonResponse(status_info)
+
+    except Exception as e:
+        logger.error(f"Error getting verification status: {str(e)}")
+        return JsonResponse({"error": "Failed to get verification status"}, status=500)
 
 
 from django.shortcuts import render

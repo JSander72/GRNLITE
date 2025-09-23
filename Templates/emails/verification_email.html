@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification - Grn Lite</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            color: #2a9d8f;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .verification-code {
+            background-color: #2a9d8f;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            letter-spacing: 4px;
+        }
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #2a9d8f;
+            margin: 20px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #ffeaa7;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #2a9d8f;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Grn Lite</div>
+            <h2>Email Verification Required</h2>
+        </div>
+        
+        <p>Hello {{ user.first_name|default:user.username }},</p>
+        
+        <p>Welcome to Grn Lite! To complete your account setup and ensure the security of your account, please verify your email address.</p>
+        
+        <div class="instructions">
+            <strong>Your verification code is:</strong>
+        </div>
+        
+        <div class="verification-code">
+            {{ verification_code }}
+        </div>
+        
+        <div class="instructions">
+            <h3>How to verify:</h3>
+            <ol>
+                <li>Go back to the Grn Lite verification page</li>
+                <li>Enter the 6-digit code above</li>
+                <li>Click "Verify Email" to complete your registration</li>
+            </ol>
+        </div>
+        
+        <div class="warning">
+            <strong>Important:</strong> This verification code will expire in {{ expiry_minutes }} minutes for security reasons. If you don't verify within this time, you'll need to request a new code.
+        </div>
+        
+        <p>If you didn't create an account with Grn Lite, you can safely ignore this email.</p>
+        
+        <div class="footer">
+            <p>This is an automated message from Grn Lite.<br>
+            Please do not reply to this email.</p>
+            <p>&copy; 2025 Grn Lite. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

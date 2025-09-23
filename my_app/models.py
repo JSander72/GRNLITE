@@ -4,10 +4,15 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 from django.conf import settings
+import random
+import string
+from datetime import datetime, timedelta
 
 
 class CustomUser(AbstractUser):
     user_type = models.CharField(max_length=50, default="regular")
+    is_email_verified = models.BooleanField(default=False)
+    email_verified_at = models.DateTimeField(null=True, blank=True)
     groups = models.ManyToManyField(Group, related_name="customuser_set", blank=True)
     user_permissions = models.ManyToManyField(
         Permission, related_name="customuser_set", blank=True
@@ -22,6 +27,46 @@ class CustomUserGroup(models.Model):
 class CustomUserPermission(models.Model):
     custom_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
+
+
+class EmailVerification(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    email = models.EmailField()
+    verification_code = models.CharField(max_length=10)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def save(self, *args, **kwargs):
+        if not self.verification_code:
+            self.verification_code = self.generate_verification_code()
+        if not self.expires_at:
+            # Default expiry to 15 minutes from now
+            expiry_minutes = getattr(
+                settings, "EMAIL_VERIFICATION_CODE_EXPIRY_MINUTES", 15
+            )
+            self.expires_at = now() + timedelta(minutes=expiry_minutes)
+        super().save(*args, **kwargs)
+
+    def generate_verification_code(self):
+        """Generate a random 6-digit verification code"""
+        code_length = getattr(settings, "EMAIL_VERIFICATION_CODE_LENGTH", 6)
+        return "".join(random.choices(string.digits, k=code_length))
+
+    def is_expired(self):
+        """Check if the verification code has expired"""
+        return now() > self.expires_at
+
+    def is_valid(self):
+        """Check if the verification code is valid (not used and not expired)"""
+        return not self.is_used and not self.is_expired()
+
+    def __str__(self):
+        return f"Verification for {self.email} - {self.verification_code}"
 
 
 class Profile(models.Model):
