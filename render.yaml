@@ -28,9 +28,29 @@ services:
     sync: false
   - key: ENGINE
     sync: false
+  - key: NODE_ENV
+    value: production
   region: ohio
-  buildCommand: pip install -r requirements.txt
+  buildCommand: pip install -r requirements.txt && npm install
   startCommand: gunicorn grnlite.wsgi:application --bind 0.0.0.0:4000
+
+- type: web
+  name: GRNLITE-KeepAlive
+  runtime: node
+  repo: https://github.com/JSander72/GRNLITE
+  plan: free
+  envVars:
+  - key: NODE_ENV
+    value: production
+  - key: RENDER_EXTERNAL_URL
+    value: https://grnlite.onrender.com
+  - key: APP_URL
+    value: https://grnlite.onrender.com
+  - key: HEALTH_ENDPOINT
+    value: /
+  region: ohio
+  buildCommand: npm install
+  startCommand: node standalone-keepalive.js
 version: "1"
 
 

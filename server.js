@@ -3,6 +3,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const keepAliveService = require('./keepAlive');
 
 const app = express();
 const port = 3000;
@@ -93,8 +94,37 @@ router.get('/verify-token', async (req, res) => {
     }
 });
 
+// Health check endpoint for keep-alive service
+app.get('/api/health-check', (req, res) => {
+    const stats = keepAliveService.getStats();
+    res.status(200).json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        keepAlive: stats,
+        message: 'Server is running and healthy'
+    });
+});
+
+// Status endpoint to check keep-alive service
+app.get('/api/keep-alive-status', (req, res) => {
+    const stats = keepAliveService.getStats();
+    res.status(200).json({
+        keepAliveService: stats
+    });
+});
+
 app.use('/api', router);
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
+    
+    // Start the keep-alive service only in production
+    if (process.env.NODE_ENV === 'production' || process.env.RENDER_EXTERNAL_URL) {
+        console.log('🔄 Starting keep-alive service for production...');
+        keepAliveService.start();
+    } else {
+        console.log('⚠️  Keep-alive service disabled in development mode');
+        console.log('   Set NODE_ENV=production or RENDER_EXTERNAL_URL to enable');
+    }
 });
