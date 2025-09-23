@@ -321,7 +321,7 @@ class FeedbackResponse(models.Model):
     )
 
     def __str__(self):
-        return f"Feedback by {self.reader.username} for {self.manuscript.title} - Question: {self.question.id}"
+        return f"Feedback by {self.reader.username} for {self.manuscript.title} - Question: {self.question.question_text[:50]}..."
 
 
 class AuthorSettings(models.Model):

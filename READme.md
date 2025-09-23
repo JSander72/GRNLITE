@@ -1,52 +1,238 @@
 # GRNLITE: A Manuscript Beta Reading Platform
 
-This repository contains the codebase for GRNLITE, a web application designed to facilitate the beta reading process for authors and readers. The platform provides a streamlined and efficient way for authors to connect with beta readers, manage feedback, and improve their manuscripts.
+GRNLITE is a comprehensive web application that connects authors with beta readers, streamlining the manuscript feedback process. Built with Django and deployed on Render, it provides a professional platform for manuscript review and collaboration.
 
-## Features
+## Application Architecture
 
-### For Authors:
-- Submit manuscripts for beta reading.
-- Set project budgets and select beta readers based on experience and preferences.
-- Communicate directly with beta readers and provide clear expectations.
-- Receive and analyze feedback in a structured format.
-- Manage payments to beta readers securely.
-- Access a resource library with writing tips, templates, and other helpful tools.
-- Connect with other authors in community groups.
+### **Backend Components**
 
-### For Beta Readers:
-- Create detailed profiles showcasing experience, pay scales, and genre preferences.
-- Browse available manuscripts and apply for projects that match interests.
-- Provide feedback through in-manuscript comments and overall evaluations.
-- Receive payments from authors for completed feedback work.
-- Access training modules to improve beta reading skills and provide high-quality feedback.
-- View performance metrics to track progress and showcase expertise.
+- **Django Framework**: Core web framework with custom user model and authentication
+- **Django REST Framework**: RESTful API endpoints for frontend interactions
+- **PostgreSQL Database**: Production-ready database with comprehensive data models
+- **JWT Authentication**: Secure token-based authentication system
+- **Email Verification**: Custom middleware for mandatory email verification
+- **File Management**: Secure manuscript and media file handling
+
+### **Key Applications**
+
+- **`my_app`**: Core application containing user management, manuscripts, and beta reader functionality
+- **`manuscripts`**: Consolidated manuscript-related models (integrated into my_app)
+- **Custom User Model**: Extended Django user with email verification and user types
+- **Comprehensive Models**: Authors, beta readers, manuscripts, feedback, resources, and notifications
+
+### **Frontend Interface**
+
+- **Responsive Design**: Modern CSS with custom typography (Playwrite DE Grund Thin)
+- **Dashboard System**: Separate author and reader dashboards
+- **Template Structure**: Organized HTML templates with reusable components
+- **Interactive JavaScript**: Dynamic content loading and form handling
+
+## ✨ Features
+
+### **For Authors**
+
+- **Manuscript Management**: Upload manuscripts with cover art, plot summaries, and keywords
+- **Beta Reader Selection**: Browse and select beta readers based on experience and genres
+- **Feedback Collection**: Receive structured feedback through customizable questions
+- **Project Budgeting**: Set budgets and manage beta reader compensation
+- **NDA Support**: Optional NDA requirements for sensitive manuscripts
+- **Dashboard Analytics**: Track manuscript status and feedback progress
+
+### **For Beta Readers**
+
+- **Profile Creation**: Showcase experience, genres, and availability
+- **Manuscript Discovery**: Browse available manuscripts matching interests
+- **Application System**: Apply for beta reading projects with cover letters
+- **Structured Feedback**: Provide feedback through guided questions and categories
+- **Portfolio Building**: Track completed projects and build reputation
+
+### **Shared Features**
+
+- **Email Verification**: Mandatory email verification for account activation
+- **Notifications**: Real-time notifications for project updates
+- **Resource Library**: Access to writing guides and templates
+- **Secure Authentication**: JWT-based authentication with session management
 
 ## Technologies Used
-- **Django/Python**: Backend framework for handling application logic and data management.
-- **Django REST Framework**: Provides a RESTful API for frontend interactions.
-- **PostgreSQL**: Relational database for storing user data, manuscripts, and feedback.
-- **HTML/CSS/JavaScript**: Frontend technologies for user interface design and interactivity.
-- **OAuth 2.0**: Enables secure authentication with Google and other providers.
-- **Render**: Cloud platform for hosting and deploying the application.
 
-## Installation
-1. Clone the repository: `git clone https://github.com/JSander72/GRNLITE.git`
-2. Install dependencies: `pip install -r requirements.txt`
-3. Set up environment variables:
-    - `DATABASE_URL`: Connection string for your PostgreSQL database.
-    - `SECRET_KEY`: A unique secret key for your Django application.
-    - `DEBUG`: Set to `True` for development mode, `False` for production.
-    - `ALLOWED_HOSTS`: A comma-separated list of allowed hostnames.
-    - `SOCIAL_AUTH_GOOGLE_OAUTH2_KEY`: Your Google OAuth 2.0 client ID.
-    - `SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET`: Your Google OAuth 2.0 client secret.
-4. Run migrations: `python manage.py migrate`
-5. Start the development server: `python manage.py runserver`
+- **Backend**: Django 5.1.4, Django REST Framework 3.15.2
+- **Database**: PostgreSQL with psycopg2-binary
+- **Authentication**: JWT (djangorestframework-simplejwt), Social Auth
+- **File Handling**: Pillow for image processing, python-docx for documents
+- **Deployment**: Gunicorn, Whitenoise for static files
+- **Frontend**: HTML5, CSS3, JavaScript, responsive design
+- **Development**: Black (formatting), Flake8 (linting), Pytest (testing)
 
-## Deployment
-The application is set up to be deployed on Render. The `render.yaml` file contains the necessary configurations for automatic deployment from the GitHub repository.
+## Installation & Setup
+
+### **Prerequisites**
+
+- Python 3.8+
+- PostgreSQL
+- Git
+
+### **Local Development Setup**
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/JSander72/GRNLITE.git
+   cd GRNLITE
+   ```
+
+2. **Create and activate virtual environment**
+
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Set up environment variables**
+
+   Create a `.env` file in the project root:
+
+   ```env
+   DJANGO_SECRET_KEY=your-secret-key-here
+   DEBUG=True
+   DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
+   DATABASE_URL=postgresql://username:password@localhost:5432/grnlite_db
+   
+   # Email Configuration (optional for development)
+   EMAIL_HOST_USER=your-email@gmail.com
+   EMAIL_HOST_PASSWORD=your-app-password
+   ```
+
+5. **Set up database**
+
+   ```bash
+   python manage.py migrate
+   python manage.py createsuperuser
+   ```
+
+6. **Run development server**
+
+   ```bash
+   python manage.py runserver
+   ```
+
+7. **Access the application**
+   - Main site: http://127.0.0.1:8000/
+   - Admin panel: http://127.0.0.1:8000/admin/
+
+## Testing
+
+### **Run Tests**
+
+```bash
+# Run all tests
+python manage.py test
+
+# Run with coverage
+pytest --cov=my_app
+
+# Run specific test files
+python manage.py test my_app.tests
+```
+
+### **Code Quality**
+
+```bash
+# Format code
+black .
+
+# Check linting
+flake8
+
+# Check Django configuration
+python manage.py check --deploy
+```
+
+### **Manual Testing Workflow**
+
+1. **User Registration & Authentication**
+   - Register as author/beta reader
+   - Verify email functionality
+   - Test login/logout
+
+2. **Author Workflow**
+   - Submit manuscript with metadata
+   - Browse beta readers
+   - Review feedback received
+
+3. **Beta Reader Workflow**
+   - Create profile with genres
+   - Apply for manuscripts
+   - Submit structured feedback
+
+## 🌐 Deployment
+
+### **Render Deployment**
+
+The application is configured for deployment on Render with:
+
+- **`render.yaml`**: Service configuration
+- **PostgreSQL database**: Managed database service
+- **Environment variables**: Secure configuration management
+- **Static file serving**: Whitenoise for production static files
+
+### **Environment Variables for Production**
+
+```env
+DJANGO_SECRET_KEY=secure-production-key
+DEBUG=False
+DJANGO_ALLOWED_HOSTS=your-domain.onrender.com
+DATABASE_URL=postgresql://...  # Provided by Render
+```
+
+## Project Structure
+
+```
+GRNLITE/
+├── grnlite/                 # Django project settings
+├── my_app/                  # Core application
+│   ├── models.py           # Data models (User, Manuscript, Feedback, etc.)
+│   ├── views.py            # API and template views
+│   ├── serializers.py      # DRF serializers
+│   ├── forms.py            # Django forms
+│   ├── middleware.py       # Email verification middleware
+│   └── migrations/         # Database migrations
+├── Templates/              # HTML templates
+├── static/                 # Static files (CSS, JS, images)
+├── media/                  # User uploaded files
+├── requirements.txt        # Python dependencies
+├── render.yaml            # Deployment configuration
+└── manage.py              # Django management script
+```
+
+## Security Features
+
+- **Email Verification**: Mandatory verification before access
+- **JWT Authentication**: Secure token-based auth
+- **CSRF Protection**: Built-in Django CSRF middleware
+- **File Upload Security**: Secure file handling and storage
+- **Environment-based Configuration**: Secure secrets management
 
 ## Contributing
-Contributions are welcome! Please feel free to submit issues or pull requests.
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Support
+
+For questions or issues:
+
+- Create an issue on GitHub
+- Contact the development team
 
 ## License
+
 This project is licensed under the MIT License - see the LICENSE file for details.

@@ -30,6 +30,7 @@ from django.conf import settings
 from django.middleware.csrf import get_token
 import jwt
 from datetime import datetime, timedelta, timezone
+from django.utils.timezone import now
 from .serializers import (
     UserSerializer,
     ProfileSerializer,
@@ -184,7 +185,7 @@ class TestHeaderView(APIView):
             return Response({"message": "Header not found"})
 
 
-class ReaderDashboardView(APIView):
+class ReaderDashboardAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -199,7 +200,7 @@ class ReaderDashboardView(APIView):
         return Response(data)
 
 
-class AuthorDashboardView(APIView):
+class AuthorDashboardAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -585,24 +586,6 @@ def register_user(username, email, password):
     return user
 
 
-class SignupView(APIView):
-    def post(self, request, *args, **kwargs):
-        try:
-            data = request.data
-            # Perform signup logic here
-            # Example: save user details or raise validation errors
-            return Response(
-                {"message": "Signup successful"}, status=status.HTTP_201_CREATED
-            )
-        except Exception as e:
-            # Log the error for debugging
-            print(f"Error during signup: {str(e)}")
-            # Return a proper JSON response for errors
-            return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-
 @csrf_exempt
 @api_view(["GET", "POST"])
 def api_signup(request):
@@ -931,39 +914,12 @@ def my_manuscripts(request):
     return render(request, "Author_Dashboard/my-manuscripts.html")
 
 
-def manuscript_submission(request):
-    return render(request, "Author_Dashboard/manuscript-submission.html")
-
-
 def manuscript_success(request):
     return render(request, "Author_Dashboard/manuscript-success.html")
 
 
 def my_books(request):
     return render(request, "Author_Dashboard/my-books.html")
-
-
-def find_beta_readers(request):
-    experience_query = request.GET.get("experience", "")
-    genres_query = request.GET.getlist("genres")
-    beta_readers = BetaReader.objects.all()
-
-    if experience_query:
-        beta_readers = beta_readers.filter(experience__icontains=experience_query)
-    if genres_query:
-        beta_readers = beta_readers.filter(genres__id__in=genres_query).distinct()
-
-    serializer = BetaReaderSerializer(beta_readers, many=True)
-    return JsonResponse(serializer.data, safe=False)
-
-
-def beta_reader_list(request):
-    beta_readers = BetaReader.objects.all() or ["beta_readers"]
-    return render(
-        request,
-        "Author_Dashboard/beta-reader-list.html",
-        {"beta_readers": beta_readers},
-    )
 
 
 def manuscript_submission(request):
@@ -1199,35 +1155,6 @@ class SignInView(View):
                 return JsonResponse({"error": "Your account is inactive."}, status=400)
         else:
             return JsonResponse({"error": "Invalid username or password."}, status=401)
-
-
-class SignUpView(View):
-    def get(self, request):
-        form = SignUpForm()
-        return render(request, "signup.html", {"form": form})
-
-    def post(self, request):
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)  # Don't save to the database yet
-            user_type = request.POST.get("user_type", "regular")  # Fetch `user_type`
-
-            if user_type:
-                user.user_type = user_type  # Assign the user_type value
-            else:
-                print("user_type not found in request.POST")  # Debugging output
-
-            user.save()  # Save the user to the database
-            print(
-                f"User {user.username} created with user_type {user.user_type}"
-            )  # Debugging output
-
-            # Redirect based on user_type
-            if user.user_type == "author":
-                return redirect("author_dashboard")
-            elif user.user_type == "reader":
-                return redirect("reader_dashboard")
-        return render(request, "signup.html", {"form": form})
 
 
 @method_decorator(login_required, name="dispatch")
