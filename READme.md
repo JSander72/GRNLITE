@@ -2,6 +2,66 @@
 
 GRNLITE is a comprehensive web application that connects authors with beta readers, streamlining the manuscript feedback process. Built with Django and deployed on Render, it provides a professional platform for manuscript review and collaboration.
 
+## 🚀 Quick Start (Development)
+
+### **Prerequisites**
+- Python 3.8+
+- Node.js 14+
+- PostgreSQL 12+
+
+### **Development Setup**
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/GRNLITE.git
+cd GRNLITE
+
+# Setup development environment
+./dev.sh setup
+
+# Start all services
+./dev.sh start
+```
+
+**Alternative setup:**
+```bash
+# Install dependencies
+npm run install-deps
+
+# Copy environment configuration
+cp .env.example .env
+# Edit .env with your settings
+
+# Run migrations
+python manage.py migrate
+
+# Start Django (port 8000)
+npm run dev:django
+
+# Start Express API (port 3000) - in another terminal
+npm run dev:express
+```
+
+### **Development URLs**
+- Django Application: http://localhost:8000
+- Express API: http://localhost:3000
+- Admin Panel: http://localhost:8000/admin
+
+### **Available Scripts**
+- `npm run dev:all` - Start both Django and Express servers
+- `npm run dev:django` - Start Django development server only
+- `npm run dev:express` - Start Express API server only
+- `npm run setup` - Complete development environment setup
+- `npm run status` - Check service status
+- `npm run stop` - Stop all development services
+
+### **Environment Variables**
+Key environment variables for development (see `.env.example`):
+- `NODE_ENV=development` - Disables keep-alive service
+- `DEBUG=true` - Enables Django debug mode
+- `JWT_SECRET` & `JWT_REFRESH_SECRET` - Required for authentication
+- `DATABASE_URL` - PostgreSQL connection string
+
 ## Application Architecture
 
 ### **Backend Components**
@@ -189,6 +249,48 @@ DEBUG=False
 DJANGO_ALLOWED_HOSTS=your-domain.onrender.com
 DATABASE_URL=postgresql://...  # Provided by Render
 ```
+
+## 🚀 Production Deployment (Render.com)
+
+### **Prerequisites**
+Before deploying to Render, you **MUST** set these environment variables in your Render dashboard:
+
+```bash
+# Generate these secrets (required for production)
+JWT_SECRET=<generated-secret>
+JWT_REFRESH_SECRET=<generated-secret>
+DJANGO_SECRET_KEY=<generated-secret>
+```
+
+### **Generate Secure Secrets**
+```bash
+# Generate JWT secrets
+openssl rand -base64 32
+openssl rand -base64 32
+
+# Generate Django secret key
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+### **Deployment Steps**
+1. Set environment variables in Render dashboard
+2. Push code to GitHub
+3. Render auto-deploys from `render.yaml`
+
+**📖 See [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md) for detailed deployment instructions.**
+
+### **Production URLs**
+- **Main App**: https://grnlite.onrender.com
+- **Keep-Alive Service**: Runs automatically to prevent app sleep
+
+### **Production vs Development**
+| Feature | Development | Production |
+|---------|-------------|------------|
+| JWT Secrets | Optional (defaults) | **Required** |
+| Django Secret | Optional (default) | **Required** |
+| Keep-Alive | Disabled | Enabled |
+| Debug Mode | Enabled | Disabled |
+| Database | Local PostgreSQL | Render PostgreSQL |
 
 ## Project Structure
 

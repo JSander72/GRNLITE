@@ -16,7 +16,15 @@ load_dotenv(BASE_DIR / ".env")
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
-    raise ValueError("DJANGO_SECRET_KEY environment variable must be set")
+    if os.getenv("NODE_ENV") == "production" or os.getenv("RENDER_EXTERNAL_URL"):
+        raise ValueError(
+            "DJANGO_SECRET_KEY environment variable must be set in production"
+        )
+    else:
+        SECRET_KEY = "dev-secret-key-change-in-production-this-is-not-secure"
+        print(
+            "⚠️  Warning: Using default Django secret key for development. Set DJANGO_SECRET_KEY for production"
+        )
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"

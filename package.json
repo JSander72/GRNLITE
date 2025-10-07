@@ -5,9 +5,15 @@
   "scripts": {
     "build": "browserify src/index.js -o static/js/bundle.js --debug",
     "start": "node server.js",
-    "dev": "node server.js",
+    "dev": "NODE_ENV=development node server.js",
+    "dev:django": "python manage.py runserver 8000",
+    "dev:express": "NODE_ENV=development PORT=3000 node server.js",
+    "dev:all": "./dev.sh start",
     "keep-alive": "node standalone-keepalive.js",
-    "install-deps": "npm install"
+    "install-deps": "npm install && pip install -r requirements.txt",
+    "setup": "./dev.sh setup",
+    "stop": "./dev.sh stop",
+    "status": "./dev.sh status"
   },
   "keywords": [],
   "author": "",

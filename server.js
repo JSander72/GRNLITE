@@ -1,4 +1,5 @@
 // filepath: /path/to/your/server.js
+require('dotenv').config();
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
@@ -6,13 +7,23 @@ const cookieParser = require('cookie-parser');
 const keepAliveService = require('./keepAlive');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-const JWT_SECRET = 'YOUR_JWT_SECRET';
-const JWT_REFRESH_SECRET = 'YOUR_JWT_REFRESH_SECRET';
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'development' ? 'dev-jwt-secret-change-in-production' : null);
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || (process.env.NODE_ENV === 'development' ? 'dev-refresh-secret-change-in-production' : null);
+
+// Validate required environment variables
+if (!JWT_SECRET || !JWT_REFRESH_SECRET) {
+    if (process.env.NODE_ENV === 'production') {
+        console.error('❌ Error: JWT_SECRET and JWT_REFRESH_SECRET environment variables must be set in production');
+        process.exit(1);
+    } else {
+        console.warn('⚠️  Warning: Using default JWT secrets for development. Set JWT_SECRET and JWT_REFRESH_SECRET for production');
+    }
+}
 
 // In-memory storage for CSRF tokens (use a database in production)
 const csrfTokens = {};
@@ -117,7 +128,9 @@ app.get('/api/keep-alive-status', (req, res) => {
 app.use('/api', router);
 
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    const environment = process.env.NODE_ENV || 'development';
+    console.log(`🚀 Server running at http://localhost:${port}`);
+    console.log(`🔧 Environment: ${environment}`);
     
     // Start the keep-alive service only in production
     if (process.env.NODE_ENV === 'production' || process.env.RENDER_EXTERNAL_URL) {
@@ -125,6 +138,7 @@ app.listen(port, () => {
         keepAliveService.start();
     } else {
         console.log('⚠️  Keep-alive service disabled in development mode');
-        console.log('   Set NODE_ENV=production or RENDER_EXTERNAL_URL to enable');
+        console.log('   To enable for testing: set NODE_ENV=production');
+        console.log('   For local development, this service is not needed');
     }
 });
