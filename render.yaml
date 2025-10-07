@@ -37,7 +37,7 @@ services:
   - key: DJANGO_SECRET_KEY
     sync: false
   region: ohio
-  buildCommand: pip install -r requirements.txt && npm install
+  buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && npm install
   startCommand: gunicorn grnlite.wsgi:application --bind 0.0.0.0:4000
 
 - type: web

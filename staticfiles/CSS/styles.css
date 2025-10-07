@@ -1,8 +1,8 @@
 /* Centralized Styles */
 @font-face {
 	font-family: "PlaywriteDEGrundThin";
-	src: url("{% static 'Front_End/Font/PlaywriteDEGrundThin.woff2' %}")
-		format("woff2");
+	src: url("../Front_End/Font/PlaywriteDEGrund-VariableFont_wght.ttf")
+		format("truetype");
 	/* font-weight: normal;
     font-style: normal; */
 }

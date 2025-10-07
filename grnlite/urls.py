@@ -8,8 +8,7 @@ urlpatterns = [
     path("", include("my_app.urls")),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(
-        settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0]
-    )
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve static files in both development and production
+# In production, you should ideally use a web server like nginx, but this works for Django apps on platforms like Render
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
