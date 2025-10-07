@@ -89,8 +89,11 @@ app.get('/retrieve-csrf-token/:token', (req, res) => {
 });
 
 const router = express.Router();
-const Token = require('../models/Token'); // Assuming you have a Token model
+// TODO: Implement Token model if needed for token verification
+// const Token = require('../models/Token'); // Assuming you have a Token model
 
+// Commented out until Token model is implemented
+/*
 router.get('/verify-token', async (req, res) => {
     const token = req.query.token;
     try {
@@ -104,6 +107,7 @@ router.get('/verify-token', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+*/
 
 // Health check endpoint for keep-alive service
 app.get('/api/health-check', (req, res) => {
